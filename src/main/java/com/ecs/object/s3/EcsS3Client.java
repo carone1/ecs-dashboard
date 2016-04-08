@@ -1,7 +1,11 @@
 package com.ecs.object.s3;
 
+import java.util.List;
+
 import com.emc.object.Protocol;
 import com.emc.object.s3.S3Config;
+import com.emc.object.s3.bean.Bucket;
+import com.emc.object.s3.bean.ListBucketsResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
 import com.emc.rest.smart.ecs.Vdc;
 
@@ -55,10 +59,11 @@ public class EcsS3Client {
 		
 		if(!ecsHost.isEmpty()) {
 			Vdc plymouthLab = new Vdc(ecsHost).withName("PlymouthLab");		
-			S3Config s3config = new S3Config(Protocol.HTTPS, plymouthLab);
+			S3Config s3config = new S3Config(Protocol.HTTP, plymouthLab);
 			
 			// in all cases, you need to provide your credentials
-			s3config.withIdentity("eric-caron").withSecretKey("my_secret_key");
+			s3config.withIdentity("eric-caron-admin").withSecretKey("Nord99sud");
+			//withSecretKey("n4tGqMYn67Jk3dkJmZ9+j6rEEJL0G6TJDYi/C5fr");
 			
 			s3JerseyClient = new S3JerseyClient(s3config);
 		} else {
@@ -75,11 +80,16 @@ public class EcsS3Client {
 	}
 	
 	private static void listBuckets() {
-		
-	    				
-		
+			    						
 		// List all buckets 
-		s3JerseyClient.listBuckets();
+		ListBucketsResult bucketResult = s3JerseyClient.listBuckets();
+		
+		if( bucketResult != null ) {
+			List<Bucket> bucketList = bucketResult.getBuckets();
+			for( Bucket buck : bucketList ) {
+				System.out.println("Found bucket: " + buck.getName());
+			}
+		}
 	}
 	
 	
