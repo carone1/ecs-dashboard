@@ -63,6 +63,7 @@ public class ExampleS3Client {
 			// in all cases, you need to provide your credentials
 			s3config.withIdentity("eric-caron").withSecretKey("n4tGqMYn67Jk3dkJmZ9+j6rEEJL0G6TJDYi/C5fr");
 			
+			
 			s3JerseyClient = new S3JerseyClient(s3config);
 		} else {
 			System.err.println("Invalid ECS hostname: `" + ecsHost + "`" );
