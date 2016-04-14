@@ -1,5 +1,6 @@
 package com.emc.ecs.management.entity;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,15 +10,25 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 
 
-@XmlRootElement(name = "ListNamespacesResult")
+@XmlRootElement(name = "Namespaces")
 public class ListNamespacesResult {
 
+	private URI uri;
 	private List<Namespace> namespaces = new ArrayList<Namespace>();
 	private Integer maxNamespaces;	
 	private String nextMarker;
 	private String filter;
 	private String nextPageLink; 
 
+	@XmlElement(name = "Uri")
+	public URI getUri() {
+		return uri;
+	}
+
+	public void setURI(URI uri) {
+		this.uri = uri;
+	}
+	
 	@XmlElement(name = "MaxBuckets")
 	public Integer getMaxBuckets() {
 		return maxNamespaces;
@@ -55,7 +66,7 @@ public class ListNamespacesResult {
 	}
 
 
-	@XmlElementWrapper(name = "Namespacess")
+	@XmlElementWrapper(name = "Namespaces")
 	@XmlElement(name = "Namespace")
 	public List<Namespace> getNamespaces() {
 		return namespaces;

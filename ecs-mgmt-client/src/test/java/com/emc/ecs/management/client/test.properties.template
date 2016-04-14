@@ -1,0 +1,20 @@
+###
+### Template file for test configuration parameters.
+### Copy to "test.properties" and configure for your environment.
+###
+
+
+  ## Your Management Access Key
+  management.access_key=<username>
+
+  ## Your Management Secret Key
+  management.secret_key=<secretkey>
+
+  ## Your ECS host or ip
+  management.hosts=<host>,<host2>
+
+  ## Your management port
+  manegement.port=<port#>
+
+
+

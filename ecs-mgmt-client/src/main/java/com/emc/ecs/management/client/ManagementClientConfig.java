@@ -27,6 +27,7 @@
 
 package com.emc.ecs.management.client;
 
+import java.util.List;
 
 public class ManagementClientConfig {
 	
@@ -35,7 +36,7 @@ public class ManagementClientConfig {
 	//===================================
 	// Private members
 	//===================================
-	private String[] hostList;
+	private List<String> hostList;
 	private int port;
 	private String username;
 
@@ -45,14 +46,14 @@ public class ManagementClientConfig {
 	//===================================
 	// Constructor
 	//===================================
-	public ManagementClientConfig(String username, String secretKey, int port, String ... hosts) {
+	public ManagementClientConfig(String username, String secretKey, int port, List<String> hosts) {
 		this.username = username;
 		this.secretKey = secretKey;
 		this.port = port;
 		this.hostList = hosts;
 	}
 	
-	public ManagementClientConfig(String username, String secretKey, String ... hosts) {
+	public ManagementClientConfig(String username, String secretKey, List<String> hosts) {
 		this.username = username;
 		this.secretKey = secretKey;
 		this.port = DEFAULT_PORT;
@@ -62,11 +63,11 @@ public class ManagementClientConfig {
 	//===================================
 	// Constructor
 	//===================================
-	public String[] getHostList() {
+	public List<String> getHostList() {
 		return hostList;
 	}
 
-	public void setHostList(String[] hostList) {
+	public void setHostList(List<String> hostList) {
 		this.hostList = hostList;
 	}
 

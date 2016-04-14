@@ -29,29 +29,22 @@ package com.emc.ecs.management.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.Arrays;
+import java.util.List;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.StatusType;
 
-import org.apache.http.impl.client.HttpAuthenticator;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
+
 
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.rest.smart.LoadBalancer;
 import com.emc.rest.smart.SmartClientFactory;
 import com.emc.rest.smart.SmartConfig;
 import com.emc.rest.smart.ecs.EcsHostListProvider;
-import com.emc.rest.smart.ecs.PingResponse;
 import com.emc.rest.smart.ecs.Vdc;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
@@ -59,9 +52,10 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 public class ManagementClient {
 
-	private static final String X_SDS_AUTH_TOKEN     = "X_SDS_AUTH_TOKEN";
-	private static final String REST_LOGIN           = "login";
-	private static final String REST_LOGOUT          = "logout";
+	
+	private static final String X_SDS_AUTH_TOKEN     = "X-SDS-AUTH-TOKEN";
+	private static final String REST_LOGIN           = "/login";
+	private static final String REST_LOGOUT          = "/logout";
 	private static final String REST_LIST_NAMESPACES = "/object/namespaces";
 	
 	//================================
@@ -78,7 +72,7 @@ public class ManagementClient {
 	public ManagementClient(ManagementClientConfig mgmtConfig){
 		this.mgmtConfig = mgmtConfig;
 		try {
-			this.uri = new URI("https://" + this.mgmtConfig.getHostList()[0] + ":" + this.mgmtConfig.getPort());
+			this.uri = new URI("https://" + this.mgmtConfig.getHostList().get(0) + ":" + this.mgmtConfig.getPort());
 		} catch (URISyntaxException e) {
 			// TODO add error log
 			e.printStackTrace();
@@ -94,13 +88,18 @@ public class ManagementClient {
 	//================================
 	public ListNamespacesResult listNamespaces() {
 		
+		System.out.println("list namespaces");
 		String authToken = getAuthToken();
+		
+		System.out.println(authToken);
+		
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
 
 		// logout
-		WebResource logoutResource = mgmtResource.path(REST_LIST_NAMESPACES);
-
-		ListNamespacesResult logoutResponse = logoutResource.header(X_SDS_AUTH_TOKEN, authToken)
+		WebResource listNamespacesResource = mgmtResource.path(REST_LIST_NAMESPACES);
+		
+		
+		ListNamespacesResult logoutResponse = listNamespacesResource.header(X_SDS_AUTH_TOKEN, authToken)
 				.get(ListNamespacesResult.class);
 		
 		// release the auth token
@@ -113,6 +112,13 @@ public class ManagementClient {
 	public void listBuckets() {
 		
 	}
+	
+    public void shutdown() {
+    	if( this.mgmtClient != null) {
+    		SmartClientFactory.destroy(this.mgmtClient);
+    	}
+    }
+	
 	
 	//================================
 	// Private Methods
@@ -130,7 +136,7 @@ public class ManagementClient {
 	 * returned authentication token is stored internally
 	 * @throws URISyntaxException 
 	 */
-	private void login() {
+	protected void login() {
 		
 		WebResource mgmtResource = this.mgmtClient.resource(this.uri);
 		
@@ -139,11 +145,24 @@ public class ManagementClient {
 		loginResource.addFilter(new HTTPBasicAuthFilter(this.mgmtConfig.getUsername(), this.mgmtConfig.getSecretKey()));
 		ClientResponse loginResponse = loginResource.get(ClientResponse.class);
       
-        //System.out.println(loginResponse.toString());
-      
-		String authToken = loginResponse.getHeaders().getFirst(X_SDS_AUTH_TOKEN);
+        System.out.println(loginResponse.toString());
+        
+        // Check for sucsess
+        int statusCode = loginResponse.getStatusInfo().getStatusCode();
+        if( statusCode != Status.OK.getStatusCode() ) {
+        	String errorMessage = "Login to " + this.uri + REST_LOGIN + " failed" + " Server returned: " + statusCode;
+        	throw new RuntimeException(errorMessage);
+        }
+        	        
+        String authToken = loginResponse.getHeaders().getFirst(X_SDS_AUTH_TOKEN);
+				
 		if(authToken != null) {
 			this.mgmtAuthToken = authToken;
+			System.out.println("authToken: " + authToken);
+		} else {
+			String errorMessage = "Login to " + this.uri + " ok but Server did not return  " + X_SDS_AUTH_TOKEN + 
+					              "in response header";
+        	throw new RuntimeException(errorMessage);
 		}
 	}
 	
@@ -152,23 +171,23 @@ public class ManagementClient {
 	 * returned authentication token is stored internally
 	 * @throws URISyntaxException 
 	 */
-	private void logout() {
+	protected void logout() {
 		
 		if(this.mgmtAuthToken != null) {
 			WebResource mgmtResource = this.mgmtClient.resource(uri);
 
 			// logout
-			WebResource logoutResource = mgmtResource.path(REST_LOGIN);
+			WebResource logoutResource = mgmtResource.path(REST_LOGOUT);
 
 			ClientResponse logoutResponse = logoutResource.header(X_SDS_AUTH_TOKEN, this.mgmtAuthToken)
 					.get(ClientResponse.class);
-			
-			StatusType logoutStatus = logoutResponse.getStatusInfo();
-			
-			// check status of logout
-			if( logoutStatus.getStatusCode() != 200 ) {
-				
-			}
+														
+		    // Check for sucsess
+	        int statusCode = logoutResponse.getStatusInfo().getStatusCode();
+	        if( statusCode != Status.OK.getStatusCode() ) {
+	        	String errorMessage = "Login to " + this.uri + REST_LOGOUT + " failed" + " Server returned: " + statusCode;
+	        	throw new RuntimeException(errorMessage);
+	        }
 			
 			this.mgmtAuthToken = null;
 		}
@@ -184,9 +203,10 @@ public class ManagementClient {
 	 * @param ipAddresses
 	 * @return Client
 	 */
-	private static Client createMgmtClient(String userName, String secretKey, int port, String... ipAddresses ) {
+	private static Client createMgmtClient(String userName, String secretKey, int port, List<String> ipAddresses ) {
 		
-	    SmartConfig smartConfig = new SmartConfig(ipAddresses);
+		String[] ips = (String[])ipAddresses.toArray();
+	    SmartConfig smartConfig = new SmartConfig(ips);
 	    
 	    
 	    LoadBalancer loadBalancer = smartConfig.getLoadBalancer();
@@ -200,7 +220,7 @@ public class ManagementClient {
 
 	    hostListProvider.setProtocol("https");
 	    hostListProvider.setPort(port);
-	    hostListProvider.withVdcs(new Vdc(ipAddresses));
+	    hostListProvider.withVdcs(new Vdc(ips));
 
 	    smartConfig.setHostListProvider(hostListProvider);
 
@@ -208,51 +228,51 @@ public class ManagementClient {
 	}
 	
 	
-//	public static void main(String[] args) throws Exception {
-//				
-//		
-//		String adminUsername = "eric-caron-admin";
-//		String adminPassword = "Nord99sud";
-//		
-//		//String host = "10.1.83.51";
-//		String host = "localhost";
-//		
-//		// create smart client
-//		Client mgmtClient = createMgmtClient(adminUsername, adminPassword, 4443, host);				
-//		
-//		// uri
-//        WebResource mgmtResource = mgmtClient.resource(new URI("https://" + host + ":4443"));
-//        
-//        // login
-//        WebResource loginResource = mgmtResource.path("/login");
-//        loginResource.addFilter(new HTTPBasicAuthFilter(adminUsername, adminPassword));
-//        ClientResponse loginResponse = loginResource.get(ClientResponse.class);
-//        
-//        System.out.println(loginResponse.toString());
-//        
-//        String authToken = loginResponse.getHeaders().getFirst("X-SDS-AUTH-TOKEN");
-//
-//        System.out.println("auth-token: `" + authToken + "`");
-//        
-//        // Other XMl requests
-//        //MyObject myObject = mgmtResource.path("/foo/bar").get(MyObject.class);
-//                
-//        
-//       // Object namespacesResponse = mgmtResource.path("/object/namespaces")
-//       // 		.header("X-SDS-AUTH-TOKEN", authToken)
-//       // 		.get(Object.class);
-//        
-//
-//       // System.out.println(namespacesResponse.toString() );	
-//        
-//        
-//        // logout
-//        WebResource logoutResource = mgmtResource.path("/logout");
-//        //loginResource.addFilter(new HTTPBasicAuthFilter(adminUsername, adminPassword));
-//        ClientResponse logoutResponse = logoutResource.header("X-SDS-AUTH-TOKEN", authToken).get(ClientResponse.class);
-//        
-//        System.out.println(logoutResponse.toString()); 
-//	}	
+	public static void main(String[] args) throws Exception {
+				
+		
+		String adminUsername = "eric-caron-admin";
+		String adminPassword = "Nord99sud";
+		
+		//String host = "10.1.83.51";
+		String host = "localhost";
+		
+		// create smart client
+		Client mgmtClient = createMgmtClient(adminUsername, adminPassword, 4443, Arrays.asList(host));				
+		
+		// uri
+        WebResource mgmtResource = mgmtClient.resource(new URI("https://" + host + ":4443"));
+        
+        // login
+        WebResource loginResource = mgmtResource.path("/login");
+        loginResource.addFilter(new HTTPBasicAuthFilter(adminUsername, adminPassword));
+        ClientResponse loginResponse = loginResource.get(ClientResponse.class);
+        
+        System.out.println(loginResponse.toString());
+        
+        String authToken = loginResponse.getHeaders().getFirst("X-SDS-AUTH-TOKEN");
+
+        System.out.println("auth-token: `" + authToken + "`");
+        
+        // Other XMl requests
+        //MyObject myObject = mgmtResource.path("/foo/bar").get(MyObject.class);
+                
+        
+       // Object namespacesResponse = mgmtResource.path("/object/namespaces")
+       // 		.header("X-SDS-AUTH-TOKEN", authToken)
+       // 		.get(Object.class);
+        
+
+       // System.out.println(namespacesResponse.toString() );	
+        
+        
+        // logout
+        WebResource logoutResource = mgmtResource.path("/logout");
+        //loginResource.addFilter(new HTTPBasicAuthFilter(adminUsername, adminPassword));
+        ClientResponse logoutResponse = logoutResource.header("X-SDS-AUTH-TOKEN", authToken).get(ClientResponse.class);
+        
+        System.out.println(logoutResponse.toString()); 
+	}	
 
 	
 
