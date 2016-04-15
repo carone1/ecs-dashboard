@@ -32,11 +32,9 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.ws.rs.core.Response.StatusType;
-
-
 
 import com.emc.ecs.management.entity.ListNamespacesResult;
+import com.emc.ecs.management.entity.UserSecretKeys;
 import com.emc.rest.smart.LoadBalancer;
 import com.emc.rest.smart.SmartClientFactory;
 import com.emc.rest.smart.SmartConfig;
@@ -57,6 +55,9 @@ public class ManagementClient {
 	private static final String REST_LOGIN           = "/login";
 	private static final String REST_LOGOUT          = "/logout";
 	private static final String REST_LIST_NAMESPACES = "/object/namespaces";
+	private static final String REST_GET_KEYS_FOR_USERS = "/object/user-secret-keys/";
+	private static final String REST_BILLING_NAMESPACES_FIRST = "/object/billing/namespace/";
+	private static final String REST_BILLING_NAMESPACES_SECOND = "/info?include_bucket_detail=true";
 	
 	//================================
 	// Private Members
@@ -110,6 +111,31 @@ public class ManagementClient {
 	}
 	
 	public void listBuckets() {
+		
+	}
+	
+	public UserSecretKeys getUserSecretKeys(String uid, String namespace) {
+		
+		System.out.println("list namespaces");
+		String authToken = getAuthToken();
+		
+		System.out.println(authToken);
+		
+		WebResource mgmtResource = this.mgmtClient.resource(uri);
+
+		String restPath = REST_GET_KEYS_FOR_USERS + uid + "/" + namespace;
+		// get keys for user
+		WebResource listNamespacesResource = mgmtResource.path(restPath);
+		
+		
+		UserSecretKeys userSecretKeys = listNamespacesResource.header(X_SDS_AUTH_TOKEN, authToken)
+				.get(UserSecretKeys.class);
+		
+		// release the auth token
+		logout();
+		
+		return userSecretKeys;
+		
 		
 	}
 	

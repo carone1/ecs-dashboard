@@ -10,6 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.emc.ecs.management.entity.ListNamespacesResult;
+import com.emc.ecs.management.entity.Namespace;
+import com.emc.ecs.management.entity.UserSecretKeys;
 
 
 public class ManagementClientTest {
@@ -34,10 +36,24 @@ public class ManagementClientTest {
     	        	
     	ListNamespacesResult namespacesReponse = client.listNamespaces();
         Assert.assertNotNull(namespacesReponse.getNamespaces());
-        System.out.println(namespacesReponse.getNamespaces().toString());
+        for( Namespace namespace : namespacesReponse.getNamespaces() ) {
+        	System.out.println("namespace: " + namespace.getName());
+        }
         
     }
 	
+    
+    
+    
+    @Test
+    public void testGetUserKeys() throws Exception {
+    	        	
+    	UserSecretKeys userSecretKeys = client.getUserSecretKeys("eric-caron", "eric-caron");
+        Assert.assertNotNull(userSecretKeys);
+        System.out.println("SecretKey1: " + userSecretKeys.getSecretKey1());
+        System.out.println("SecretTimestamp: " + userSecretKeys.getKeyTimestamp1());
+        
+    }
 	
 	private ManagementClientConfig createMgmtConfig() throws Exception {
 		Properties props = TestConfig.getProperties("test", true);

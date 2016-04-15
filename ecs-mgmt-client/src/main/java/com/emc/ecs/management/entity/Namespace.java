@@ -2,16 +2,17 @@ package com.emc.ecs.management.entity;
 
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-
-@XmlType(propOrder = {"id", "link", "name"})
+@XmlRootElement(name = "namespace")
+@XmlType(propOrder = {"name","id", "link"})
 public class Namespace {
 	private String id;
 	private String link;
     private String name;
     
-    @XmlElement(name = "Id")
+    @XmlElement(name = "id")
     public String getId() {
         return id;
     }
@@ -20,7 +21,7 @@ public class Namespace {
         this.id = id;
     } 
      
-    @XmlElement(name = "Link")
+    @XmlElement(name = "link")
     public String getLink() {
         return link;
     }
@@ -29,7 +30,7 @@ public class Namespace {
         this.link = link;
     } 
     
-    @XmlElement(name = "Name")
+    @XmlElement(name = "name")
     public String getName() {
         return name;
     }
