@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.Namespace;
+import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.UserSecretKeys;
 
 
@@ -40,21 +41,34 @@ public class ManagementClientTest {
         	System.out.println("namespace: " + namespace.getName());
         }
         
-    }
+    }	  
+    
+//    @Test
+//    public void testGetUserKeys() throws Exception {
+//    	        	
+//    	UserSecretKeys userSecretKeys = client.getUserSecretKeys("eric-caron", "eric-caron");
+//        Assert.assertNotNull(userSecretKeys);
+//        System.out.println("Get user secret key");
+//        System.out.println("SecretKey1: " + userSecretKeys.getSecretKey1());
+//        System.out.println("SecretTimestamp: " + userSecretKeys.getKeyTimestamp1());
+//        
+//    }
 	
+//    @Test
+//    public void namespaceBillingInfo() throws Exception {
+//      	ListNamespacesResult namespacesReponse = client.listNamespaces();
+//        Assert.assertNotNull(namespacesReponse.getNamespaces());
+//        for( Namespace namespace : namespacesReponse.getNamespaces() ) {
+//        	System.out.println("namespace: " + namespace.getName());
+//        	
+//        	NamespaceBillingInfo namespaceBillingInfo = client.getNamespaceBillingInfo(namespace.getName(), null);
+//        	Assert.assertNotNull(namespaceBillingInfo);
+//        	System.out.println("Namespace: " + namespaceBillingInfo.getNamespace());
+//        	System.out.println("Number of objects: " + namespaceBillingInfo.getTotalObjects());
+//        }
+//    }
     
     
-    
-    @Test
-    public void testGetUserKeys() throws Exception {
-    	        	
-    	UserSecretKeys userSecretKeys = client.getUserSecretKeys("eric-caron", "eric-caron");
-        Assert.assertNotNull(userSecretKeys);
-        System.out.println("SecretKey1: " + userSecretKeys.getSecretKey1());
-        System.out.println("SecretTimestamp: " + userSecretKeys.getKeyTimestamp1());
-        
-    }
-	
 	private ManagementClientConfig createMgmtConfig() throws Exception {
 		Properties props = TestConfig.getProperties("test", true);
 

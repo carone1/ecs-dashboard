@@ -17,7 +17,7 @@ public class NamespaceBillingInfo {
 	private List<BucketBillingInfo> bucketBillingInfo = new ArrayList<BucketBillingInfo>();
 	private String                  nextMarker;
 	private Long                    totalSize;
-	private String                  totalUnitSize;
+	private String                  totalSizeUnit;
 	private Long 					totalObjects;
 	private String 					namespace;
 	private String					sampleTime;
@@ -47,11 +47,11 @@ public class NamespaceBillingInfo {
 	}
 
 	@XmlElement(name = "total_size_unit")
-	public String getTotalUnitSize() {
-		return totalUnitSize;
+	public String getTotalSizeUnit() {
+		return totalSizeUnit;
 	}
-	public void setTotalUnitSize(String totalUnitSize) {
-		this.totalUnitSize = totalUnitSize;
+	public void setTotalSizeUnit(String totalUnitSize) {
+		this.totalSizeUnit = totalSizeUnit;
 	}
 	
 	@XmlElement(name = "total_objects")
