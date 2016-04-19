@@ -2,6 +2,7 @@ package com.emc.ecs.management.entity;
 
 import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -76,7 +77,8 @@ public class BucketBillingInfo {
 		this.sampleTime = sampleTime;
 	}
 	
-	@XmlElement(name = "TagSet")
+	@XmlElementWrapper(name = "TagSet")
+	@XmlElement(name = "Tag")
 	public List<Tag> getTagSet() {
 		return tagSet;
 	}

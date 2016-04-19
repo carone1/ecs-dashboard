@@ -32,17 +32,17 @@ public class ManagementClientTest {
         if (client != null) client.shutdown();
     }
     
-    @Test
-    public void testListNamespaces() throws Exception {
-    	        	
-    	ListNamespacesResult namespacesReponse = client.listNamespaces();
-        Assert.assertNotNull(namespacesReponse.getNamespaces());
-        for( Namespace namespace : namespacesReponse.getNamespaces() ) {
-        	System.out.println("namespace: " + namespace.getName());
-        }
-        
-    }	  
-    
+//    @Test
+//    public void testListNamespaces() throws Exception {
+//    	        	
+//    	ListNamespacesResult namespacesReponse = client.listNamespaces();
+//        Assert.assertNotNull(namespacesReponse.getNamespaces());
+//        for( Namespace namespace : namespacesReponse.getNamespaces() ) {
+//        	System.out.println("namespace: " + namespace.getName());
+//        }
+//        
+//    }	  
+//    
 //    @Test
 //    public void testGetUserKeys() throws Exception {
 //    	        	
@@ -54,19 +54,20 @@ public class ManagementClientTest {
 //        
 //    }
 	
-//    @Test
-//    public void namespaceBillingInfo() throws Exception {
-//      	ListNamespacesResult namespacesReponse = client.listNamespaces();
-//        Assert.assertNotNull(namespacesReponse.getNamespaces());
-//        for( Namespace namespace : namespacesReponse.getNamespaces() ) {
-//        	System.out.println("namespace: " + namespace.getName());
-//        	
-//        	NamespaceBillingInfo namespaceBillingInfo = client.getNamespaceBillingInfo(namespace.getName(), null);
-//        	Assert.assertNotNull(namespaceBillingInfo);
-//        	System.out.println("Namespace: " + namespaceBillingInfo.getNamespace());
-//        	System.out.println("Number of objects: " + namespaceBillingInfo.getTotalObjects());
-//        }
-//    }
+    @Test
+    public void namespaceBillingInfo() throws Exception {
+      	ListNamespacesResult namespacesReponse = client.listNamespaces();
+        Assert.assertNotNull(namespacesReponse.getNamespaces());
+        for( Namespace namespace : namespacesReponse.getNamespaces() ) {
+        	    		
+        	System.out.println("namespace: " + namespace.getName());
+        	
+        	NamespaceBillingInfo namespaceBillingInfo = client.getNamespaceBillingInfo(namespace.getName(), null);
+        	Assert.assertNotNull(namespaceBillingInfo);
+        	System.out.println("Namespace: " + namespaceBillingInfo.getNamespace());
+        	System.out.println("Number of objects: " + namespaceBillingInfo.getTotalObjects());
+        }
+    }
     
     
 	private ManagementClientConfig createMgmtConfig() throws Exception {

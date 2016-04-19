@@ -50,7 +50,7 @@ public class NamespaceBillingInfo {
 	public String getTotalSizeUnit() {
 		return totalSizeUnit;
 	}
-	public void setTotalSizeUnit(String totalUnitSize) {
+	public void setTotalSizeUnit(String totalSizeUnit) {
 		this.totalSizeUnit = totalSizeUnit;
 	}
 	

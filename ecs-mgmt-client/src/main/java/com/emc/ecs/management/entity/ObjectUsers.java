@@ -58,7 +58,6 @@ public class ObjectUsers {
 		this.nextPathLink = nextPathLink;
 	}	
 	
-
 }
 
 

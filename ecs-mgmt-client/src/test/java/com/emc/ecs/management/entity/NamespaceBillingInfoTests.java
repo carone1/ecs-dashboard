@@ -22,28 +22,28 @@ public class NamespaceBillingInfoTests {
     	
      	String expectedOutput = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" + 
      							"<namespace_billing_info>" +
-     							"<bucket_billing_info>" +
-     							"<name>name</name>" +
-     							"<namespace>namespace</namespace>" +
-     							"<vpool_id>vpoolId</vpool_id>" +
-     							"<total_size>1000</total_size>" +
-     							"<total_size_unit>GB</total_size_unit>" +
-     							"<total_objects>100</total_objects>" +
-     							"<sample_time>sampleTime</sample_time>" +
-     							"<TagSet>" +
-     							"<Key>key</Key>" +
-     							"<Value>value</Value>" +
-     							"</TagSet>" +
-     							"</bucket_billing_info>" +
+     								"<bucket_billing_info>" +
+     									"<name>name</name>" +
+     									"<namespace>namespace</namespace>" +
+     									"<vpool_id>vpoolId</vpool_id>" +
+     									"<total_size>1000</total_size>" +
+     									"<total_size_unit>GB</total_size_unit>" +
+     									"<total_objects>100</total_objects>" +
+     									"<sample_time>sampleTime</sample_time>" +
+     									"<TagSet>" +
+     										"<Tag>" +
+     											"<Key>key</Key>" +
+     											"<Value>value</Value>" +
+     										"</Tag>" +
+     									"</TagSet>" +
+     									"</bucket_billing_info>" +
      							"<next_marker>nextMarker</next_marker>" +
      							"<total_size>1</total_size>" +
+     							"<total_size_unit>GB</total_size_unit>" +
      							"<total_objects>1</total_objects>" +
      							"<namespace>namespace</namespace>" +
      							"<sample_time>sampleTime</sample_time>" +
-     							"</namespace_billing_info>";
-
-
-  
+     							"</namespace_billing_info>";  
  
      	
      	// bucket billing info

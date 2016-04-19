@@ -59,8 +59,8 @@ public class ManagementClient {
 	private static final String REST_GET_KEYS_FOR_USERS = "/object/user-secret-keys/";
 	private static final String REST_BILLING_NAMESPACES_FIRST = "/object/billing/namespace/";
 	private static final String REST_BILLING_NAMESPACES_SECOND = "/info";
-	private static final String REST_BILLING_NAMESAPCES_BUCKET_INCLUDED = "?include_bucket_detail=true";
-	private static final String REST_MARKER = "?marker=";
+	private static final String REST_BILLING_NAMESAPCES_BUCKET_INCLUDED = "include_bucket_detail"; 
+	private static final String REST_MARKER = "marker";
 	
 	//================================
 	// Private Members
@@ -114,8 +114,7 @@ public class ManagementClient {
 	}
 	
 	public NamespaceBillingInfo getNamespaceBillingInfo(String namespace, String marker) {
-		
-		
+				
 		String authToken = getAuthToken();
 						
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
@@ -123,17 +122,18 @@ public class ManagementClient {
 		StringBuilder restStr = new StringBuilder();
 		restStr.append(REST_BILLING_NAMESPACES_FIRST)
 				.append(namespace)
-				.append(REST_BILLING_NAMESPACES_SECOND)
-				.append(REST_BILLING_NAMESAPCES_BUCKET_INCLUDED);
+				.append(REST_BILLING_NAMESPACES_SECOND);
+										
+		System.out.println("getNamespaceBillingResource: " + restStr.toString());
+		
+		// get billing namespace Billing ressource
+		WebResource getNamespaceBillingResource = mgmtResource.path(restStr.toString());
+				
+		mgmtResource.queryParam(REST_BILLING_NAMESAPCES_BUCKET_INCLUDED, "true");
 		
 		if(marker != null) {
-			restStr.append(REST_MARKER)
-					.append(marker);			
+			mgmtResource.queryParam(REST_MARKER, marker);			
 		}
-		
-		// list namespaces
-		WebResource getNamespaceBillingResource = mgmtResource.path(restStr.toString());
-		
 		
 		NamespaceBillingInfo namespaceBillingResponse = getNamespaceBillingResource.header(X_SDS_AUTH_TOKEN, authToken)
 				.get(NamespaceBillingInfo.class);

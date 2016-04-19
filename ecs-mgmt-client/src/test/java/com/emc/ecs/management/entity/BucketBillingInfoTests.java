@@ -22,20 +22,20 @@ public class BucketBillingInfoTests {
     	
      	String expectedOutput = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +     			
      			"<bucket_billing_info>" +
-     			"<name>name</name>" +
-     			"<namespace>namespace</namespace>" +
-     			"<vpool_id>vpoolId</vpool_id>" +
-     			"<total_size>1000</total_size>" +
-     			"<total_size_unit>GB</total_size_unit>" +
-     			"<total_objects>100</total_objects>" +
-     			"<sample_time>sampleTime</sample_time>" +
-     			"<TagSet>" +
-     	        "<Key>key</Key>" +
-     	        "<Value>value</Value>" +
-     	        "</TagSet>" +
+     				"<name>name</name>" +
+     				"<namespace>namespace</namespace>" +
+     				"<vpool_id>vpoolId</vpool_id>" +
+     				"<total_size>1000</total_size>" +
+     				"<total_size_unit>GB</total_size_unit>" +
+     				"<total_objects>100</total_objects>" +
+     				"<sample_time>sampleTime</sample_time>" +
+     				"<TagSet>" +
+     					"<Tag>" +
+     						"<Key>key</Key>" +
+     						"<Value>value</Value>" +
+     					"</Tag>" +
+     				"</TagSet>" +
      	        "</bucket_billing_info>";
-
-
     	
  
     	BucketBillingInfo bucketBillingInfo = new BucketBillingInfo();
