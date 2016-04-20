@@ -9,8 +9,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
 import org.junit.Test;
+import org.junit.Assert;
 
-import junit.framework.Assert;
 
 
 public class NamespaceBillingInfoTests {
@@ -66,7 +66,7 @@ public class NamespaceBillingInfoTests {
     	bucketList.add(bucketBillingInfo);
  
       	// namespace billing info
-     	NamespaceBillingInfo namespaceBillingInfo = new NamespaceBillingInfo();
+     	NamespaceBillingInfoResponse namespaceBillingInfo = new NamespaceBillingInfoResponse();
      	namespaceBillingInfo.setBucketBillingInfo(bucketList);
      	namespaceBillingInfo.setNamespace("namespace");
      	namespaceBillingInfo.setNextMarker("nextMarker");
@@ -76,7 +76,7 @@ public class NamespaceBillingInfoTests {
      	namespaceBillingInfo.setTotalSizeUnit("GB");
      	
     	
-    	JAXBContext jaxbContext = JAXBContext.newInstance( NamespaceBillingInfo.class );    	
+    	JAXBContext jaxbContext = JAXBContext.newInstance( NamespaceBillingInfoResponse.class );    	
     	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
     	
     	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	

@@ -10,20 +10,20 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement(name = "object_buckets")
 @XmlType(propOrder = {"objectBucket", "maxBuckets", "nextMarker", "filter", "nextPageLink" })
 
-public class ObjectBuckets {
+public class ObjectBucketsResponse {
 	
-	private List<ObjectBucket> objectBucket;
+	private List<ObjectBucketResponse> objectBucketList;
 	private Integer 			maxBuckets;
 	private String 				nextMarker;
 	private String 				filter;
 	private Long 				nextPageLink;
 	
 	@XmlElement(name = "object_bucket")
-	public List<ObjectBucket> getObjectBucket() {
-		return objectBucket;
+	public List<ObjectBucketResponse> getObjectBucket() {
+		return objectBucketList;
 	}
-	public void setObjectBucket(List<ObjectBucket> objectBucket) {
-		this.objectBucket = objectBucket;
+	public void setObjectBucket(List<ObjectBucketResponse> objectBucket) {
+		this.objectBucketList = objectBucket;
 	}
 	
 	@XmlElement(name = "MaxBuckets")

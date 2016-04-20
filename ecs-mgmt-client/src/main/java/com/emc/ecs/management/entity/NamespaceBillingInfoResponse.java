@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "namespace_billing_info")
 @XmlType(propOrder = {"bucketBillingInfo", "nextMarker", "totalSize", "totalSizeUnit", "totalObjects", "namespace", "sampleTime"})
-public class NamespaceBillingInfo {
+public class NamespaceBillingInfoResponse {
 	
 	private List<BucketBillingInfo> bucketBillingInfo = new ArrayList<BucketBillingInfo>();
 	private String                  nextMarker;

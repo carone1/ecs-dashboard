@@ -1,9 +1,10 @@
 package com.emc.ecs.management.client;
 
+
 import java.util.Arrays;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -11,14 +12,20 @@ import org.junit.Test;
 
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.Namespace;
-import com.emc.ecs.management.entity.NamespaceBillingInfo;
-import com.emc.ecs.management.entity.UserSecretKeys;
+import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
+import com.emc.ecs.management.entity.NamespaceRequest;
+import com.emc.ecs.management.entity.ObjectBucketResponse;
+import com.emc.ecs.management.entity.ObjectBucketsResponse;
+import com.emc.ecs.management.entity.ObjectUser;
+import com.emc.ecs.management.entity.ObjectUserSecretKeysResponse;
+import com.emc.ecs.management.entity.ObjectUsers;
+import com.emc.ecs.management.entity.ObjectUsersRequest;
 
 
 public class ManagementClientTest {
 
 	
-    private static final Logger l4j = Logger.getLogger(ManagementClientTest.class);
+    //private static final Logger l4j = Logger.getLogger(ManagementClientTest.class);
     private ManagementClient client;
    
 
@@ -32,40 +39,99 @@ public class ManagementClientTest {
         if (client != null) client.shutdown();
     }
     
-//    @Test
-//    public void testListNamespaces() throws Exception {
-//    	        	
-//    	ListNamespacesResult namespacesReponse = client.listNamespaces();
-//        Assert.assertNotNull(namespacesReponse.getNamespaces());
-//        for( Namespace namespace : namespacesReponse.getNamespaces() ) {
-//        	System.out.println("namespace: " + namespace.getName());
-//        }
-//        
-//    }	  
-//    
-//    @Test
-//    public void testGetUserKeys() throws Exception {
-//    	        	
-//    	UserSecretKeys userSecretKeys = client.getUserSecretKeys("eric-caron", "eric-caron");
-//        Assert.assertNotNull(userSecretKeys);
-//        System.out.println("Get user secret key");
-//        System.out.println("SecretKey1: " + userSecretKeys.getSecretKey1());
-//        System.out.println("SecretTimestamp: " + userSecretKeys.getKeyTimestamp1());
-//        
-//    }
+    @Test
+    public void testListNamespaces() throws Exception {
+    	        	
+    	ListNamespacesResult namespacesReponse = client.listNamespaces();
+        Assert.assertNotNull(namespacesReponse.getNamespaces());
+        for( Namespace namespace : namespacesReponse.getNamespaces() ) {
+        	System.out.println("namespace: " + namespace.getName());
+        }
+        
+    }	  
+ 
+    @Test
+    public void testGetUserUids() throws Exception {
+
+    	ObjectUsersRequest usersRequest = new ObjectUsersRequest();
+    	ObjectUsers objectUsers = client.getObjectUsersUid(usersRequest);
+    	Assert.assertNotNull(objectUsers);
+    	System.out.println("Get users uid");
+    	for(ObjectUser objectUser : objectUsers.getBlobUser()) {
+    		System.out.println("Namespace: " + objectUser.getNamespace());
+    		System.out.println("UID: " + objectUser.getUserId());
+    	}
+
+    } 
+    
+    @Test
+    public void testGetUserKeys() throws Exception {
+    	   
+    	ObjectUsersRequest usersRequest = new ObjectUsersRequest();
+    	ObjectUsers objectUsers = client.getObjectUsersUid(usersRequest);
+    	Assert.assertNotNull(objectUsers);
+
+    	for(ObjectUser objectUser : objectUsers.getBlobUser()) {
+    		System.out.println("Get user secret key user id: " + objectUser.getUserId());
+    		ObjectUserSecretKeysResponse userSecretKeys = 
+    				client.getUserSecretKeys(objectUser.getUserId().toString(), objectUser.getNamespace().toString());
+    		Assert.assertNotNull(userSecretKeys);    		
+    		System.out.println("SecretKey1: " + userSecretKeys.getSecretKey1());
+    		System.out.println("Secret1Timestamp: " + userSecretKeys.getKeyTimestamp1());
+    	}        
+    }
 	
     @Test
     public void namespaceBillingInfo() throws Exception {
+
+    	ListNamespacesResult namespacesReponse = client.listNamespaces();
+    	Assert.assertNotNull(namespacesReponse.getNamespaces());
+
+    	int totalObjects = 0;
+    	int totalSize = 0;
+
+    	for( Namespace namespace : namespacesReponse.getNamespaces() ) {
+    		
+    			System.out.println("namespace: " + namespace.getName());
+    			NamespaceRequest namespaceRequest = new NamespaceRequest();
+    			namespaceRequest.setName(namespace.getName());        	        	                        	
+
+    			NamespaceBillingInfoResponse namespaceBillingInfoResponse = 
+    										client.getNamespaceBillingInfo(namespaceRequest);
+    			Assert.assertNotNull(namespaceBillingInfoResponse);
+
+    			System.out.println("namespace: " + namespaceBillingInfoResponse.getNamespace());
+    			System.out.println("total size: " + namespaceBillingInfoResponse.getTotalSize());
+    			System.out.println("size unit: " + namespaceBillingInfoResponse.getTotalSizeUnit());
+    			System.out.println("total objects: " + namespaceBillingInfoResponse.getTotalObjects());
+    			totalObjects += namespaceBillingInfoResponse.getTotalObjects();
+    			totalSize += namespaceBillingInfoResponse.getTotalSize();
+    		
+    	}
+
+    	System.out.println("Total objects: " + totalObjects);
+    	System.out.println("Total size: " + totalSize);
+    }
+   
+    @Test
+    public void namespaceBucketInfo() throws Exception {
+    	
       	ListNamespacesResult namespacesReponse = client.listNamespaces();
         Assert.assertNotNull(namespacesReponse.getNamespaces());
-        for( Namespace namespace : namespacesReponse.getNamespaces() ) {
-        	    		
-        	System.out.println("namespace: " + namespace.getName());
+        
+        for( Namespace namespace : namespacesReponse.getNamespaces() ) {  
+        	NamespaceRequest namespaceRequest = new NamespaceRequest();
+        	namespaceRequest.setName(namespace.getName());
+        	ObjectBucketsResponse bucketsResponse = client.getNamespaceBucketInfo(namespaceRequest);
         	
-        	NamespaceBillingInfo namespaceBillingInfo = client.getNamespaceBillingInfo(namespace.getName(), null);
-        	Assert.assertNotNull(namespaceBillingInfo);
-        	System.out.println("Namespace: " + namespaceBillingInfo.getNamespace());
-        	System.out.println("Number of objects: " + namespaceBillingInfo.getTotalObjects());
+        	System.out.println("namespace: " + namespace.getName());
+        	if( bucketsResponse != null && bucketsResponse.getObjectBucket() != null) {        		
+        		for( ObjectBucketResponse objectBucket : bucketsResponse.getObjectBucket() ) {
+        			System.out.println("Block Name: " + objectBucket.getName());
+        			System.out.println("Api Type: " + objectBucket.getApiType());
+        			System.out.println("Bucket Owner: " + objectBucket.getOwner());        			
+        		}
+        	}
         }
     }
     

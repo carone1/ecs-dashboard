@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "user_secret_keys")
 @XmlType(propOrder = {"secretKey1", "keyTimestamp1", "keyExpiryTimestamp1", "secretKey2", "keyTimestamp2", "keyExpiryTimestamp2", "link"})
-public class UserSecretKeys {
+public class ObjectUserSecretKeysResponse {
 	private String secretKey1;
 	private String keyTimestamp1;
 	private String keyExpiryTimestamp1;

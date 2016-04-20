@@ -4,15 +4,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
 import org.junit.Test;
+import org.junit.Assert;
 
-import junit.framework.Assert;
 
 
 public class ObjectBucketsTests {
@@ -77,7 +76,7 @@ public class ObjectBucketsTests {
      							"</object_buckets>";
     	
  
-    	ObjectBucket objectBucket = new ObjectBucket();
+    	ObjectBucketResponse objectBucket = new ObjectBucketResponse();
     	objectBucket.setApiType("apiType");
     	objectBucket.setBlockSize(100L);
     	objectBucket.setCreated("created");
@@ -129,17 +128,17 @@ public class ObjectBucketsTests {
     	objectBucket.setVdc(vdc);
     	
     	objectBucket.setVpool("vpool");
-    	List<ObjectBucket> bucketList = new ArrayList<ObjectBucket>();
+    	List<ObjectBucketResponse> bucketList = new ArrayList<ObjectBucketResponse>();
     	bucketList.add(objectBucket);
     	
-    	ObjectBuckets objectBuckets = new ObjectBuckets();
+    	ObjectBucketsResponse objectBuckets = new ObjectBucketsResponse();
     	objectBuckets.setFilter("filter");
     	objectBuckets.setMaxBuckets(100);
     	objectBuckets.setNextMarker("nextMarker");
     	objectBuckets.setNextPageLink(15L);
     	objectBuckets.setObjectBucket(bucketList);
     	
-    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectBuckets.class );    	
+    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectBucketsResponse.class );    	
     	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
     	
     	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	

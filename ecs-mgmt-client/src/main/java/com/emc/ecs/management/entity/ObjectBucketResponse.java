@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlType;
 		              "defaultGroupDirExecutePermission", "defaultGroup", "searchMetadata",
 		              "name", "id", "link", "creationTime", "inactive", "global", "remote",
 		              "vdc", "internal" })
-public class ObjectBucket {
+public class ObjectBucketResponse {
 	
 	private String         created;
 	private String         softQuota;

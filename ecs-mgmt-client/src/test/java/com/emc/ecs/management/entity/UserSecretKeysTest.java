@@ -7,8 +7,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
 import org.junit.Test;
+import org.junit.Assert;
 
-import junit.framework.Assert;
 
 
 public class UserSecretKeysTest {
@@ -31,7 +31,7 @@ public class UserSecretKeysTest {
     	
  
     	
-    	UserSecretKeys secretKeys = new UserSecretKeys();
+    	ObjectUserSecretKeysResponse secretKeys = new ObjectUserSecretKeysResponse();
     	secretKeys.setKeyExpiryTimestamp1("expiryTime1");
     	secretKeys.setKeyTimestamp1("time1");
     	secretKeys.setKeyExpiryTimestamp2("expiryTime2");
@@ -40,7 +40,7 @@ public class UserSecretKeysTest {
     	secretKeys.setSecretKey2("secretKey2");
     	secretKeys.setLink("link");
     	
-    	JAXBContext jaxbContext = JAXBContext.newInstance( UserSecretKeys.class );    	
+    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectUserSecretKeysResponse.class );    	
     	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
     	
     	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	

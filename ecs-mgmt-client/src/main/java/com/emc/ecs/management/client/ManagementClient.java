@@ -29,13 +29,18 @@ package com.emc.ecs.management.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.List;
+
+import javax.ws.rs.core.Response;
 
 
 import com.emc.ecs.management.entity.ListNamespacesResult;
-import com.emc.ecs.management.entity.NamespaceBillingInfo;
-import com.emc.ecs.management.entity.UserSecretKeys;
+import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
+import com.emc.ecs.management.entity.NamespaceRequest;
+import com.emc.ecs.management.entity.ObjectBucketsResponse;
+import com.emc.ecs.management.entity.ObjectUserSecretKeysResponse;
+import com.emc.ecs.management.entity.ObjectUsers;
+import com.emc.ecs.management.entity.ObjectUsersRequest;
 import com.emc.rest.smart.LoadBalancer;
 import com.emc.rest.smart.SmartClientFactory;
 import com.emc.rest.smart.SmartConfig;
@@ -44,6 +49,7 @@ import com.emc.rest.smart.ecs.Vdc;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
@@ -52,15 +58,19 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 public class ManagementClient {
 
 	
-	private static final String X_SDS_AUTH_TOKEN     = "X-SDS-AUTH-TOKEN";
-	private static final String REST_LOGIN           = "/login";
-	private static final String REST_LOGOUT          = "/logout";
-	private static final String REST_LIST_NAMESPACES = "/object/namespaces";
-	private static final String REST_GET_KEYS_FOR_USERS = "/object/user-secret-keys/";
-	private static final String REST_BILLING_NAMESPACES_FIRST = "/object/billing/namespace/";
-	private static final String REST_BILLING_NAMESPACES_SECOND = "/info";
-	private static final String REST_BILLING_NAMESAPCES_BUCKET_INCLUDED = "include_bucket_detail"; 
-	private static final String REST_MARKER = "marker";
+	private static final String X_SDS_AUTH_TOKEN     					= "X-SDS-AUTH-TOKEN";
+	private static final String REST_LOGIN           					= "/login";
+	private static final String REST_LOGOUT          					= "/logout";
+	private static final String REST_LIST_NAMESPACES 					= "/object/namespaces";
+	private static final String REST_GET_OBJECT_USERS					= "/object/users";
+	private static final String REST_GET_KEYS_FOR_USERS 				= "/object/user-secret-keys/";
+	private static final String REST_BILLING_NAMESPACES_FIRST 			= "/object/billing/namespace/";
+	private static final String REST_BILLING_NAMESPACES_SECOND 			= "/info";
+	private static final String REST_BILLING_NAMESAPCES_BUCKET_INCLUDED = "include_bucket_detail";
+	private static final String REST_OBJECT_BUCKET 						= "/object/bucket";
+	private static final String REST_MARKER_PARAMETER 					= "marker";
+	private static final String REST_LIMIT_PARAMETER 					= "limit";
+	private static final String REST_NAMESPACE_PARAMETER 				= "namespace";
 	
 	//================================
 	// Private Members
@@ -90,6 +100,10 @@ public class ManagementClient {
 	//================================
 	// Public Methods
 	//================================
+	/**
+	 * 
+	 * @return ListNamespacesResult
+	 */
 	public ListNamespacesResult listNamespaces() {
 		
 		System.out.println("list namespaces");
@@ -107,44 +121,149 @@ public class ManagementClient {
 				.get(ListNamespacesResult.class);
 		
 		// release the auth token
-		logout();
+		//logout();
 		
 		return listNamespacetResponse;
 		
 	}
 	
-	public NamespaceBillingInfo getNamespaceBillingInfo(String namespace, String marker) {
+	/**
+	 * 
+	 * @param namespaceRequest
+	 * @return
+	 */
+	public NamespaceBillingInfoResponse getNamespaceBillingInfo(NamespaceRequest namespaceRequest) {
 				
+		String authToken = getAuthToken();
+		
+		NamespaceBillingInfoResponse namespaceBillingResponse = null;
+						
+		WebResource mgmtResource = this.mgmtClient.resource(uri);
+
+		// Call using ?include_bucket_detail=true parameter
+		StringBuilder restStr = new StringBuilder();
+		restStr.append(REST_BILLING_NAMESPACES_FIRST)
+				.append(namespaceRequest.getName())
+				.append(REST_BILLING_NAMESPACES_SECOND);
+										
+		System.out.println("getNamespaceBillingResource: " + restStr.toString() + "?" + 
+							REST_BILLING_NAMESAPCES_BUCKET_INCLUDED + "=true");
+		
+		// get billing namespace Billing ressource
+		WebResource getNamespaceBillingResource = mgmtResource.path(restStr.toString())
+													.queryParam(REST_BILLING_NAMESAPCES_BUCKET_INCLUDED, "true");
+		
+		if(namespaceRequest.getNextMarker() != null) {
+			getNamespaceBillingResource = getNamespaceBillingResource.queryParam(REST_MARKER_PARAMETER, 
+																				namespaceRequest.getNextMarker());			
+		}
+		
+		try {
+			
+			namespaceBillingResponse = getNamespaceBillingResource.header(X_SDS_AUTH_TOKEN, authToken)
+																.get(NamespaceBillingInfoResponse.class);
+			
+		} catch (UniformInterfaceException ex) {
+			// ECS has a bug where an http 400 error is returned if 
+			// a namespace doesn't have a bucket but the request has 
+			// the include_bucket_detail parameter
+			// The workaround is to make the same call but without the parameter
+			if( ex.getResponse().getStatusInfo().getStatusCode() == Response.Status.BAD_REQUEST.getStatusCode() ) {				
+												
+				System.out.println("getNamespaceBillingResource: " + restStr.toString());
+				
+				// get billing namespace Billing ressource
+				getNamespaceBillingResource = mgmtResource.path(restStr.toString());
+															
+				
+				if(namespaceRequest.getNextMarker() != null) {
+					getNamespaceBillingResource = getNamespaceBillingResource.queryParam(REST_MARKER_PARAMETER, 
+																						namespaceRequest.getNextMarker());			
+				}
+				
+				namespaceBillingResponse = getNamespaceBillingResource.header(X_SDS_AUTH_TOKEN, authToken)
+																		.get(NamespaceBillingInfoResponse.class);
+			}
+		}								
+		
+		return namespaceBillingResponse;
+	}
+	
+	/**
+	 * 
+	 * @param namespaceRequest
+	 * @return
+	 */
+	public ObjectBucketsResponse getNamespaceBucketInfo(NamespaceRequest namespaceRequest) {
+		
 		String authToken = getAuthToken();
 						
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
 
 		StringBuilder restStr = new StringBuilder();
-		restStr.append(REST_BILLING_NAMESPACES_FIRST)
-				.append(namespace)
-				.append(REST_BILLING_NAMESPACES_SECOND);
+		restStr.append(REST_OBJECT_BUCKET);				
 										
-		System.out.println("getNamespaceBillingResource: " + restStr.toString());
+		System.out.println("getNamespaceBucketInfo: " + restStr.toString() + "?namespace=" + namespaceRequest.getName());
 		
 		// get billing namespace Billing ressource
-		WebResource getNamespaceBillingResource = mgmtResource.path(restStr.toString());
-				
-		mgmtResource.queryParam(REST_BILLING_NAMESAPCES_BUCKET_INCLUDED, "true");
+		WebResource getNamespaceBucketInfoResource = 
+					mgmtResource.path(restStr.toString())
+								.queryParam(REST_NAMESPACE_PARAMETER, namespaceRequest.getName());						
 		
-		if(marker != null) {
-			mgmtResource.queryParam(REST_MARKER, marker);			
+		if(namespaceRequest.getNextMarker() != null) {
+			getNamespaceBucketInfoResource = getNamespaceBucketInfoResource.queryParam(REST_MARKER_PARAMETER, 
+																						namespaceRequest.getNextMarker());			
 		}
 		
-		NamespaceBillingInfo namespaceBillingResponse = getNamespaceBillingResource.header(X_SDS_AUTH_TOKEN, authToken)
-				.get(NamespaceBillingInfo.class);
+		ObjectBucketsResponse namespaceBucketInfoResponse = 
+				getNamespaceBucketInfoResource.header(X_SDS_AUTH_TOKEN, authToken).get(ObjectBucketsResponse.class);
 		
 		// release the auth token
-		logout();
+		//logout();
 		
-		return namespaceBillingResponse;
+		return namespaceBucketInfoResponse;
 	}
 	
 	
+	/**
+	 * Retrieve Object user's uid 
+	 * @param uid
+	 * @param namespace
+	 * @return ObjectUsers
+	 */
+	public ObjectUsers getObjectUsersUid(ObjectUsersRequest objectUsersRequest) {
+				
+		String authToken = getAuthToken();
+		
+		//System.out.println(authToken);
+		
+		WebResource mgmtResource = this.mgmtClient.resource(uri);
+
+		
+		// get keys for user
+		WebResource objectUsersUidResource = mgmtResource.path(REST_GET_OBJECT_USERS);
+		
+		// marker parameter
+		if(objectUsersRequest.getMarker() != null) {
+			objectUsersUidResource = objectUsersUidResource.queryParam( REST_MARKER_PARAMETER, 
+																		objectUsersRequest.getMarker());			
+		}
+		
+		// limit parameter
+		if(objectUsersRequest.getLimit() != null) {
+			objectUsersUidResource = objectUsersUidResource.queryParam( REST_LIMIT_PARAMETER, 
+																		String.valueOf(objectUsersRequest.getLimit()));			
+		}
+		
+		ObjectUsers objectUsers = objectUsersUidResource.header(X_SDS_AUTH_TOKEN, authToken)
+				.get(ObjectUsers.class);
+		
+		// release the auth token
+		//logout();
+		
+		return objectUsers;
+				
+	}
 	
 	/**
 	 * Retrieve S3 uid and secret keys
@@ -152,7 +271,7 @@ public class ManagementClient {
 	 * @param namespace
 	 * @return
 	 */
-	public UserSecretKeys getUserSecretKeys(String uid, String namespace) {
+	public ObjectUserSecretKeysResponse getUserSecretKeys(String uid, String namespace) {
 		
 		
 		String authToken = getAuthToken();
@@ -163,22 +282,31 @@ public class ManagementClient {
 
 		String restPath = REST_GET_KEYS_FOR_USERS + uid + "/" + namespace;
 		// get keys for user
-		WebResource listNamespacesResource = mgmtResource.path(restPath);
+		WebResource getUserSecretKeysResource = mgmtResource.path(restPath);
 		
+		ObjectUserSecretKeysResponse userSecretKeys = null;
 		
-		UserSecretKeys userSecretKeys = listNamespacesResource.header(X_SDS_AUTH_TOKEN, authToken)
-				.get(UserSecretKeys.class);
-		
-		// release the auth token
-		logout();
-		
-		return userSecretKeys;
-		
-		
+		try {
+			userSecretKeys = getUserSecretKeysResource.header(X_SDS_AUTH_TOKEN, authToken)
+																					.get(ObjectUserSecretKeysResponse.class);
+		} catch (UniformInterfaceException ex) {
+			// ECS returns http 404 error if 
+			// a user doesn't have a S3 password configured 			
+			// The workaround is just to generate an empty reponse
+			if( ex.getResponse().getStatusInfo().getStatusCode() == Response.Status.NOT_FOUND.getStatusCode() ) {
+				userSecretKeys = new ObjectUserSecretKeysResponse();
+			}
+		}
+								
+		return userSecretKeys;		
 	}
 	
+	/**
+	 * Shutdown the management client
+	 */
     public void shutdown() {
     	if( this.mgmtClient != null) {
+    		logout();
     		SmartClientFactory.destroy(this.mgmtClient);
     	}
     }
@@ -187,6 +315,7 @@ public class ManagementClient {
 	//================================
 	// Private Methods
 	//================================
+    
 	private String getAuthToken() {
 		if(this.mgmtAuthToken == null){
 			login();
@@ -290,55 +419,6 @@ public class ManagementClient {
 
 	    return SmartClientFactory.createSmartClient(smartConfig);
 	}
-	
-	
-//	public static void main(String[] args) throws Exception {
-//				
-//		
-//		String adminUsername = "eric-caron-admin";
-//		String adminPassword = "Nord99sud";
-//		
-//		//String host = "10.1.83.51";
-//		String host = "localhost";
-//		
-//		// create smart client
-//		Client mgmtClient = createMgmtClient(adminUsername, adminPassword, 4443, Arrays.asList(host));				
-//		
-//		// uri
-//        WebResource mgmtResource = mgmtClient.resource(new URI("https://" + host + ":4443"));
-//        
-//        // login
-//        WebResource loginResource = mgmtResource.path("/login");
-//        loginResource.addFilter(new HTTPBasicAuthFilter(adminUsername, adminPassword));
-//        ClientResponse loginResponse = loginResource.get(ClientResponse.class);
-//        
-//        System.out.println(loginResponse.toString());
-//        
-//        String authToken = loginResponse.getHeaders().getFirst("X-SDS-AUTH-TOKEN");
-//
-//        System.out.println("auth-token: `" + authToken + "`");
-//        
-//        // Other XMl requests
-//        //MyObject myObject = mgmtResource.path("/foo/bar").get(MyObject.class);
-//                
-//        
-//       // Object namespacesResponse = mgmtResource.path("/object/namespaces")
-//       // 		.header("X-SDS-AUTH-TOKEN", authToken)
-//       // 		.get(Object.class);
-//        
-//
-//       // System.out.println(namespacesResponse.toString() );	
-//        
-//        
-//        // logout
-//        WebResource logoutResource = mgmtResource.path("/logout");
-//        //loginResource.addFilter(new HTTPBasicAuthFilter(adminUsername, adminPassword));
-//        ClientResponse logoutResponse = logoutResource.header("X-SDS-AUTH-TOKEN", authToken).get(ClientResponse.class);
-//        
-//        System.out.println(logoutResponse.toString()); 
-//	}	
-
-	
 
 	
 }

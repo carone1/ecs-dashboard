@@ -7,9 +7,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
 import org.junit.Test;
-
-import junit.framework.Assert;
-
+import org.junit.Assert;
 
 public class TagTest {
 

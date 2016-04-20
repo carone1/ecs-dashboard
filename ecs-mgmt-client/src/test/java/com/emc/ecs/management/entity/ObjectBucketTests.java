@@ -4,15 +4,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
 import org.junit.Test;
+import org.junit.Assert;
 
-import junit.framework.Assert;
 
 
 public class ObjectBucketTests {
@@ -72,7 +71,7 @@ public class ObjectBucketTests {
      							
     	
  
-    	ObjectBucket objectBucket = new ObjectBucket();
+    	ObjectBucketResponse objectBucket = new ObjectBucketResponse();
     	objectBucket.setApiType("apiType");
     	objectBucket.setBlockSize(100L);
     	objectBucket.setCreated("created");
@@ -126,7 +125,7 @@ public class ObjectBucketTests {
     	objectBucket.setVpool("vpool");
     	
     	
-    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectBucket.class );    	
+    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectBucketResponse.class );    	
     	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
     	
     	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	
