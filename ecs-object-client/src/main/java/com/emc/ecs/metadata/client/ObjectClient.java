@@ -1,4 +1,4 @@
-package com.emc.ecs.object.client;
+package com.emc.ecs.metadata.client;
 
 import com.emc.object.Protocol;
 import com.emc.object.s3.S3Config;
