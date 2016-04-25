@@ -18,7 +18,27 @@ public class ObjectClient {
 	S3JerseyClient s3JerseyClient;
 	
 	
-	public ObjectClient() {
+	public ObjectClient() {										
+	}
+
+
+	public static void main(String[] args) throws Exception {
+		//Vdc plymouthLab = new Vdc("").withName("PlymouthLab");		
+		//S3Config s3config = new S3Config(Protocol.HTTPS, plymouthLab);			
+		
+		// in all cases, you need to provide your credentials
+		//s3config.withIdentity("eric-caron").withSecretKey("n4tGqMYn67Jk3dkJmZ9+j6rEEJL0G6TJDYi/C5fr");
+		
+		
+		//s3JerseyClient = new S3JerseyClient(s3config);
+	}
+		
+		
+		
+		
+		
+		
+		
 		
 //		Vdc plymouthLab = new Vdc("").withName("PlymouthLab");		
 //		S3Config s3config = new S3Config(Protocol.HTTP, plymouthLab);
@@ -59,6 +79,6 @@ public class ObjectClient {
 //		 
 //		 ListVersionsRequest listVersionsRequest = new ListVersionsRequest("bucketName");
 //		 s3JerseyClient.listVersions(listVersionsRequest);
-	}
+	
 	
 }

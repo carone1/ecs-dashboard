@@ -7,10 +7,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import org.eclipse.persistence.jaxb.MarshallerProperties;
-//import org.eclipse.persistence.jaxb.UnarshallerProperties;
 
-import com.emc.ecs.management.entity.Metadata;
 import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
 import com.emc.ecs.management.entity.ObjectBucketsResponse;
 import com.emc.ecs.metadata.dao.BillingDAO;

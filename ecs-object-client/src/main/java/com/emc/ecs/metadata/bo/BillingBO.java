@@ -10,6 +10,11 @@ import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.Namespace;
 import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
 import com.emc.ecs.management.entity.NamespaceRequest;
+import com.emc.ecs.management.entity.ObjectUser;
+import com.emc.ecs.management.entity.ObjectUserDetails;
+import com.emc.ecs.management.entity.ObjectUserSecretKeys;
+import com.emc.ecs.management.entity.ObjectUsers;
+import com.emc.ecs.management.entity.ObjectUsersRequest;
 import com.emc.ecs.metadata.dao.BillingDAO;
 
 
@@ -47,6 +52,54 @@ public class BillingBO {
 	//================================
 	// Public methods
 	//================================
+	/**
+	 * Retrieve Object uid and secret keys	 
+	 * @return ObjectUserDetails
+	 */
+	public List<ObjectUserDetails> getObjectUserSecretKeys() {
+		
+		List<ObjectUserDetails> userDetails = new ArrayList<ObjectUserDetails>();
+
+		// Collect all uids in order to collect secret keys after
+		List<ObjectUser> objectUserList = new ArrayList<ObjectUser>();
+		
+		// first batch
+		ObjectUsersRequest objectUsersRequest = new ObjectUsersRequest();
+		ObjectUsers objectUsersResult = client.getObjectUsersUid(objectUsersRequest);
+		
+		if(objectUsersResult != null) {
+			if(objectUsersResult.getBlobUser() != null) {
+				objectUserList.addAll(objectUsersResult.getBlobUser());
+			}
+			
+			objectUsersRequest.setMarker(objectUsersResult.getNextMarker());
+			
+			// Subsequent batches
+			while(objectUsersResult.getNextMarker() != null) {
+				objectUsersResult = client.getObjectUsersUid(objectUsersRequest);
+				if(objectUsersResult != null) {
+					objectUserList.addAll(objectUsersResult.getBlobUser());
+					objectUsersRequest.setMarker(objectUsersResult.getNextMarker());
+				} else {
+					break;
+				}
+			}	
+		}
+		
+		// Collect secret keys
+		for( ObjectUser objectUser : objectUserList) {
+			ObjectUserSecretKeys objectUserSecretKeys = 
+					client.getObjectUserSecretKeys( objectUser.getUserId().toString(), 
+													objectUser.getNamespace().toString());
+			if(objectUserSecretKeys != null) {
+				userDetails.add(new ObjectUserDetails(objectUser, objectUserSecretKeys));
+			}
+			
+		}
+		return userDetails;
+	}
+	
+	
 	
 	/**
 	 * Collects Billing metadata for all namespace defined on a cluster

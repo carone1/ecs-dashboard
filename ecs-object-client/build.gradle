@@ -55,5 +55,5 @@ dependencies {
 }
 
 
-//mainClassName="com.emc.rti.rabbit.consumer.lors.RTIRabbitLorsListener"
+//mainClassName="com.emc.ecs.metadata.client.MetadataCollectorClient"
 
