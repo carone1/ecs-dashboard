@@ -28,7 +28,7 @@ description = 'ECS Management Client - JAX-RS (Jersey) REST client that provides
 
 
 apply plugin: 'java'
-apply plugin: 'application'
+//apply plugin: 'application'
 
 
 sourceCompatibility = '1.7'

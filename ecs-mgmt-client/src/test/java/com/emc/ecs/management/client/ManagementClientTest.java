@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.Namespace;
 import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
@@ -17,7 +18,7 @@ import com.emc.ecs.management.entity.NamespaceRequest;
 import com.emc.ecs.management.entity.ObjectBucketResponse;
 import com.emc.ecs.management.entity.ObjectBucketsResponse;
 import com.emc.ecs.management.entity.ObjectUser;
-import com.emc.ecs.management.entity.ObjectUserSecretKeysResponse;
+import com.emc.ecs.management.entity.ObjectUserSecretKeys;
 import com.emc.ecs.management.entity.ObjectUsers;
 import com.emc.ecs.management.entity.ObjectUsersRequest;
 
@@ -41,8 +42,9 @@ public class ManagementClientTest {
     
     @Test
     public void testListNamespaces() throws Exception {
-    	        	
-    	ListNamespacesResult namespacesReponse = client.listNamespaces();
+    	
+    	ListNamespaceRequest namespaceRequest = new ListNamespaceRequest();
+    	ListNamespacesResult namespacesReponse = client.listNamespaces(namespaceRequest);
         Assert.assertNotNull(namespacesReponse.getNamespaces());
         for( Namespace namespace : namespacesReponse.getNamespaces() ) {
         	System.out.println("namespace: " + namespace.getName());
@@ -73,8 +75,8 @@ public class ManagementClientTest {
 
     	for(ObjectUser objectUser : objectUsers.getBlobUser()) {
     		System.out.println("Get user secret key user id: " + objectUser.getUserId());
-    		ObjectUserSecretKeysResponse userSecretKeys = 
-    				client.getUserSecretKeys(objectUser.getUserId().toString(), objectUser.getNamespace().toString());
+    		ObjectUserSecretKeys userSecretKeys = 
+    				client.getObjectUserSecretKeys(objectUser.getUserId().toString(), objectUser.getNamespace().toString());
     		Assert.assertNotNull(userSecretKeys);    		
     		System.out.println("SecretKey1: " + userSecretKeys.getSecretKey1());
     		System.out.println("Secret1Timestamp: " + userSecretKeys.getKeyTimestamp1());
@@ -84,7 +86,8 @@ public class ManagementClientTest {
     @Test
     public void namespaceBillingInfo() throws Exception {
 
-    	ListNamespacesResult namespacesReponse = client.listNamespaces();
+    	ListNamespaceRequest listNamespaceRequest = new ListNamespaceRequest();
+    	ListNamespacesResult namespacesReponse = client.listNamespaces(listNamespaceRequest);
     	Assert.assertNotNull(namespacesReponse.getNamespaces());
 
     	int totalObjects = 0;
@@ -116,7 +119,8 @@ public class ManagementClientTest {
     @Test
     public void namespaceBucketInfo() throws Exception {
     	
-      	ListNamespacesResult namespacesReponse = client.listNamespaces();
+    	ListNamespaceRequest listNamespaceRequest = new ListNamespaceRequest();
+      	ListNamespacesResult namespacesReponse = client.listNamespaces(listNamespaceRequest);
         Assert.assertNotNull(namespacesReponse.getNamespaces());
         
         for( Namespace namespace : namespacesReponse.getNamespaces() ) {  

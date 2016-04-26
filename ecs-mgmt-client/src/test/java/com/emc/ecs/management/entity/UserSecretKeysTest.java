@@ -31,7 +31,7 @@ public class UserSecretKeysTest {
     	
  
     	
-    	ObjectUserSecretKeysResponse secretKeys = new ObjectUserSecretKeysResponse();
+    	ObjectUserSecretKeys secretKeys = new ObjectUserSecretKeys();
     	secretKeys.setKeyExpiryTimestamp1("expiryTime1");
     	secretKeys.setKeyTimestamp1("time1");
     	secretKeys.setKeyExpiryTimestamp2("expiryTime2");
@@ -40,7 +40,7 @@ public class UserSecretKeysTest {
     	secretKeys.setSecretKey2("secretKey2");
     	secretKeys.setLink("link");
     	
-    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectUserSecretKeysResponse.class );    	
+    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectUserSecretKeys.class );    	
     	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
     	
     	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	

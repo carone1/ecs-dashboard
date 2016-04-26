@@ -33,12 +33,12 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
-
+import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
 import com.emc.ecs.management.entity.NamespaceRequest;
 import com.emc.ecs.management.entity.ObjectBucketsResponse;
-import com.emc.ecs.management.entity.ObjectUserSecretKeysResponse;
+import com.emc.ecs.management.entity.ObjectUserSecretKeys;
 import com.emc.ecs.management.entity.ObjectUsers;
 import com.emc.ecs.management.entity.ObjectUsersRequest;
 import com.emc.rest.smart.LoadBalancer;
@@ -104,9 +104,8 @@ public class ManagementClient {
 	 * 
 	 * @return ListNamespacesResult
 	 */
-	public ListNamespacesResult listNamespaces() {
-		
-		System.out.println("list namespaces");
+	public ListNamespacesResult listNamespaces(ListNamespaceRequest namespaceRequest) {
+				
 		String authToken = getAuthToken();
 		
 		System.out.println(authToken);
@@ -116,13 +115,14 @@ public class ManagementClient {
 		// list namespaces
 		WebResource listNamespacesResource = mgmtResource.path(REST_LIST_NAMESPACES);
 		
+		if( namespaceRequest.getNextMarker() != null ) {
+			listNamespacesResource = listNamespacesResource.queryParam(REST_MARKER_PARAMETER, 
+																		namespaceRequest.getNextMarker());	
+		}
 		
 		ListNamespacesResult listNamespacetResponse = listNamespacesResource.header(X_SDS_AUTH_TOKEN, authToken)
 				.get(ListNamespacesResult.class);
-		
-		// release the auth token
-		//logout();
-		
+						
 		return listNamespacetResponse;
 		
 	}
@@ -130,7 +130,7 @@ public class ManagementClient {
 	/**
 	 * 
 	 * @param namespaceRequest
-	 * @return
+	 * @return NamespaceBillingInfoResponse
 	 */
 	public NamespaceBillingInfoResponse getNamespaceBillingInfo(NamespaceRequest namespaceRequest) {
 				
@@ -145,14 +145,12 @@ public class ManagementClient {
 		restStr.append(REST_BILLING_NAMESPACES_FIRST)
 				.append(namespaceRequest.getName())
 				.append(REST_BILLING_NAMESPACES_SECOND);
-										
-		System.out.println("getNamespaceBillingResource: " + restStr.toString() + "?" + 
-							REST_BILLING_NAMESAPCES_BUCKET_INCLUDED + "=true");
-		
+													
 		// get billing namespace Billing ressource
 		WebResource getNamespaceBillingResource = mgmtResource.path(restStr.toString())
 													.queryParam(REST_BILLING_NAMESAPCES_BUCKET_INCLUDED, "true");
 		
+		// add marker
 		if(namespaceRequest.getNextMarker() != null) {
 			getNamespaceBillingResource = getNamespaceBillingResource.queryParam(REST_MARKER_PARAMETER, 
 																				namespaceRequest.getNextMarker());			
@@ -192,7 +190,7 @@ public class ManagementClient {
 	/**
 	 * 
 	 * @param namespaceRequest
-	 * @return
+	 * @return ObjectBucketsResponse
 	 */
 	public ObjectBucketsResponse getNamespaceBucketInfo(NamespaceRequest namespaceRequest) {
 		
@@ -201,15 +199,14 @@ public class ManagementClient {
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
 
 		StringBuilder restStr = new StringBuilder();
-		restStr.append(REST_OBJECT_BUCKET);				
-										
-		System.out.println("getNamespaceBucketInfo: " + restStr.toString() + "?namespace=" + namespaceRequest.getName());
+		restStr.append(REST_OBJECT_BUCKET);												
 		
 		// get billing namespace Billing ressource
 		WebResource getNamespaceBucketInfoResource = 
 					mgmtResource.path(restStr.toString())
 								.queryParam(REST_NAMESPACE_PARAMETER, namespaceRequest.getName());						
 		
+		// add marker
 		if(namespaceRequest.getNextMarker() != null) {
 			getNamespaceBucketInfoResource = getNamespaceBucketInfoResource.queryParam(REST_MARKER_PARAMETER, 
 																						namespaceRequest.getNextMarker());			
@@ -217,25 +214,19 @@ public class ManagementClient {
 		
 		ObjectBucketsResponse namespaceBucketInfoResponse = 
 				getNamespaceBucketInfoResource.header(X_SDS_AUTH_TOKEN, authToken).get(ObjectBucketsResponse.class);
-		
-		// release the auth token
-		//logout();
-		
+						
 		return namespaceBucketInfoResponse;
 	}
 	
 	
 	/**
 	 * Retrieve Object user's uid 
-	 * @param uid
-	 * @param namespace
+	 * @param objectUsersRequest 
 	 * @return ObjectUsers
 	 */
 	public ObjectUsers getObjectUsersUid(ObjectUsersRequest objectUsersRequest) {
 				
-		String authToken = getAuthToken();
-		
-		//System.out.println(authToken);
+		String authToken = getAuthToken();				
 		
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
 
@@ -257,44 +248,38 @@ public class ManagementClient {
 		
 		ObjectUsers objectUsers = objectUsersUidResource.header(X_SDS_AUTH_TOKEN, authToken)
 				.get(ObjectUsers.class);
-		
-		// release the auth token
-		//logout();
-		
+						
 		return objectUsers;
 				
 	}
 	
 	/**
 	 * Retrieve S3 uid and secret keys
-	 * @param uid
+	 * @param uid 
 	 * @param namespace
-	 * @return
+	 * @return ObjectUserSecretKeysResponse
 	 */
-	public ObjectUserSecretKeysResponse getUserSecretKeys(String uid, String namespace) {
-		
-		
+	public ObjectUserSecretKeys getObjectUserSecretKeys(String uid, String namespace) {
+				
 		String authToken = getAuthToken();
-		
-		//System.out.println(authToken);
-		
+						
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
 
 		String restPath = REST_GET_KEYS_FOR_USERS + uid + "/" + namespace;
 		// get keys for user
 		WebResource getUserSecretKeysResource = mgmtResource.path(restPath);
 		
-		ObjectUserSecretKeysResponse userSecretKeys = null;
+		ObjectUserSecretKeys userSecretKeys = null;
 		
 		try {
 			userSecretKeys = getUserSecretKeysResource.header(X_SDS_AUTH_TOKEN, authToken)
-																					.get(ObjectUserSecretKeysResponse.class);
+																					.get(ObjectUserSecretKeys.class);
 		} catch (UniformInterfaceException ex) {
 			// ECS returns http 404 error if 
 			// a user doesn't have a S3 password configured 			
 			// The workaround is just to generate an empty reponse
 			if( ex.getResponse().getStatusInfo().getStatusCode() == Response.Status.NOT_FOUND.getStatusCode() ) {
-				userSecretKeys = new ObjectUserSecretKeysResponse();
+				userSecretKeys = new ObjectUserSecretKeys();
 			}
 		}
 								
@@ -337,9 +322,7 @@ public class ManagementClient {
 		WebResource loginResource = mgmtResource.path(REST_LOGIN);
 		loginResource.addFilter(new HTTPBasicAuthFilter(this.mgmtConfig.getUsername(), this.mgmtConfig.getSecretKey()));
 		ClientResponse loginResponse = loginResource.get(ClientResponse.class);
-      
-        System.out.println(loginResponse.toString());
-        
+                     
         // Check for sucsess
         int statusCode = loginResponse.getStatusInfo().getStatusCode();
         if( statusCode != Status.OK.getStatusCode() ) {
@@ -350,8 +333,7 @@ public class ManagementClient {
         String authToken = loginResponse.getHeaders().getFirst(X_SDS_AUTH_TOKEN);
 				
 		if(authToken != null) {
-			this.mgmtAuthToken = authToken;
-			System.out.println("authToken: " + authToken);
+			this.mgmtAuthToken = authToken;			
 		} else {
 			String errorMessage = "Login to " + this.uri + " ok but Server did not return  " + X_SDS_AUTH_TOKEN + 
 					              "in response header";

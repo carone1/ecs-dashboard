@@ -21,22 +21,23 @@ public class ListNamespacesTest {
     public void testListNamespacesResultXml() throws Exception {
     	    	
        	String expectedOutput = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-				"<namespaces>" +
-				"<namespace>" +
-				"<name>name1</name>" +
-				"<id>id1</id>" +
-				"<link>link1</link>" +
-				"</namespace>" +
-				"<namespace>" +
-				"<name>name2</name>" +
-				"<id>id2</id>" +
-				"<link>link2</link>" +
-				"</namespace>" +
-				"<MaxNamespaces>100</MaxNamespaces>" +
-				"<NextMarker>nextMarker</NextMarker>" +
-				"<Filter>filter</Filter>" +
-				"<NextPageLink>nextPageLink</NextPageLink>" +
-				"</namespaces>";
+       							"<namespaces>" +
+       							"<Filter>filter</Filter>" +
+       							"<MaxNamespaces>100</MaxNamespaces>" + 
+       							"<namespace>" +
+       							"<name>name1</name>" +
+       								"<id>id1</id>" +
+       								"<link>link1</link>" +
+       							"</namespace>" +
+       							"<namespace>" +
+       								"<name>name2</name>" +
+       								"<id>id2</id>" +
+       								"<link>link2</link>" +
+       							"</namespace>" +
+       							"<NextMarker>nextMarker</NextMarker>" +
+       							"<NextPageLink>nextPageLink</NextPageLink>" +
+       							"</namespaces>";
+
     	
     	ListNamespacesResult namespacesResult = new ListNamespacesResult();
     	namespacesResult.setMaxNamespaces(100);
@@ -70,7 +71,7 @@ public class ListNamespacesTest {
     	jaxbMarshaller.marshal( namespacesResult, byteOut );
     	String bytesOutStr = byteOut.toString();
     	
-    	//System.out.println(bytesOutStr);
+    	System.out.println(bytesOutStr);
     	
     	Assert.assertEquals( "xml is not matching", expectedOutput, bytesOutStr);
 
