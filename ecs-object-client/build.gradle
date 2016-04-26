@@ -50,7 +50,7 @@ dependencies {
     compile "org.eclipse.persistence:org.eclipse.persistence.moxy:2.5.0"
     compile project(':ecs-mgmt-client')
     compile "com.emc.ecs:object-client:2.2.0"
-    
+    compile "org.elasticsearch:elasticsearch:2.3.1"       
     
 }
 

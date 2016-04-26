@@ -23,12 +23,14 @@ public class MetadataCollectorClient {
 	private static final String  ECS_COLLECT_OBJECT_DATA = "object";
 	private static final String  ECS_COLLECT_ALL_DATA = "all";
 	
-	private static final String ECS_HOSTS_CONFIG_ARGUMENT        = "--ecs-hosts";
-	private static final String ECS_ACCESS_KEY_CONFIG_ARGUMENT   = "--ecs-access-key";
-	private static final String ECS_SECRET_KEY_CONFIG_ARGUMENT   = "--ecs-secret-key";
-	private static final String ECS_OBJECT_HOSTS_CONFIG_ARGUMENT = "--ecs-object-hosts";
-	private static final String ECS_MGMT_PORT_CONFIG_ARGUMENT    = "--ecs-mgmt-port";
-	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT = "--collect-data";
+	private static final String ECS_HOSTS_CONFIG_ARGUMENT         = "--ecs-hosts";
+	private static final String ECS_ACCESS_KEY_CONFIG_ARGUMENT    = "--ecs-access-key";
+	private static final String ECS_SECRET_KEY_CONFIG_ARGUMENT    = "--ecs-secret-key";
+	private static final String ECS_OBJECT_HOSTS_CONFIG_ARGUMENT  = "--ecs-object-hosts";
+	private static final String ECS_MGMT_PORT_CONFIG_ARGUMENT     = "--ecs-mgmt-port";
+	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT  = "--collect-data";
+	private static final String ELASTIC_HOSTS_CONFIG_ARGUMENT     = "--elastic-hosts";
+	private static final String ELASTIC_PORT_CONFIG_ARGUMENT      = "--elastic-port";
 		
 	private static String  ecsHosts = "";
 	private static String  ecsMgmtAccessKey = "";
