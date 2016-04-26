@@ -55,5 +55,5 @@ dependencies {
 }
 
 
-//mainClassName="com.emc.ecs.metadata.client.MetadataCollectorClient"
+mainClassName="com.emc.ecs.metadata.client.MetadataCollectorClient"
 

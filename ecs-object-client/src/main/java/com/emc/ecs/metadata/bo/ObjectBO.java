@@ -3,7 +3,6 @@ package com.emc.ecs.metadata.bo;
 
 import java.util.List;
 
-
 import com.emc.ecs.management.entity.ObjectUserDetails;
 import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.object.Protocol;
@@ -13,10 +12,16 @@ import com.emc.object.s3.bean.ListBucketsResult;
 import com.emc.object.s3.bean.ListObjectsResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
 import com.emc.object.s3.request.ListBucketsRequest;
+import com.emc.object.s3.request.ListObjectsRequest;
 import com.emc.rest.smart.ecs.Vdc;
+import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
 public class ObjectBO {
 
+	private static final Integer maxObjectPerRequest = 10000;
+	private Long objectCollectionStart;
+	private Long objectCollectionFinish;
+	private Long objectCount = 0L;
 	
 	//================================
 	// Private members
@@ -54,6 +59,7 @@ public class ObjectBO {
 			
 			System.out.println("Object User: `" + objectUserDetails.getObjectUser().getUserId().toString() + "`");
 			
+			String namespace = objectUserDetails.getObjectUser().getNamespace().toString();
 			
 			// Create object client user
 			Vdc vdc = new Vdc((String [])this.ecsObjectHosts.toArray());	
@@ -63,49 +69,112 @@ public class ObjectBO {
 			s3config.withIdentity(objectUserDetails.getObjectUser().getUserId().toString())
 					.withSecretKey(objectUserDetails.getSecretKeys().getSecretKey1());
 			
-			S3JerseyClient s3JerseyClient = new S3JerseyClient(s3config);
-			try {								
+			s3config.setSmartClient(true);
+			
+			URLConnectionClientHandler urlHandler = new URLConnectionClientHandler();
+			
+			S3JerseyClient s3JerseyClient = new S3JerseyClient(s3config, urlHandler);
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} // wait for poll to complete
+			
+			this.objectCollectionStart = System.currentTimeMillis();
+			
+			try {				
 				// First bucket batch
 				ListBucketsResult listBucketsResult = s3JerseyClient.listBuckets();			
-				collectObjectPerBucketBatch( s3JerseyClient, listBucketsResult.getBuckets() );			
+				objectCount += collectObjectPerBucketBatch( s3JerseyClient, 
+															listBucketsResult.getBuckets(),
+															namespace    );			
 
 				// subsequent bucket batch
-				while( listBucketsResult.isTruncated() ) {				
+				while( listBucketsResult.isTruncated() ) {	
+					
 					ListBucketsRequest listBucketRequest = new ListBucketsRequest();
 					listBucketRequest.setMarker(listBucketsResult.getMarker());
+					listBucketRequest.setNamespace(namespace);
+										
 					listBucketsResult = s3JerseyClient.listBuckets(listBucketRequest);
-					collectObjectPerBucketBatch( s3JerseyClient, listBucketsResult.getBuckets() );				
+					objectCount += collectObjectPerBucketBatch( s3JerseyClient, 
+																listBucketsResult.getBuckets(),
+																namespace   );				
 				}
 			} finally {
 				s3JerseyClient.destroy();
-			}			
+			}
+			
+			this.objectCollectionFinish = System.currentTimeMillis();
 		}
+		
+		Double deltaTime = Double.valueOf((objectCollectionFinish - objectCollectionStart)) / 1000 ;
+		System.out.println("Collected " + objectCount + " objects");
+		System.out.println("Total collection time: " + deltaTime + " seconds");
 		
 	}
 	
-	private void collectObjectPerBucketBatch(S3JerseyClient s3JerseyClient, List<Bucket> bucketList) {
+	private Long collectObjectPerBucketBatch(S3JerseyClient s3JerseyClient, List<Bucket> bucketList, String namespace) {
+		
+		Long objectCount = 0L;
+		//Long timeStart = System.currentTimeMillis();
+		//Long timeFinish = 0L;
 		
 		for( Bucket bucket : bucketList ) {
 			// Collect all objects in that bucket 
-			System.out.println("Collecting object for bucket: " + bucket.getName());
+			System.out.println("Collecting object for bucket: " + bucket.getName() );
 			
-			ListObjectsResult listObjectsResult = s3JerseyClient.listObjects(bucket.getName());
+			ListObjectsRequest listObjectsRequest = new ListObjectsRequest(bucket.getName());
+			listObjectsRequest.setMaxKeys(maxObjectPerRequest);
+			listObjectsRequest.setNamespace(namespace);
 			
+			long startTime = System.currentTimeMillis();
+			ListObjectsResult listObjectsResult = s3JerseyClient.listObjects(listObjectsRequest);
+			long stopTime = System.currentTimeMillis();
+		    Double elapsedTime = Double.valueOf(stopTime - startTime) / 1000;
+		    
+							
 			if(listObjectsResult != null) {
+				Long collected = (long)listObjectsResult.getObjects().size();
+				objectCount += collected;
+				System.out.println("Took: " + elapsedTime + " seconds to collect " + collected + " objects");
+				
 				if(this.objectDAO != null) {					
 					objectDAO.insert(listObjectsResult);
 				}
 				
 				while(listObjectsResult.isTruncated()) {
-					listObjectsResult = s3JerseyClient.listMoreObjects(listObjectsResult);
+					ListObjectsRequest moreListObjectsRequest = new ListObjectsRequest(bucket.getName());
+					moreListObjectsRequest.setMaxKeys(maxObjectPerRequest);
+					moreListObjectsRequest.setNamespace(namespace);
+					moreListObjectsRequest.setMarker(listObjectsResult.getNextMarker());
+					
+					startTime = System.currentTimeMillis();
+					listObjectsResult = s3JerseyClient.listObjects(moreListObjectsRequest);
+					stopTime = System.currentTimeMillis();
+					elapsedTime = Double.valueOf(stopTime - startTime) / 1000;
+				    System.out.println(elapsedTime);
+					
+				    collected = (long)listObjectsResult.getObjects().size();
+					objectCount += collected;
+					
+					System.out.println("Took: " + elapsedTime + " seconds to collect " + collected + " objects");
 					
 					if(this.objectDAO != null) {
 						objectDAO.insert(listObjectsResult);
 					}
-				}
-				
-			}
+				}				
+			}			
 		}
+		
+		
+		
+		//System.out.println("Collected " + objectCount + " objects");
+		
+		
+		return objectCount;
 	}
 
 	public void shutdown() {
