@@ -8,7 +8,7 @@ import com.emc.ecs.management.client.ManagementClientConfig;
 import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.Namespace;
-import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
+import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.NamespaceRequest;
 import com.emc.ecs.management.entity.ObjectUser;
 import com.emc.ecs.management.entity.ObjectUserDetails;
@@ -138,7 +138,7 @@ public class BillingBO {
 			
 			NamespaceRequest namespaceRequest = new NamespaceRequest();
 			namespaceRequest.setName(namespace.getName());
-			NamespaceBillingInfoResponse namespaceBillingResponse = client.getNamespaceBillingInfo(namespaceRequest);
+			NamespaceBillingInfo namespaceBillingResponse = client.getNamespaceBillingInfo(namespaceRequest);
 			
 			if(namespaceBillingResponse == null) {
 				continue;

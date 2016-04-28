@@ -8,8 +8,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
 
-import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
-import com.emc.ecs.management.entity.ObjectBucketsResponse;
+import com.emc.ecs.management.entity.NamespaceBillingInfo;
+import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.metadata.dao.BillingDAO;
 
 public class FileBillingDAO implements BillingDAO {
@@ -22,12 +22,12 @@ public class FileBillingDAO implements BillingDAO {
 	
 	
 	@Override
-	public void insert(NamespaceBillingInfoResponse billingData) {
+	public void insert(NamespaceBillingInfo billingData) {
 		
 		
 	 	JAXBContext jaxbContext;
 		try {
-			jaxbContext = JAXBContext.newInstance( NamespaceBillingInfoResponse.class );
+			jaxbContext = JAXBContext.newInstance( NamespaceBillingInfo.class );
 		  	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 	    	
 	    	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, true );    	
@@ -48,11 +48,11 @@ public class FileBillingDAO implements BillingDAO {
 			
 
 	@Override
-	public void insert(ObjectBucketsResponse bucketResponse) {
+	public void insert(ObjectBuckets bucketResponse) {
 
 	 	JAXBContext jaxbContext;
 		try {
-			jaxbContext = JAXBContext.newInstance( ObjectBucketsResponse.class );
+			jaxbContext = JAXBContext.newInstance( ObjectBuckets.class );
 		  	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 	    	
 	    	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	

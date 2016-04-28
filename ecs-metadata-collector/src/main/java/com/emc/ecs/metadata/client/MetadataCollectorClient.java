@@ -6,6 +6,10 @@ import java.util.List;
 
 import com.emc.ecs.metadata.bo.BillingBO;
 import com.emc.ecs.metadata.bo.ObjectBO;
+import com.emc.ecs.metadata.dao.BillingDAO;
+import com.emc.ecs.metadata.dao.ObjectDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticBillingDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticBillingDAOConfig;
 import com.emc.ecs.metadata.dao.file.FileBillingDAO;
 import com.emc.ecs.metadata.dao.file.FileObjectDAO;
 
@@ -32,12 +36,14 @@ public class MetadataCollectorClient {
 	private static final String ELASTIC_HOSTS_CONFIG_ARGUMENT     = "--elastic-hosts";
 	private static final String ELASTIC_PORT_CONFIG_ARGUMENT      = "--elastic-port";
 		
-	private static String  ecsHosts = "";
+	private static String  ecsHosts         = "";
 	private static String  ecsMgmtAccessKey = "";
 	private static String  ecsMgmtSecretKey = "";
-	private static String  ecsObjectHosts = "";
-	private static Integer ecsMgmtPort = DEFAULT_ECS_MGMT_PORT;
-	private static String  collectData = ECS_COLLECT_ALL_DATA;
+	private static String  elasticHosts     = "";
+	private static Integer elasticPort      = 9300;
+	private static String  ecsObjectHosts   = "";
+	private static Integer ecsMgmtPort      = DEFAULT_ECS_MGMT_PORT;
+	private static String  collectData      = ECS_COLLECT_ALL_DATA;
 
 	public static void main(String[] args) throws Exception {
 
@@ -45,8 +51,13 @@ public class MetadataCollectorClient {
 													"[" + ECS_ACCESS_KEY_CONFIG_ARGUMENT + " <admin-username>]" +
 				                                    "[" + ECS_SECRET_KEY_CONFIG_ARGUMENT + "<admin-password>]" +
 				                                    "[" + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
-													"[" + ECS_MGMT_PORT_CONFIG_ARGUMENT + "<mgmt-port>]" + 
-				                                    "[" + ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <billing|objects|all>] "; 
+													"[" + ECS_MGMT_PORT_CONFIG_ARGUMENT + "<mgmt-port>]" +
+													"[" + ELASTIC_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
+													"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port>]" +
+				                                    "[" + ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <" + 
+															ECS_COLLECT_BILLING_DATA+ "|" + 
+															ECS_COLLECT_OBJECT_DATA + "|" +
+															ECS_COLLECT_ALL_DATA +">] "; 
 
 		
 		if ( args.length > 0 && args[0].contains("--help")) {
@@ -103,8 +114,21 @@ public class MetadataCollectorClient {
 						System.err.println(ECS_COLLECT_DATA_CONFIG_ARGUMENT + " requires a collect data value");
 						System.exit(0);
 					}
-				} 
-				else {
+				} else if (arg.contains(ELASTIC_HOSTS_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						elasticHosts = args[i++];
+					} else {
+						System.err.println(ELASTIC_HOSTS_CONFIG_ARGUMENT + " requires hosts value(s)");
+						System.exit(0);
+					}
+				} else if (arg.equals(ELASTIC_PORT_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						elasticPort = Integer.valueOf(args[i++]);
+					} else {
+						System.err.println(ECS_MGMT_PORT_CONFIG_ARGUMENT + " requires a mgmt port value");
+						System.exit(0);
+					}
+				} else {
 					System.err.println(menuString);
 					System.exit(0);
 				} 
@@ -167,15 +191,25 @@ public class MetadataCollectorClient {
 
 	private static void collectBillingData() {
 		
-		// Instantiate DAO
-		FileBillingDAO fileBillingDAO = new FileBillingDAO(null);
+		BillingDAO billingDAO = null;
+		
+		if(!elasticHosts.isEmpty()) {
+			// Instantiate file DAO
+			ElasticBillingDAOConfig daoConfig = new ElasticBillingDAOConfig();
+			daoConfig.setHosts(Arrays.asList(ecsHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			billingDAO = new ElasticBillingDAO(daoConfig);
+		} else {
+			// Instantiate file DAO
+			billingDAO = new FileBillingDAO(null);
+		}
 		
 		// instantiate billing BO
 		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
 											 ecsMgmtSecretKey,
 											 Arrays.asList(ecsHosts.split(",")),
 											 ecsMgmtPort,
-											 fileBillingDAO );
+											 billingDAO );
 		
 		// Start collection
 		billingBO.collectBillingData();
@@ -207,5 +241,11 @@ public class MetadataCollectorClient {
 	}
 	
 
-
+	private static BillingDAO createBillingDAO() {
+		return null;
+	}
+	
+	private static ObjectDAO createObjectDAO() {
+		return null;
+	}
 }
