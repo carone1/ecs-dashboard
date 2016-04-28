@@ -76,7 +76,7 @@ public class ObjectBucketsTests {
      							"</object_buckets>";
     	
  
-    	ObjectBucketResponse objectBucket = new ObjectBucketResponse();
+    	ObjectBucket objectBucket = new ObjectBucket();
     	objectBucket.setApiType("apiType");
     	objectBucket.setBlockSize(100L);
     	objectBucket.setCreated("created");
@@ -128,17 +128,17 @@ public class ObjectBucketsTests {
     	objectBucket.setVdc(vdc);
     	
     	objectBucket.setVpool("vpool");
-    	List<ObjectBucketResponse> bucketList = new ArrayList<ObjectBucketResponse>();
+    	List<ObjectBucket> bucketList = new ArrayList<ObjectBucket>();
     	bucketList.add(objectBucket);
     	
-    	ObjectBucketsResponse objectBuckets = new ObjectBucketsResponse();
+    	ObjectBuckets objectBuckets = new ObjectBuckets();
     	objectBuckets.setFilter("filter");
     	objectBuckets.setMaxBuckets(100);
     	objectBuckets.setNextMarker("nextMarker");
     	objectBuckets.setNextPageLink(15L);
     	objectBuckets.setObjectBucket(bucketList);
     	
-    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectBucketsResponse.class );    	
+    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectBuckets.class );    	
     	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
     	
     	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	

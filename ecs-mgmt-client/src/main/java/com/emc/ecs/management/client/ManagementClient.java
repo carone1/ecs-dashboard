@@ -35,9 +35,9 @@ import javax.ws.rs.core.Response;
 
 import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
-import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
+import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.NamespaceRequest;
-import com.emc.ecs.management.entity.ObjectBucketsResponse;
+import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.management.entity.ObjectUserSecretKeys;
 import com.emc.ecs.management.entity.ObjectUsers;
 import com.emc.ecs.management.entity.ObjectUsersRequest;
@@ -132,11 +132,11 @@ public class ManagementClient {
 	 * @param namespaceRequest
 	 * @return NamespaceBillingInfoResponse
 	 */
-	public NamespaceBillingInfoResponse getNamespaceBillingInfo(NamespaceRequest namespaceRequest) {
+	public NamespaceBillingInfo getNamespaceBillingInfo(NamespaceRequest namespaceRequest) {
 				
 		String authToken = getAuthToken();
 		
-		NamespaceBillingInfoResponse namespaceBillingResponse = null;
+		NamespaceBillingInfo namespaceBillingResponse = null;
 						
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
 
@@ -159,7 +159,7 @@ public class ManagementClient {
 		try {
 			
 			namespaceBillingResponse = getNamespaceBillingResource.header(X_SDS_AUTH_TOKEN, authToken)
-																.get(NamespaceBillingInfoResponse.class);
+																.get(NamespaceBillingInfo.class);
 			
 		} catch (UniformInterfaceException ex) {
 			// ECS has a bug where an http 400 error is returned if 
@@ -180,7 +180,7 @@ public class ManagementClient {
 				}
 				
 				namespaceBillingResponse = getNamespaceBillingResource.header(X_SDS_AUTH_TOKEN, authToken)
-																		.get(NamespaceBillingInfoResponse.class);
+																		.get(NamespaceBillingInfo.class);
 			}
 		}								
 		
@@ -192,7 +192,7 @@ public class ManagementClient {
 	 * @param namespaceRequest
 	 * @return ObjectBucketsResponse
 	 */
-	public ObjectBucketsResponse getNamespaceBucketInfo(NamespaceRequest namespaceRequest) {
+	public ObjectBuckets getNamespaceBucketInfo(NamespaceRequest namespaceRequest) {
 		
 		String authToken = getAuthToken();
 						
@@ -212,8 +212,8 @@ public class ManagementClient {
 																						namespaceRequest.getNextMarker());			
 		}
 		
-		ObjectBucketsResponse namespaceBucketInfoResponse = 
-				getNamespaceBucketInfoResource.header(X_SDS_AUTH_TOKEN, authToken).get(ObjectBucketsResponse.class);
+		ObjectBuckets namespaceBucketInfoResponse = 
+				getNamespaceBucketInfoResource.header(X_SDS_AUTH_TOKEN, authToken).get(ObjectBuckets.class);
 						
 		return namespaceBucketInfoResponse;
 	}

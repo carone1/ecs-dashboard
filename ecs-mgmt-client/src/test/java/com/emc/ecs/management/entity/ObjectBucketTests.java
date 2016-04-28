@@ -71,7 +71,7 @@ public class ObjectBucketTests {
      							
     	
  
-    	ObjectBucketResponse objectBucket = new ObjectBucketResponse();
+    	ObjectBucket objectBucket = new ObjectBucket();
     	objectBucket.setApiType("apiType");
     	objectBucket.setBlockSize(100L);
     	objectBucket.setCreated("created");
@@ -125,7 +125,7 @@ public class ObjectBucketTests {
     	objectBucket.setVpool("vpool");
     	
     	
-    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectBucketResponse.class );    	
+    	JAXBContext jaxbContext = JAXBContext.newInstance( ObjectBucket.class );    	
     	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
     	
     	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	

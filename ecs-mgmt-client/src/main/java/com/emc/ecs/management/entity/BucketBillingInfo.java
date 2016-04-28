@@ -12,6 +12,16 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(propOrder = {"name", "namespace", "vpoolId", "totalSize", "totalSizeUnit", "totalObjects", "sampleTime", "tagSet"})
 public class BucketBillingInfo {
 	
+	public static final String NAME_TAG = "name"; 
+	public static final String NAMESPACE_TAG = "namespace";
+	public static final String VPOOL_ID_TAG = "vpool_id";
+	public static final String TOTAL_SIZE_TAG = "total_size";
+	public static final String TOTAL_SIZE_UNIT_TAG = "total_size_unit";
+	public static final String TOTAL_OBJECTS_TAG = "total_objects";
+	public static final String SAMPLE_TIME_TAG = "sample_time"; 	
+	public static final String TAG_SET_TAG = "TagSet";
+	public static final String TAG_TAG = "Tag";
+	
 	private String name;
 	private String namespace;
 	private String vpoolId;
@@ -21,7 +31,7 @@ public class BucketBillingInfo {
 	private String sampleTime;
 	private List<Tag> tagSet;
 	
-	@XmlElement(name = "name")
+	@XmlElement(name = NAME_TAG)
 	public String getName() {
 		return name;
 	}
@@ -29,7 +39,7 @@ public class BucketBillingInfo {
 		this.name = name;
 	}
 	
-	@XmlElement(name = "namespace")
+	@XmlElement(name = NAMESPACE_TAG)
 	public String getNamespace() {
 		return namespace;
 	}
@@ -37,7 +47,7 @@ public class BucketBillingInfo {
 		this.namespace = namespace;
 	}
 	
-	@XmlElement(name = "vpool_id")
+	@XmlElement(name = VPOOL_ID_TAG)
 	public String getVpoolId() {
 		return vpoolId;
 	}
@@ -45,7 +55,7 @@ public class BucketBillingInfo {
 		this.vpoolId = vpoolId;
 	}
 	
-	@XmlElement(name = "total_size")
+	@XmlElement(name = TOTAL_SIZE_TAG)
 	public Long getTotalSize() {
 		return totalSize;
 	}
@@ -53,7 +63,7 @@ public class BucketBillingInfo {
 		this.totalSize = totalSize;
 	}
 	
-	@XmlElement(name = "total_size_unit")
+	@XmlElement(name = TOTAL_SIZE_UNIT_TAG)
 	public String getTotalSizeUnit() {
 		return totalSizeUnit;
 	}
@@ -61,7 +71,7 @@ public class BucketBillingInfo {
 		this.totalSizeUnit = totalSizeUnit;
 	}
 	
-	@XmlElement(name = "total_objects")
+	@XmlElement(name = TOTAL_OBJECTS_TAG)
 	public Long getTotalObjects() {
 		return totalObjects;
 	}
@@ -69,7 +79,7 @@ public class BucketBillingInfo {
 		this.totalObjects = totalObjects;
 	}
 	
-	@XmlElement(name = "sample_time")
+	@XmlElement(name = SAMPLE_TIME_TAG)
 	public String getSampleTime() {
 		return sampleTime;
 	}
@@ -77,8 +87,8 @@ public class BucketBillingInfo {
 		this.sampleTime = sampleTime;
 	}
 	
-	@XmlElementWrapper(name = "TagSet")
-	@XmlElement(name = "Tag")
+	@XmlElementWrapper(name = TAG_SET_TAG)
+	@XmlElement(name = TAG_TAG)
 	public List<Tag> getTagSet() {
 		return tagSet;
 	}

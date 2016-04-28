@@ -13,10 +13,10 @@ import org.junit.Test;
 import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.Namespace;
-import com.emc.ecs.management.entity.NamespaceBillingInfoResponse;
+import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.NamespaceRequest;
-import com.emc.ecs.management.entity.ObjectBucketResponse;
-import com.emc.ecs.management.entity.ObjectBucketsResponse;
+import com.emc.ecs.management.entity.ObjectBucket;
+import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.management.entity.ObjectUser;
 import com.emc.ecs.management.entity.ObjectUserSecretKeys;
 import com.emc.ecs.management.entity.ObjectUsers;
@@ -99,7 +99,7 @@ public class ManagementClientTest {
     			NamespaceRequest namespaceRequest = new NamespaceRequest();
     			namespaceRequest.setName(namespace.getName());        	        	                        	
 
-    			NamespaceBillingInfoResponse namespaceBillingInfoResponse = 
+    			NamespaceBillingInfo namespaceBillingInfoResponse = 
     										client.getNamespaceBillingInfo(namespaceRequest);
     			Assert.assertNotNull(namespaceBillingInfoResponse);
 
@@ -126,11 +126,11 @@ public class ManagementClientTest {
         for( Namespace namespace : namespacesReponse.getNamespaces() ) {  
         	NamespaceRequest namespaceRequest = new NamespaceRequest();
         	namespaceRequest.setName(namespace.getName());
-        	ObjectBucketsResponse bucketsResponse = client.getNamespaceBucketInfo(namespaceRequest);
+        	ObjectBuckets bucketsResponse = client.getNamespaceBucketInfo(namespaceRequest);
         	
         	System.out.println("namespace: " + namespace.getName());
         	if( bucketsResponse != null && bucketsResponse.getObjectBucket() != null) {        		
-        		for( ObjectBucketResponse objectBucket : bucketsResponse.getObjectBucket() ) {
+        		for( ObjectBucket objectBucket : bucketsResponse.getObjectBucket() ) {
         			System.out.println("Block Name: " + objectBucket.getName());
         			System.out.println("Api Type: " + objectBucket.getApiType());
         			System.out.println("Bucket Owner: " + objectBucket.getOwner());        			

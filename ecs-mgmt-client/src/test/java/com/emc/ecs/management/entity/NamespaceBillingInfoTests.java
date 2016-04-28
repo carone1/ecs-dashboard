@@ -66,7 +66,7 @@ public class NamespaceBillingInfoTests {
     	bucketList.add(bucketBillingInfo);
  
       	// namespace billing info
-     	NamespaceBillingInfoResponse namespaceBillingInfo = new NamespaceBillingInfoResponse();
+     	NamespaceBillingInfo namespaceBillingInfo = new NamespaceBillingInfo();
      	namespaceBillingInfo.setBucketBillingInfo(bucketList);
      	namespaceBillingInfo.setNamespace("namespace");
      	namespaceBillingInfo.setNextMarker("nextMarker");
@@ -76,7 +76,7 @@ public class NamespaceBillingInfoTests {
      	namespaceBillingInfo.setTotalSizeUnit("GB");
      	
     	
-    	JAXBContext jaxbContext = JAXBContext.newInstance( NamespaceBillingInfoResponse.class );    	
+    	JAXBContext jaxbContext = JAXBContext.newInstance( NamespaceBillingInfo.class );    	
     	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
     	
     	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	
