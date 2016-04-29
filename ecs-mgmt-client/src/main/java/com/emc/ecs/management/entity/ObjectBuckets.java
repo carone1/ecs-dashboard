@@ -12,13 +12,20 @@ import javax.xml.bind.annotation.XmlType;
 
 public class ObjectBuckets {
 	
+	public final static String OBJECT_BUCKET  = "object_bucket";
+	public final static String MAX_BUCKETS    = "MaxBuckets";
+	public final static String NEXT_MARKER    = "NextMarker";
+	public final static String FILTER         = "Filter";
+	public final static String NEXT_PAGE_LINK = "NextPageLink";	
+	
+	
 	private List<ObjectBucket> objectBucketList;
 	private Integer 			maxBuckets;
 	private String 				nextMarker;
 	private String 				filter;
 	private Long 				nextPageLink;
 	
-	@XmlElement(name = "object_bucket")
+	@XmlElement(name = OBJECT_BUCKET)
 	public List<ObjectBucket> getObjectBucket() {
 		return objectBucketList;
 	}
@@ -26,7 +33,7 @@ public class ObjectBuckets {
 		this.objectBucketList = objectBucket;
 	}
 	
-	@XmlElement(name = "MaxBuckets")
+	@XmlElement(name = MAX_BUCKETS)
 	public Integer getMaxBuckets() {
 		return maxBuckets;
 	}
@@ -34,7 +41,7 @@ public class ObjectBuckets {
 		this.maxBuckets = maxBuckets;
 	}
 	
-	@XmlElement(name = "NextMarker")
+	@XmlElement(name = NEXT_MARKER)
 	public String getNextMarker() {
 		return nextMarker;
 	}
@@ -42,7 +49,7 @@ public class ObjectBuckets {
 		this.nextMarker = nextMarker;
 	}
 	
-	@XmlElement(name = "Filter")
+	@XmlElement(name = FILTER)
 	public String getFilter() {
 		return filter;
 	}
@@ -50,7 +57,7 @@ public class ObjectBuckets {
 		this.filter = filter;
 	}
 	
-	@XmlElement(name = "NextPageLink")
+	@XmlElement(name = NEXT_PAGE_LINK)
 	public Long getNextPageLink() {
 		return nextPageLink;
 	}

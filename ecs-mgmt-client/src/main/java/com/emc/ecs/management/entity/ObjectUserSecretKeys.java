@@ -9,6 +9,15 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement(name = "user_secret_keys")
 @XmlType(propOrder = {"secretKey1", "keyTimestamp1", "keyExpiryTimestamp1", "secretKey2", "keyTimestamp2", "keyExpiryTimestamp2", "link"})
 public class ObjectUserSecretKeys {
+	
+	public final static String SECRET_KEY_1   		  = "secret_key_1";
+	public final static String KEY_TIMESTAMP_1 		  = "key_timestamp_1";
+	public final static String KEY_EXPIRY_TIMESTAMP_1 = "key_expiry_timestamp_1";
+	public final static String SECRET_KEY_2   		  = "secret_key_2";
+	public final static String KEY_TIMESTAMP_2 		  = "key_timestamp_2";
+	public final static String KEY_EXPIRY_TIMESTAMP_2 = "key_expiry_timestamp_2";
+	public final static String LINK 				  = "link";
+	
 	private String secretKey1;
 	private String keyTimestamp1;
 	private String keyExpiryTimestamp1;
@@ -19,7 +28,7 @@ public class ObjectUserSecretKeys {
     
 
 	//private String 
-    @XmlElement(name = "secret_key_1")
+    @XmlElement(name = SECRET_KEY_1)
 	public String getSecretKey1() {
 		return secretKey1;
 	}
@@ -27,7 +36,7 @@ public class ObjectUserSecretKeys {
 		this.secretKey1 = secretKey1;
 	}
 	
-	@XmlElement(name = "key_timestamp_1")
+	@XmlElement(name = KEY_TIMESTAMP_1)
 	public String getKeyTimestamp1() {
 		return keyTimestamp1;
 	}
@@ -35,7 +44,7 @@ public class ObjectUserSecretKeys {
 		this.keyTimestamp1 = keyTimestamp1;
 	}
 
-	@XmlElement(name = "key_expiry_timestamp_1")
+	@XmlElement(name = KEY_EXPIRY_TIMESTAMP_1)
 	public String getKeyExpiryTimestamp1() {
 		return keyExpiryTimestamp1;
 	}
@@ -43,7 +52,7 @@ public class ObjectUserSecretKeys {
 		this.keyExpiryTimestamp1 = keyExpiryTimestamp1;
 	}
 	
-	 @XmlElement(name = "secret_key_2")
+	 @XmlElement(name = SECRET_KEY_2)
 	public String getSecretKey2() {
 		return secretKey2;
 	}
@@ -51,7 +60,7 @@ public class ObjectUserSecretKeys {
 		this.secretKey2 = secretKey2;
 	}
 	
-	@XmlElement(name = "key_timestamp_2")
+	@XmlElement(name = KEY_TIMESTAMP_2)
 	public String getKeyTimestamp2() {
 		return keyTimestamp2;
 	}
@@ -59,7 +68,7 @@ public class ObjectUserSecretKeys {
 		this.keyTimestamp2 = keyTimestamp2;
 	}
 	
-	 @XmlElement(name = "key_expiry_timestamp_2")
+	 @XmlElement(name = KEY_EXPIRY_TIMESTAMP_2)
 	public String getKeyExpiryTimestamp2() {
 		return keyExpiryTimestamp2;
 	}
@@ -68,7 +77,7 @@ public class ObjectUserSecretKeys {
 		this.keyExpiryTimestamp2 = keyExpiryTimestamp2;
 	}
     
-	@XmlElement(name = "link")
+	@XmlElement(name = LINK)
     public String getLink() {
 		return link;
 	}

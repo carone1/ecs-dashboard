@@ -107,9 +107,7 @@ public class ManagementClient {
 	public ListNamespacesResult listNamespaces(ListNamespaceRequest namespaceRequest) {
 				
 		String authToken = getAuthToken();
-		
-		System.out.println(authToken);
-		
+						
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
 
 		// list namespaces
@@ -168,7 +166,7 @@ public class ManagementClient {
 			// The workaround is to make the same call but without the parameter
 			if( ex.getResponse().getStatusInfo().getStatusCode() == Response.Status.BAD_REQUEST.getStatusCode() ) {				
 												
-				System.out.println("getNamespaceBillingResource: " + restStr.toString());
+				//System.out.println("getNamespaceBillingResource: " + restStr.toString());
 				
 				// get billing namespace Billing ressource
 				getNamespaceBillingResource = mgmtResource.path(restStr.toString());

@@ -11,11 +11,15 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(propOrder = { "userId", "namespace" })
 public class ObjectUser {
 	
+	public final static String USER_ID   = "userid";
+	public final static String NAMESPACE = "namespace";
+	
+	
 	private URI userId;
 	private URI namespace;
 	
 	
-	@XmlElement(name = "userid")
+	@XmlElement(name = USER_ID)
 	public URI getUserId() {
 		return userId;
 	}
@@ -23,7 +27,7 @@ public class ObjectUser {
 		this.userId = userId;
 	}
 	
-	@XmlElement(name = "namespace")
+	@XmlElement(name = NAMESPACE)
 	public URI getNamespace() {
 		return namespace;
 	}

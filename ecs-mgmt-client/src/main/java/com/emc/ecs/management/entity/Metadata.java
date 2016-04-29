@@ -9,13 +9,16 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(propOrder = {"type", "name", "dataType"})
 public class Metadata {
   
+	public final static String TYPE      = "type";
+	public final static String NAME      = "name";
+	public final static String DATA_TYPE = "datatype";
 
 	private String type;
     private String name;
     private String dataType;
+    
 
-
-	@XmlElement(name = "type")
+	@XmlElement(name = TYPE)
     public String getType() {
         return type;
     }
@@ -24,7 +27,7 @@ public class Metadata {
         this.type = type;
     }
 
-    @XmlElement(name = "name")
+    @XmlElement(name = NAME)
     public String getName() {
         return name;
     }
@@ -33,7 +36,7 @@ public class Metadata {
         this.name = name;
     }
     
-    @XmlElement(name = "datatype")
+    @XmlElement(name = DATA_TYPE)
     public String getDataType() {
   		return dataType;
   	}

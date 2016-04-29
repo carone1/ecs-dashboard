@@ -12,13 +12,19 @@ import javax.xml.bind.annotation.XmlType;
 
 public class ObjectUsers {
 	
+	public final static String BLOB_USER      = "blobuser";
+	public final static String MAX_USERS      = "MaxUsers";
+	public final static String NEXT_MARKER    = "NextMarker";
+	public final static String FILTER         = "Filter";
+	public final static String NEXT_PAGE_LINK = "NextPageLink";
+	
 	private List<ObjectUser> blobUser;
 	private Integer maxUsers;
 	private String nextMarker;
 	private String filter;
 	private Long nextPathLink;
 	
-	@XmlElement(name = "blobuser")
+	@XmlElement(name = BLOB_USER)
 	public List<ObjectUser> getBlobUser() {
 		return blobUser;
 	}
@@ -26,7 +32,7 @@ public class ObjectUsers {
 		this.blobUser = blobUser;
 	}
 	
-	@XmlElement(name = "MaxUsers")
+	@XmlElement(name = MAX_USERS)
 	public Integer getMaxUsers() {
 		return maxUsers;
 	}
@@ -34,7 +40,7 @@ public class ObjectUsers {
 		this.maxUsers = maxUsers;
 	}
 	
-	@XmlElement(name = "NextMarker")
+	@XmlElement(name = NEXT_MARKER)
 	public String getNextMarker() {
 		return nextMarker;
 	}
@@ -42,7 +48,7 @@ public class ObjectUsers {
 		this.nextMarker = nextMarker;
 	}
 	
-	@XmlElement(name = "Filter")
+	@XmlElement(name = FILTER)
 	public String getFilter() {
 		return filter;
 	}
@@ -50,7 +56,7 @@ public class ObjectUsers {
 		this.filter = filter;
 	}
 	
-	@XmlElement(name = "NextPageLink")
+	@XmlElement(name = NEXT_PAGE_LINK)
 	public Long getNextPathLink() {
 		return nextPathLink;
 	}

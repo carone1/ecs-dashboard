@@ -21,6 +21,43 @@ import javax.xml.bind.annotation.XmlType;
 		              "vdc", "internal" })
 public class ObjectBucket {
 	
+	
+	public final static String CREATED_TAG             				     = "created";
+	public final static String SOFT_QUOTA_TAG          				     = "softquota";
+	public final static String FS_ACCESS_ENABLED_TAG   				     = "fs_access_enabled";
+	public final static String LOCKED_TAG              				     = "locked";
+	public final static String V_POOL_TAG              				     = "vpool";
+	public final static String NAMESPACE_TAG           				     = "namespace";
+	public final static String OWNER_TAG               				     = "owner";
+	public final static String IS_STALE_ALLOWED_TAG    				     = "is_stale_allowed";
+	public final static String IS_ENCRYPTION_ENABLED_TAG		         = "is_encryption_enabled";
+	public final static String DEFAULT_RETENTION_TAG   			         = "default_retention";
+	public final static String BLOCK_SIZE_TAG          			         = "block_size";
+	public final static String NOTIFICATION_SIZE_TAG   			         = "notification_size";
+	public final static String API_TYPE_TAG            			         = "api_type";
+	public final static String TAG_SET_TAG             			         = "TagSet";
+	public final static String RETENTION_TAG           			         = "retention";
+	public final static String DEFAULT_GROUP_FILE_READ_PERMISSION_TAG    = "default_group_file_read_permission";
+	public final static String DEFAULT_GROUP_FILE_WRITE_PERMISSION_TAG   = "default_group_file_write_permission";
+	public final static String DEFAULT_GROUP_FILE_EXECUTE_PERMISSION_TAG = "default_group_file_execute_permission";
+	public final static String DEFAULT_GROUP_DIR_READ_PERMISSION_TAG     = "default_group_dir_read_permission";
+	public final static String DEFAULT_GROUP_DIR_WRITE_PERMISSION_TAG    = "default_group_dir_write_permission";
+	public final static String DEFAULT_GROUP_DIR_EXECUTE_PERMISSION_TAG  = "default_group_dir_execute_permission";
+	public final static String DEFAULT_GROUP_TAG					     = "default_group";
+	public final static String SEARCH_METADATA_TAG                       = "search_metadata";
+	public final static String METADATA_TAG                              = "metadata";
+	public final static String NAME_TAG								     = "name";
+	public final static String ID_TAG                                    = "id";
+	public final static String LINK_TAG								     = "link";
+	public final static String CREATION_TIME_TAG    				     = "creation_time";
+	public final static String INACTIVE_TAG							     = "inactive";
+	public final static String GLOBAL_TAG							     = "global";
+	public final static String REMOTE_TAG							     = "remote";
+	public final static String VDC_TAG 									 = "vdc";
+	public final static String INTERNAL_TAG 							 = "internal";	
+	
+	
+	
 	private String         created;
 	private String         softQuota;
 	private Boolean        fsAccessEnabled;
@@ -54,7 +91,7 @@ public class ObjectBucket {
 	private Vdc            vdc;
 	private Boolean        internal;
 	
-	@XmlElement(name = "created")
+	@XmlElement(name = CREATED_TAG)
 	public String getCreated() {
 		return created;
 	}
@@ -62,7 +99,7 @@ public class ObjectBucket {
 		this.created = created;
 	}
 	
-	@XmlElement(name = "softquota")
+	@XmlElement(name = SOFT_QUOTA_TAG)
 	public String getSoftQuota() {
 		return softQuota;
 	}
@@ -70,7 +107,7 @@ public class ObjectBucket {
 		this.softQuota = softQuota;
 	}
 	
-	@XmlElement(name = "fs_access_enabled")
+	@XmlElement(name = FS_ACCESS_ENABLED_TAG)
 	public Boolean getFsAccessEnabled() {
 		return fsAccessEnabled;
 	}
@@ -78,7 +115,7 @@ public class ObjectBucket {
 		this.fsAccessEnabled = fsAccessEnabled;
 	}
 	
-	@XmlElement(name = "locked")
+	@XmlElement(name = LOCKED_TAG)
 	public Boolean getLocked() {
 		return locked;
 	}
@@ -86,7 +123,7 @@ public class ObjectBucket {
 		this.locked = locked;
 	}
 	
-	@XmlElement(name = "vpool")
+	@XmlElement(name = V_POOL_TAG)
 	public String getVpool() {
 		return vpool;
 	}
@@ -94,7 +131,7 @@ public class ObjectBucket {
 		this.vpool = vpool;
 	}
 	
-	@XmlElement(name = "namespace")
+	@XmlElement(name = NAMESPACE_TAG)
 	public String getNamespace() {
 		return namespace;
 	}
@@ -102,7 +139,7 @@ public class ObjectBucket {
 		this.namespace = namespace;
 	}
 	
-	@XmlElement(name = "owner")
+	@XmlElement(name = OWNER_TAG)
 	public String getOwner() {
 		return owner;
 	}
@@ -110,7 +147,7 @@ public class ObjectBucket {
 		this.owner = owner;
 	}
 	
-	@XmlElement(name = "is_stale_allowed")
+	@XmlElement(name = IS_STALE_ALLOWED_TAG)
 	public Boolean getIsStaleAllowed() {
 		return isStaleAllowed;
 	}
@@ -118,7 +155,7 @@ public class ObjectBucket {
 		this.isStaleAllowed = isStaleAllowed;
 	}
 	
-	@XmlElement(name = "is_encryption_enabled")
+	@XmlElement(name = IS_ENCRYPTION_ENABLED_TAG )
 	public String getIsEncryptionEnabled() {
 		return isEncryptionEnabled;
 	}
@@ -126,7 +163,7 @@ public class ObjectBucket {
 		this.isEncryptionEnabled = isEncryptionEnabled;
 	}
 	
-	@XmlElement(name = "default_retention")
+	@XmlElement(name = DEFAULT_RETENTION_TAG )
 	public Long getDefaultRetention() {
 		return defaultRetention;
 	}
@@ -134,7 +171,7 @@ public class ObjectBucket {
 		this.defaultRetention = defaultRetention;
 	}
 	
-	@XmlElement(name = "block_size")
+	@XmlElement(name = BLOCK_SIZE_TAG )
 	public Long getBlockSize() {
 		return blockSize;
 	}
@@ -142,7 +179,7 @@ public class ObjectBucket {
 		this.blockSize = blockSize;
 	}
 	
-	@XmlElement(name = "notification_size")
+	@XmlElement(name = NOTIFICATION_SIZE_TAG )
 	public Long getNotificationSize() {
 		return notificationSize;
 	}
@@ -150,7 +187,7 @@ public class ObjectBucket {
 		this.notificationSize = notificationSize;
 	}
 	
-	@XmlElement(name = "api_type")
+	@XmlElement(name = API_TYPE_TAG )
 	public String getApiType() {
 		return apiType;
 	}
@@ -158,7 +195,7 @@ public class ObjectBucket {
 		this.apiType = apiType;
 	}
 	
-	@XmlElement(name = "TagSet")
+	@XmlElement(name = TAG_SET_TAG )
 	public List<Tag> getTagSet() {
 		return tagSet;
 	}
@@ -166,7 +203,7 @@ public class ObjectBucket {
 		this.tagSet = tagSet;
 	}
 	
-	@XmlElement(name = "retention")
+	@XmlElement(name = RETENTION_TAG )
 	public Long getRetention() {
 		return retention;
 	}
@@ -174,7 +211,7 @@ public class ObjectBucket {
 		this.retention = retention;
 	}
 	
-	@XmlElement(name = "default_group_file_read_permission")
+	@XmlElement(name = DEFAULT_GROUP_FILE_READ_PERMISSION_TAG )
 	public Boolean getDefaultGroupFileReadPermission() {
 		return defaultGroupFileReadPermission;
 	}
@@ -182,7 +219,7 @@ public class ObjectBucket {
 		this.defaultGroupFileReadPermission = defaultGroupFileReadPermission;
 	}
 	
-	@XmlElement(name = "default_group_file_write_permission")
+	@XmlElement(name = DEFAULT_GROUP_FILE_WRITE_PERMISSION_TAG )
 	public Boolean getDefaultGroupFileWritePermission() {
 		return defaultGroupFileWritePermission;
 	}
@@ -190,7 +227,7 @@ public class ObjectBucket {
 		this.defaultGroupFileWritePermission = defaultGroupFileWritePermission;
 	}
 	
-	@XmlElement(name = "default_group_file_execute_permission")
+	@XmlElement(name = DEFAULT_GROUP_FILE_EXECUTE_PERMISSION_TAG )
 	public Boolean getDefaultGroupFileExecutePermission() {
 		return defaultGroupFileExecutePermission;
 	}
@@ -198,7 +235,7 @@ public class ObjectBucket {
 		this.defaultGroupFileExecutePermission = defaultGroupFileExecutePermission;
 	}
 	
-	@XmlElement(name = "default_group_dir_read_permission")
+	@XmlElement(name = DEFAULT_GROUP_DIR_READ_PERMISSION_TAG )
 	public Boolean getDefaultGroupDirReadPermission() {
 		return defaultGroupDirReadPermission;
 	}
@@ -206,7 +243,7 @@ public class ObjectBucket {
 		this.defaultGroupDirReadPermission = defaultGroupDirReadPermission;
 	}
 	
-	@XmlElement(name = "default_group_dir_write_permission")
+	@XmlElement(name = DEFAULT_GROUP_DIR_WRITE_PERMISSION_TAG )
 	public Boolean getDefaultGroupDirWritePermission() {
 		return defaultGroupDirWritePermission;
 	}
@@ -214,7 +251,7 @@ public class ObjectBucket {
 		this.defaultGroupDirWritePermission = defaultGroupDirWritePermission;
 	}
 	
-	@XmlElement(name = "default_group_dir_execute_permission")
+	@XmlElement(name = DEFAULT_GROUP_DIR_EXECUTE_PERMISSION_TAG )
 	public Boolean getDefaultGroupDirExecutePermission() {
 		return defaultGroupDirExecutePermission;
 	}
@@ -222,7 +259,7 @@ public class ObjectBucket {
 		this.defaultGroupDirExecutePermission = defaultGroupDirExecutePermission;
 	}
 	
-	@XmlElement(name = "default_group")
+	@XmlElement(name = DEFAULT_GROUP_TAG )
 	public String getDefaultGroup() {
 		return defaultGroup;
 	}
@@ -230,8 +267,8 @@ public class ObjectBucket {
 		this.defaultGroup = defaultGroup;
 	}
 	
-	@XmlElementWrapper(name="search_metadata")
-	@XmlElement(name = "metadata")
+	@XmlElementWrapper(name= SEARCH_METADATA_TAG )
+	@XmlElement(name = METADATA_TAG )
 	public List<Metadata> getSearchMetadata() {
 		return searchMetadata;
 	}
@@ -239,7 +276,7 @@ public class ObjectBucket {
 		this.searchMetadata = searchMetadata;
 	}
 	
-	@XmlElement(name = "name")
+	@XmlElement(name = NAME_TAG )
 	public String getName() {
 		return name;
 	}
@@ -247,7 +284,7 @@ public class ObjectBucket {
 		this.name = name;
 	}
 	
-	@XmlElement(name = "id")
+	@XmlElement(name = ID_TAG )
 	public URI getId() {
 		return id;
 	}
@@ -255,7 +292,7 @@ public class ObjectBucket {
 		this.id = id;
 	}
 	
-	@XmlElement(name = "link")
+	@XmlElement(name = LINK_TAG)
 	public String getLink() {
 		return link;
 	}
@@ -263,7 +300,7 @@ public class ObjectBucket {
 		this.link = link;
 	}
 	
-	@XmlElement(name = "creation_file")
+	@XmlElement(name = CREATION_TIME_TAG )
 	public Date getCreationTime() {
 		return creationTime;
 	}
@@ -271,7 +308,7 @@ public class ObjectBucket {
 		this.creationTime = creationTime;
 	}
 	
-	@XmlElement(name = "inactive")
+	@XmlElement(name = INACTIVE_TAG )
 	public Boolean getInactive() {
 		return inactive;
 	}
@@ -279,7 +316,7 @@ public class ObjectBucket {
 		this.inactive = inactive;
 	}
 	
-	@XmlElement(name = "global")
+	@XmlElement(name = GLOBAL_TAG )
 	public Boolean getGlobal() {
 		return global;
 	}
@@ -287,7 +324,7 @@ public class ObjectBucket {
 		this.global = global;
 	}
 	
-	@XmlElement(name = "remote")
+	@XmlElement(name = REMOTE_TAG )
 	public Boolean getRemote() {
 		return remote;
 	}
@@ -295,7 +332,7 @@ public class ObjectBucket {
 		this.remote = remote;
 	}
 	
-	@XmlElement(name = "vdc")
+	@XmlElement(name = VDC_TAG )
 	public Vdc getVdc() {
 		return vdc;
 	}
@@ -303,7 +340,7 @@ public class ObjectBucket {
 		this.vdc = vdc;
 	}
 	
-	@XmlElement(name = "internal")
+	@XmlElement(name = INTERNAL_TAG )
 	public Boolean getInternal() {
 		return internal;
 	}

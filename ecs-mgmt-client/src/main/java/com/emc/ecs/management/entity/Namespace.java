@@ -8,11 +8,16 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement(name = "namespace")
 @XmlType(propOrder = {"name","id", "link"})
 public class Namespace {
+	
+	public final static String ID = "id";
+	public final static String LINK = "link";
+	public final static String NAME = "name";
+	
 	private String id;
 	private String link;
     private String name;
     
-    @XmlElement(name = "id")
+    @XmlElement(name = ID)
     public String getId() {
         return id;
     }
@@ -21,7 +26,7 @@ public class Namespace {
         this.id = id;
     } 
      
-    @XmlElement(name = "link")
+    @XmlElement(name = LINK)
     public String getLink() {
         return link;
     }
@@ -30,7 +35,7 @@ public class Namespace {
         this.link = link;
     } 
     
-    @XmlElement(name = "name")
+    @XmlElement(name = NAME)
     public String getName() {
         return name;
     }
