@@ -1,7 +1,7 @@
 package com.emc.ecs.metadata.dao.elasticsearch.entity;
 
 import java.io.IOException;
-
+import java.util.Date;
 
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -11,9 +11,11 @@ import com.emc.ecs.management.entity.BucketBillingInfo;
 
 public class ElasticBucketBillingInfo {
 
+	public static final String COLLECTION_TIME = "collection_time";
 	
-	
-	public static XContentBuilder toJsonFormat(BucketBillingInfo bucketInfo, XContentBuilder builder) {
+	public static XContentBuilder toJsonFormat(BucketBillingInfo bucketInfo, 
+												Date collectionTime,
+												XContentBuilder builder) {
 		
 		try {
 			if(builder == null) {
@@ -28,6 +30,7 @@ public class ElasticBucketBillingInfo {
 			 .field(BucketBillingInfo.TOTAL_SIZE_TAG, bucketInfo.getTotalSize())
 			 .field(BucketBillingInfo.TOTAL_SIZE_UNIT_TAG, bucketInfo.getTotalSizeUnit())
 			 .field(BucketBillingInfo.VPOOL_ID_TAG, bucketInfo.getVpoolId())
+			 .field(COLLECTION_TIME, collectionTime)
 	        .endObject();
 									
 		} catch (IOException e) {
@@ -39,7 +42,7 @@ public class ElasticBucketBillingInfo {
 	}
 	
 	
-	public static XContentBuilder toJsonFormat( BucketBillingInfo bucketInfo ) {						
-		return toJsonFormat(bucketInfo, null);
+	public static XContentBuilder toJsonFormat( BucketBillingInfo bucketInfo, Date collectionTime ) {						
+		return toJsonFormat(bucketInfo, collectionTime, null);
 	}
 }

@@ -1,43 +1,31 @@
 package com.emc.ecs.metadata.dao.file;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
+import java.util.Date;
 
 import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.object.s3.bean.ListObjectsResult;
 import com.emc.object.s3.bean.S3Object;
 
+
 public class FileObjectDAO implements ObjectDAO {
 	
 
 	@Override
-	public void insert(ListObjectsResult listObjectsResult) {
+	public void insert(ListObjectsResult listObjectsResult, Date collectionTime) {
 
-		System.out.println("Would be inserting " + listObjectsResult.getObjects().size() + " objects into datastore");
+		//System.out.println("Would be inserting " + listObjectsResult.getObjects().size() + " objects into datastore");
 		
-//		for( S3Object s3Object: listObjectsResult.getObjects() ) {
-//			
-//			JAXBContext jaxbContext;
-//			try {
-//				jaxbContext = JAXBContext.newInstance( S3Object.class );
-//			  	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-//		    	
-//		    	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	
-//		    	OutputStream byteOut = new ByteArrayOutputStream();    	
-//		    	jaxbMarshaller.marshal( s3Object, byteOut );
-//		       	String bytesOutStr = byteOut.toString();	    	
-//		    	System.out.println(bytesOutStr);
-//		    			    	
-//			} catch (JAXBException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			} 
-//		}
+		for( S3Object s3Object : listObjectsResult.getObjects() ) {
+			System.out.println("Object key: " + s3Object.getKey() );
+//			System.out.println("  lastModified: " + s3Object.getLastModified());
+//			System.out.println("  eTag: " + s3Object.getETag());
+//			System.out.println("  rawETag: " + s3Object.getRawETag());
+//		    System.out.println("  size: " + s3Object.getSize());
+//		    System.out.println("  storageClass: " + s3Object.getStorageClass().toString());
+//		    System.out.println("  owner: " + s3Object.getOwner().toString());
+		}
 		
 	}
 

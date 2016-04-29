@@ -2,6 +2,7 @@ package com.emc.ecs.metadata.bo;
 
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import com.emc.ecs.management.client.ManagementClient;
 import com.emc.ecs.management.client.ManagementClientConfig;
@@ -10,6 +11,7 @@ import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.Namespace;
 import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.NamespaceRequest;
+import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.management.entity.ObjectUser;
 import com.emc.ecs.management.entity.ObjectUserDetails;
 import com.emc.ecs.management.entity.ObjectUserSecretKeys;
@@ -103,32 +105,16 @@ public class BillingBO {
 	
 	/**
 	 * Collects Billing metadata for all namespace defined on a cluster
+	 * @param Date
 	 */
-	public void collectBillingData() {
+	public void collectBillingData( Date collectionTime ) {
+										
 		
 		// Start collecting billing data from ECS systems
-		List<Namespace> namespaceList = new ArrayList<Namespace>();
+		List<Namespace> namespaceList = getNamespaces();
 		
-		// collect namespace names
-		ListNamespaceRequest listNamespaceRequest = new ListNamespaceRequest();
 		
-		// first batch
-		ListNamespacesResult namespacesResult = client.listNamespaces(listNamespaceRequest);
-		namespaceList.addAll(namespacesResult.getNamespaces());
-		
-		// n subsequent batches
-		while(namespacesResult.getNextMarker() != null) {
-			
-			listNamespaceRequest.setNextMarker(namespacesResult.getNextMarker());
-			
-			namespacesResult =  client.listNamespaces(listNamespaceRequest);
-			
-			if(namespacesResult.getNamespaces() != null) {
-				namespaceList.addAll(namespacesResult.getNamespaces());
-			}
-		}
-		
-		// At this point we should have all the namespaces supported by the ECS system
+		// At this point we should have all the namespace supported by the ECS system
 		
 		for( Namespace namespace : namespaceList ) {
 			
@@ -147,7 +133,7 @@ public class BillingBO {
 			// Push collected info into datastore
 			if( this.billingDAO != null ) {
 				// insert something
-				billingDAO.insert(namespaceBillingResponse);
+				billingDAO.insert(namespaceBillingResponse, collectionTime);
 			}
 			
 			// collect n subsequent pages
@@ -160,7 +146,7 @@ public class BillingBO {
 					// Push collected info into datastore
 					if( this.billingDAO != null ) {
 						// insert something
-						billingDAO.insert(namespaceBillingResponse);
+						billingDAO.insert(namespaceBillingResponse, collectionTime);
 					}
 				} else {
 					namespaceRequest.setNextMarker(null);
@@ -169,11 +155,95 @@ public class BillingBO {
 		}		
 	}
 
+	
+	/**
+	 * Collects Bucket metadata for all namespace defined on a cluster
+	 * @param Date
+	 */
+	public void collectObjectBukcetData( Date collectionTime ) {
+										
+		
+		// Start collecting billing data from ECS systems
+		List<Namespace> namespaceList = getNamespaces();
+		
+		// At this point we should have all the namespace supported by the ECS system
+		
+		for( Namespace namespace : namespaceList ) {
+			
+			//===============================================
+			// Initial billing request for current namespace
+			//===============================================
+			
+			NamespaceRequest namespaceRequest = new NamespaceRequest();
+			namespaceRequest.setName(namespace.getName());
+			ObjectBuckets objectBucketsResponse = client.getNamespaceBucketInfo(namespaceRequest);
+			
+			if(objectBucketsResponse == null) {
+				continue;
+			}
+			
+			// Push collected info into datastore
+			if( this.billingDAO != null ) {
+				// insert something
+				billingDAO.insert(objectBucketsResponse, collectionTime);
+			}
+			
+			// collect n subsequent pages
+			while(namespaceRequest.getNextMarker() != null) {
+				objectBucketsResponse = client.getNamespaceBucketInfo(namespaceRequest);
+				
+				if( objectBucketsResponse != null ) {
+					namespaceRequest.setNextMarker(objectBucketsResponse.getNextMarker());
+					
+					// Push collected info into datastore
+					if( this.billingDAO != null ) {
+						// insert something
+						billingDAO.insert(objectBucketsResponse, collectionTime);
+					}
+				} else {
+					namespaceRequest.setNextMarker(null);
+				}
+			}			
+		}		
+	}
+	
+	
 	public void shutdown() {
 		if(this.client != null) {
 			client.shutdown();
 		}
 		
 	}		
+	
+	/**
+	 *  Gathers all namespaces present on a cluster
+	 * @return List<Namespace>
+	 */
+	public List<Namespace> getNamespaces() {
+
+		// Start collecting billing data from ECS systems
+		List<Namespace> namespaceList = new ArrayList<Namespace>();
+
+		// collect namespace names
+		ListNamespaceRequest listNamespaceRequest = new ListNamespaceRequest();
+
+		// first batch
+		ListNamespacesResult namespacesResult = client.listNamespaces(listNamespaceRequest);
+		namespaceList.addAll(namespacesResult.getNamespaces());
+
+		// n subsequent batches
+		while(namespacesResult.getNextMarker() != null) {
+
+			listNamespaceRequest.setNextMarker(namespacesResult.getNextMarker());
+
+			namespacesResult =  client.listNamespaces(listNamespaceRequest);
+
+			if(namespacesResult.getNamespaces() != null) {
+				namespaceList.addAll(namespacesResult.getNamespaces());
+			}
+		}
+
+		return namespaceList;
+	}
 	
 }

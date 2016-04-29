@@ -2,7 +2,7 @@ package com.emc.ecs.metadata.dao.elasticsearch;
 
 import java.util.List;
 
-public class ElasticBillingDAOConfig {
+public class ElasticDAOConfig {
 	
 	//==========================
 	// Private members

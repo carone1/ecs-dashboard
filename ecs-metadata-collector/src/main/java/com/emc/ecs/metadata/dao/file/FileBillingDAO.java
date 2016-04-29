@@ -2,6 +2,7 @@ package com.emc.ecs.metadata.dao.file;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.util.Date;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -22,7 +23,7 @@ public class FileBillingDAO implements BillingDAO {
 	
 	
 	@Override
-	public void insert(NamespaceBillingInfo billingData) {
+	public void insert(NamespaceBillingInfo billingData, Date collectionTime) {
 		
 		
 	 	JAXBContext jaxbContext;
@@ -48,7 +49,7 @@ public class FileBillingDAO implements BillingDAO {
 			
 
 	@Override
-	public void insert(ObjectBuckets bucketResponse) {
+	public void insert(ObjectBuckets bucketResponse, Date collectionTime) {
 
 	 	JAXBContext jaxbContext;
 		try {
