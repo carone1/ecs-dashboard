@@ -8,5 +8,5 @@ project(":ecs-metadata-dao").projectDir = file("../ecs-metadata-dao")
 include 'ecs-metadata-file-dao'
 project(":ecs-metadata-file-dao").projectDir = file("../ecs-metadata-file-dao")
 
-include 'ecs-elasticsearch'
-project(":ecs-elasticsearch").projectDir = file("../ecs-elasticsearch")
+include 'ecs-metadata-elasticsearch-dao'
+project(":ecs-metadata-elasticsearch-dao").projectDir = file("../ecs-metadata-elasticsearch-dao")
