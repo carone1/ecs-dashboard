@@ -1,3 +1,12 @@
 
 include 'ecs-mgmt-client'
 project(":ecs-mgmt-client").projectDir = file("../ecs-mgmt-client")
+
+include 'ecs-metadata-dao'
+project(":ecs-metadata-dao").projectDir = file("../ecs-metadata-dao")
+
+include 'ecs-metadata-file-dao'
+project(":ecs-metadata-file-dao").projectDir = file("../ecs-metadata-file-dao")
+
+include 'ecs-elasticsearch'
+project(":ecs-elasticsearch").projectDir = file("../ecs-elasticsearch")

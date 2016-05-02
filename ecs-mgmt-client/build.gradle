@@ -28,7 +28,7 @@ description = 'ECS Management Client - JAX-RS (Jersey) REST client that provides
 
 
 apply plugin: 'java'
-//apply plugin: 'application'
+
 
 
 sourceCompatibility = '1.7'
@@ -50,6 +50,4 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-
-//mainClassName="com.emc.rti.rabbit.consumer.lors.RTIRabbitLorsListener"
 

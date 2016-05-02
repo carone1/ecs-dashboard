@@ -55,7 +55,8 @@ public class TestConfig {
     * @throws java.io.IOException           if there was an error reading the file.
     */
    public static Properties getProperties(String projectName, boolean failIfMissing) throws IOException {
-       String propFile = projectName + ".properties";
+       
+	   String propFile = projectName + ".properties";
        System.out.println(propFile);
        InputStream in = TestConfig.class.getClassLoader().getResourceAsStream(propFile);
        String homeFile = System.getProperty("user.home") + File.separator + propFile;
@@ -67,7 +68,7 @@ public class TestConfig {
            }
        }
 
-       // check local dir
+       // check home dir
        String currentDirFile = System.getProperty("user.dir") + File.separator + propFile;
        if (in == null) {
            // Check in home directory

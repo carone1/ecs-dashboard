@@ -24,11 +24,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-description = 'ECS Metadata Collector '
+description = 'ECS Metadata DAO '
 
 
 apply plugin: 'java'
-apply plugin: 'application'
+//apply plugin: 'application'
 
 
 sourceCompatibility = '1.7'
@@ -47,16 +47,13 @@ repositories {
 dependencies {
     
     compile "org.slf4j:jcl-over-slf4j:$slf4jVersion"
-    compile "org.eclipse.persistence:org.eclipse.persistence.moxy:2.5.0"
+   
     compile project(':ecs-mgmt-client')
-    compile project(':ecs-metadata-dao')
-    compile project(':ecs-metadata-file-dao')
-    compile project(':ecs-elasticsearch')
     compile "com.emc.ecs:object-client:2.2.0"
           
     
 }
 
 
-mainClassName="com.emc.ecs.metadata.client.MetadataCollectorClient"
+//mainClassName="com.emc.ecs.metadata.client.MetadataCollectorClient"
 
