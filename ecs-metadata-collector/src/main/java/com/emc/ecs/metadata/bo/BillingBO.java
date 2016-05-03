@@ -114,7 +114,7 @@ public class BillingBO {
 		List<Namespace> namespaceList = getNamespaces();
 		
 		
-		// At this point we should have all the namespace supported by the ECS system
+		// At this point we should have all namespaces in the ECS system
 		
 		for( Namespace namespace : namespaceList ) {
 			
