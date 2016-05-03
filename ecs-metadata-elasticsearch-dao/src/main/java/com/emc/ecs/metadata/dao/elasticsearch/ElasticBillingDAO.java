@@ -24,8 +24,7 @@ import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.ObjectBucket;
 import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.metadata.dao.BillingDAO;
-import com.emc.ecs.metadata.dao.elasticsearch.entity.ElasticNamespaceBillingInfo;
-import com.emc.ecs.metadata.dao.elasticsearch.entity.ElasticObjectBucket;
+
 
 public class ElasticBillingDAO implements BillingDAO {
 
@@ -165,7 +164,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			                            .startObject( NamespaceBillingInfo.TOTAL_OBJECTS_TAG ).field("type", "long").endObject()
 			                            .startObject( NamespaceBillingInfo.NAMESPACE_TAG ).field("type", "string").
 			                            	field("index", "not_analyzed").endObject()
-			                            .startObject( ElasticNamespaceBillingInfo.COLLECTION_TIME ).field("type", "date")
+			                            .startObject( COLLECTION_TIME ).field("type", "date")
 			                            	.field("format", "strict_date_optional_time||epoch_millis").endObject() 
 			                        .endObject()
 			                    .endObject()
