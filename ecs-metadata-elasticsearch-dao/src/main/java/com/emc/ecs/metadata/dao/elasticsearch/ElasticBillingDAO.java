@@ -37,6 +37,9 @@ public class ElasticBillingDAO implements BillingDAO {
 	public  final static String BUCKET_INDEX_NAME            = "ecs-bucket";
 	public  final static String OBJECT_BUCKET_INDEX_TYPE     = "object-bucket";
 	public  final static String COLLECTION_TIME              = "collection_time";
+	public  final static String ANALYZED_TAG                 = "_analyzed";
+	public  final static String NOT_ANALYZED_INDEX           = "not_analyzed";
+	public  final static String ANALYZED_INDEX               = "analyzed";
 	
 	//=======================
 	// Private members
@@ -160,10 +163,12 @@ public class ElasticBillingDAO implements BillingDAO {
 			                        .startObject("properties")
 			                            .startObject( NamespaceBillingInfo.TOTAL_SIZE_TAG ).field("type", "long").endObject()
 			                            .startObject( NamespaceBillingInfo.TOTAL_SIZE_UNIT_TAG ).field("type", "string")
-			                            	.field("index", "not_analyzed").endObject()   
+			                            	.field("index", NOT_ANALYZED_INDEX).endObject()   
 			                            .startObject( NamespaceBillingInfo.TOTAL_OBJECTS_TAG ).field("type", "long").endObject()
 			                            .startObject( NamespaceBillingInfo.NAMESPACE_TAG ).field("type", "string").
-			                            	field("index", "not_analyzed").endObject()
+			                            	field("index", NOT_ANALYZED_INDEX).endObject()
+			                            .startObject( NamespaceBillingInfo.NAMESPACE_TAG + ANALYZED_TAG).field("type", "string").
+			                            	field("index", ANALYZED_INDEX).endObject()
 			                            .startObject( COLLECTION_TIME ).field("type", "date")
 			                            	.field("format", "strict_date_optional_time||epoch_millis").endObject() 
 			                        .endObject()
@@ -204,6 +209,7 @@ public class ElasticBillingDAO implements BillingDAO {
 					.field(NamespaceBillingInfo.TOTAL_SIZE_UNIT_TAG, billingInfo.getTotalSizeUnit())     
 					.field(NamespaceBillingInfo.TOTAL_OBJECTS_TAG, billingInfo.getTotalObjects())
 					.field(NamespaceBillingInfo.NAMESPACE_TAG, billingInfo.getNamespace())	
+					.field(NamespaceBillingInfo.NAMESPACE_TAG + ANALYZED_TAG, billingInfo.getNamespace())
 					.field(COLLECTION_TIME, collectionTime)
 					.endObject();
 
@@ -250,16 +256,26 @@ public class ElasticBillingDAO implements BillingDAO {
 			                .startObject()
 			                    .startObject(BUCKET_BILLING_INDEX_TYPE)
 			                        .startObject("properties")
+			                            // NAME Not Analyzed
 			                            .startObject( BucketBillingInfo.NAME_TAG ).field("type", "string")
-			                            	.field("index", "not_analyzed").endObject()
+			                            	.field("index", NOT_ANALYZED_INDEX).endObject()
+			                            // NAME Analyzed
+			                            .startObject( BucketBillingInfo.NAME_TAG + ANALYZED_TAG ).field("type", "string")
+			                            	.field("index", ANALYZED_INDEX).endObject()
+			                            // NAMESPACE Not Analyzed
 			                            .startObject( BucketBillingInfo.NAMESPACE_TAG ).field("type", "string")
-			                            	.field("index", "not_analyzed").endObject()   
+			                            	.field("index", NOT_ANALYZED_INDEX).endObject()   
+			                            // TOTAL OBJECTS
 			                            .startObject( BucketBillingInfo.TOTAL_OBJECTS_TAG ).field("type", "long").endObject()
+			                            // TOTAL SIZE
 			                            .startObject( BucketBillingInfo.TOTAL_SIZE_TAG ).field("type", "long").endObject()
+			                            // TOTAL SIZE UNIT Not Analyzed
 			                            .startObject( BucketBillingInfo.TOTAL_SIZE_UNIT_TAG ).field("type", "string")
-		                            		.field("index", "not_analyzed").endObject() 
+		                            		.field("index", NOT_ANALYZED_INDEX).endObject() 
+		                            	// VPOOL ID Not Analyzed
 		                            	.startObject( BucketBillingInfo.VPOOL_ID_TAG ).field("type", "string")
-	                            			.field("index", "not_analyzed").endObject() 
+	                            			.field("index", NOT_ANALYZED_INDEX).endObject()
+	                            		// COLLECTION TIME
 			                            .startObject( COLLECTION_TIME ).field("type", "date")
 			                            	.field("format", "strict_date_optional_time||epoch_millis").endObject() 
 			                        .endObject()
@@ -298,6 +314,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			// initial portion
 			builder = builder.startObject()	    
 					.field(BucketBillingInfo.NAME_TAG, bucketInfo.getName())
+					.field(BucketBillingInfo.NAME_TAG + ANALYZED_TAG, bucketInfo.getName())
 					.field(BucketBillingInfo.NAMESPACE_TAG, bucketInfo.getNamespace())
 					.field(BucketBillingInfo.TOTAL_OBJECTS_TAG, bucketInfo.getTotalObjects())			
 					.field(BucketBillingInfo.TOTAL_SIZE_TAG, bucketInfo.getTotalSize())
@@ -348,49 +365,82 @@ public class ElasticBillingDAO implements BillingDAO {
 							.startObject()
 							.startObject(OBJECT_BUCKET_INDEX_TYPE)
 								.startObject("properties")
-								.startObject(ObjectBucket.CREATED_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()            				     
+									// CREATED_TAG
+									.startObject(ObjectBucket.CREATED_TAG).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+									// SOFT_QUOTA_TAG
 									.startObject(ObjectBucket.SOFT_QUOTA_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()  
+										.field("index", NOT_ANALYZED_INDEX).endObject() 
+									// FS_ACCESS_ENABLED_TAG
 									.startObject(ObjectBucket.FS_ACCESS_ENABLED_TAG).field("type", "boolean").endObject()
+									// LOCKED_TAG
 									.startObject(ObjectBucket.LOCKED_TAG).field("type", "boolean").endObject()
+									// V_POOL_TAG
 									.startObject(ObjectBucket.V_POOL_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+									// NAMESPACE_TAG
 									.startObject(ObjectBucket.NAMESPACE_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+									// OWNER_TAG
 									.startObject(ObjectBucket.OWNER_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+									// IS_STALE_ALLOWED_TAG
 									.startObject(ObjectBucket.IS_STALE_ALLOWED_TAG).field("type", "boolean").endObject()
+									// IS_ENCRYPTION_ENABLED_TAG
 									.startObject(ObjectBucket.IS_ENCRYPTION_ENABLED_TAG).field("type", "boolean").endObject()
+									// DEFAULT_RETENTION_TAG
 									.startObject(ObjectBucket.DEFAULT_RETENTION_TAG).field("type", "long").endObject()
+									// BLOCK_SIZE_TAG
 									.startObject(ObjectBucket.BLOCK_SIZE_TAG).field("type", "long").endObject()
+									// NOTIFICATION_SIZE_TAG
 									.startObject(ObjectBucket.NOTIFICATION_SIZE_TAG).field("type", "long").endObject()
+									// API_TYPE_TAG
 									.startObject(ObjectBucket.API_TYPE_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()
-									//.startObject(ObjectBucket.TAG_SET_TAG)
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+									// RETENTION_TAG
 									.startObject(ObjectBucket.RETENTION_TAG).field("type", "long").endObject()
+									// DEFAULT_GROUP_FILE_READ_PERMISSION_TAG
 									.startObject(ObjectBucket.DEFAULT_GROUP_FILE_READ_PERMISSION_TAG).field("type", "boolean").endObject()
+									// DEFAULT_GROUP_FILE_WRITE_PERMISSION_TAG
 									.startObject(ObjectBucket.DEFAULT_GROUP_FILE_WRITE_PERMISSION_TAG).field("type", "boolean").endObject()
+									// DEFAULT_GROUP_FILE_EXECUTE_PERMISSION_TAG
 									.startObject(ObjectBucket.DEFAULT_GROUP_FILE_EXECUTE_PERMISSION_TAG).field("type", "boolean").endObject()
+									// DEFAULT_GROUP_DIR_READ_PERMISSION_TAG
 									.startObject(ObjectBucket.DEFAULT_GROUP_DIR_READ_PERMISSION_TAG).field("type", "boolean").endObject()
+									// DEFAULT_GROUP_DIR_EXECUTE_PERMISSION_TAG
 									.startObject(ObjectBucket.DEFAULT_GROUP_DIR_WRITE_PERMISSION_TAG).field("type", "boolean").endObject()
+									// DEFAULT_GROUP_DIR_EXECUTE_PERMISSION_TAG
 									.startObject(ObjectBucket.DEFAULT_GROUP_DIR_EXECUTE_PERMISSION_TAG).field("type", "boolean").endObject()
+									// DEFAULT_GROUP_TAG
 									.startObject(ObjectBucket.DEFAULT_GROUP_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()				
+										.field("index", NOT_ANALYZED_INDEX).endObject()		
+									// NAME_TAG
 									.startObject(ObjectBucket.NAME_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+									// NAME_TAG Analyzed
+									.startObject(ObjectBucket.NAME_TAG + ANALYZED_TAG).field("type", "string")
+										.field("index", ANALYZED_INDEX).endObject()
+									// ID_TAG
 									.startObject(ObjectBucket.ID_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+									// LINK_TAG
 									.startObject(ObjectBucket.LINK_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()		     
+										.field("index", NOT_ANALYZED_INDEX).endObject()	
+									// CREATION_TIME_TAG
 									.startObject(ObjectBucket.CREATION_TIME_TAG).field("type", "date")
-										.field("format", "strict_date_optional_time||epoch_millis").endObject()			     
+										.field("format", "strict_date_optional_time||epoch_millis").endObject()
+									// INACTIVE_TAG
 									.startObject(ObjectBucket.INACTIVE_TAG).field("type", "boolean").endObject()
+									// GLOBAL_TAG
 									.startObject(ObjectBucket.GLOBAL_TAG).field("type", "boolean").endObject()
+									// REMOTE_TAG
 									.startObject(ObjectBucket.REMOTE_TAG).field("type", "boolean").endObject()
+									// VDC_TAG
 									.startObject(ObjectBucket.VDC_TAG).field("type", "string")
-										.field("index", "not_analyzed").endObject()
-									.startObject(ObjectBucket.INTERNAL_TAG).field("type", "boolean").endObject()							
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+									// INTERNAL_TAG
+									.startObject(ObjectBucket.INTERNAL_TAG).field("type", "boolean").endObject()
+									// CREATED_TAG
 									.startObject(COLLECTION_TIME).field("type", "date")
 										.field("format", "strict_date_optional_time||epoch_millis").endObject()
 								.endObject()
@@ -453,6 +503,7 @@ public class ElasticBillingDAO implements BillingDAO {
 					// To decide if search tag should be included
 					//.field(ObjectBucket.SEARCH_METADATA_TAG, objectBucket.getSearchMetadata())					
 					.field(ObjectBucket.NAME_TAG, objectBucket.getName())
+					.field(ObjectBucket.NAME_TAG + ANALYZED_TAG, objectBucket.getName())
 					.field(ObjectBucket.ID_TAG, (objectBucket.getId() != null) ? objectBucket.getId().toString() : null)
 					.field(ObjectBucket.LINK_TAG, objectBucket.getLink())			     
 					.field(ObjectBucket.CREATION_TIME_TAG, objectBucket.getCreationTime())			     

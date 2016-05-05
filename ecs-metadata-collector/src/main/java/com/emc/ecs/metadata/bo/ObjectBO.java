@@ -122,8 +122,7 @@ public class ObjectBO {
 											  String namespace, Date collectionTime    ) {
 		
 		Long objectCount = 0L;
-		//Long timeStart = System.currentTimeMillis();
-		//Long timeFinish = 0L;
+		
 		
 		for( Bucket bucket : bucketList ) {
 			// Collect all objects in that bucket 
@@ -145,7 +144,9 @@ public class ObjectBO {
 				System.out.println("Took: " + elapsedTime + " seconds to collect " + collected + " objects");
 				
 				if(this.objectDAO != null) {					
-					objectDAO.insert(listObjectsResult, collectionTime);
+					objectDAO.insert( listObjectsResult, 
+									  namespace, bucket.getName(),
+									  collectionTime );
 				}
 				
 				while(listObjectsResult.isTruncated()) {
@@ -166,16 +167,14 @@ public class ObjectBO {
 					System.out.println("Took: " + elapsedTime + " seconds to collect " + collected + " objects");
 					
 					if(this.objectDAO != null) {
-						objectDAO.insert(listObjectsResult, collectionTime);
+						objectDAO.insert( listObjectsResult,
+										  namespace,
+										  bucket.getName(),
+										  collectionTime   );
 					}
 				}				
 			}			
 		}
-		
-		
-		
-		//System.out.println("Collected " + objectCount + " objects");
-		
 		
 		return objectCount;
 	}

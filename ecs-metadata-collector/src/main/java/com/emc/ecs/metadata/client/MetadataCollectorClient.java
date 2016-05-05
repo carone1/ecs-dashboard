@@ -8,8 +8,10 @@ import java.util.List;
 import com.emc.ecs.metadata.bo.BillingBO;
 import com.emc.ecs.metadata.bo.ObjectBO;
 import com.emc.ecs.metadata.dao.BillingDAO;
+import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticBillingDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticDAOConfig;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticS3ObjectDAO;
 import com.emc.ecs.metadata.dao.file.FileBillingDAO;
 import com.emc.ecs.metadata.dao.file.FileObjectDAO;
 
@@ -198,11 +200,6 @@ public class MetadataCollectorClient {
 			System.exit(0);
 		}
 		
-		
-		// Revisit
-		// TODO add collection BO to save collection times into data store
-		
-		// ***************
 	}
 
 	private static void collectBillingData(Date collectionTime) {
@@ -269,8 +266,8 @@ public class MetadataCollectorClient {
 	
 	private static void collectObjectData(Date collectionTime) {
 		
-		// Instantiate DAO
-		FileObjectDAO fileObjectDAO = new FileObjectDAO();
+		
+		
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
 		List<String> objectHosts = Arrays.asList(ecsObjectHosts.split(","));
@@ -280,9 +277,24 @@ public class MetadataCollectorClient {
 											 ecsMgmtSecretKey,
 											 hosts,
 											 ecsMgmtPort,
-											 null );  // dao
+											 null );  // dao is not required in this case
 		
-		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, fileObjectDAO );
+		// Instantiate DAO
+		ObjectDAO objectDAO = null;
+		if(!elasticHosts.isEmpty()) {
+			
+			// Instantiate ElasticSearch DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			objectDAO = new ElasticS3ObjectDAO(daoConfig);
+		} else {
+			// Instantiate file DAO
+			objectDAO = new FileObjectDAO();
+		}
+		
+		
+		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO );
 		
 		// Start collection
 		objectBO.collectObjectData(collectionTime);
