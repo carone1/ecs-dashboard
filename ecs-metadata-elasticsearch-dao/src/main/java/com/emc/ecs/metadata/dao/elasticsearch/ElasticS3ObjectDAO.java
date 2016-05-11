@@ -45,6 +45,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	public  final static String OWNER_NAME_TAG    = "owner_name";
 	public  final static String NAMESPACE_TAG     = "namespace";
 	public  final static String BUCKET_TAG        = "bucket";
+	public  final static String ETAG_TAG          = "e_tag";
 	
 	
 	//=========================
@@ -140,6 +141,8 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 							// KEY_TAG Analyzed
 							.startObject( KEY_TAG + ANALYZED_TAG).field("type", "string")
 								.field("index", ANALYZED_INDEX).endObject()
+							.startObject( ETAG_TAG ).field("type", "string")
+								.field("index", NOT_ANALYZED_INDEX).endObject()	
 							// NAMESPACE_TAG
 							.startObject( NAMESPACE_TAG ).field("type", "string")
 								.field("index", NOT_ANALYZED_INDEX).endObject()
@@ -196,6 +199,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 					.field( SIZE_TAG, s3Object.getSize() )
 					.field( KEY_TAG, s3Object.getKey() )
 					.field( KEY_TAG + ANALYZED_TAG, s3Object.getKey() )
+					.field( ETAG_TAG , s3Object.getETag())
 					.field( NAMESPACE_TAG, namespace )
 					.field( BUCKET_TAG, bucket )
 					.field( OWNER_ID_TAG, (s3Object.getOwner() != null && s3Object.getOwner().getId() != null)

@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlType;
 
 
 @XmlRootElement(name = "bucket_billing_info")
-@XmlType(propOrder = {"name", "namespace", "vpoolId", "totalSize", "totalSizeUnit", "totalObjects", "sampleTime", "tagSet"})
+@XmlType(propOrder = {"name", "namespace", "vpoolId", "totalSize", "totalSizeUnit", "totalObjects", "sampleTime", "tagSet", "apiType"})
 public class BucketBillingInfo {
 	
 	public static final String NAME_TAG = "name"; 
@@ -21,6 +21,7 @@ public class BucketBillingInfo {
 	public static final String SAMPLE_TIME_TAG = "sample_time"; 	
 	public static final String TAG_SET_TAG = "TagSet";
 	public static final String TAG_TAG = "Tag";
+	public static final String API_TYPE = "api_type";
 	
 	private String name;
 	private String namespace;
@@ -30,6 +31,7 @@ public class BucketBillingInfo {
 	private Long totalObjects;
 	private String sampleTime;
 	private List<Tag> tagSet;
+	private String  apiType;
 	
 	@XmlElement(name = NAME_TAG)
 	public String getName() {
@@ -94,6 +96,14 @@ public class BucketBillingInfo {
 	}
 	public void setTagSet(List<Tag> tagSet) {
 		this.tagSet = tagSet;
+	}
+	
+	@XmlElement(name = API_TYPE)
+	public String getApiType() {
+		return apiType;
+	}
+	public void setApiType(String apiType) {
+		this.apiType = apiType;
 	}
 	
 

@@ -3,14 +3,19 @@ package com.emc.ecs.metadata.bo;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import com.emc.ecs.management.client.ManagementClient;
 import com.emc.ecs.management.client.ManagementClientConfig;
+import com.emc.ecs.management.entity.BucketBillingInfo;
 import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.Namespace;
 import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.NamespaceRequest;
+import com.emc.ecs.management.entity.ObjectBucket;
 import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.management.entity.ObjectUser;
 import com.emc.ecs.management.entity.ObjectUserDetails;
@@ -110,6 +115,10 @@ public class BillingBO {
 	public void collectBillingData( Date collectionTime ) {
 										
 		
+		// Collect the object bucket data first in order to use some of
+		// the fields from object bucket
+		Map<String, ObjectBucket> objectBuckets = collectObjectBukcetData(collectionTime);
+		
 		// Start collecting billing data from ECS systems
 		List<Namespace> namespaceList = getNamespaces();
 		
@@ -130,6 +139,16 @@ public class BillingBO {
 				continue;
 			}
 			
+			// add object bucket attributes
+			for(BucketBillingInfo bucketBillingInfo : namespaceBillingResponse.getBucketBillingInfo()) {
+				ObjectBucket objectBucket = objectBuckets.get(bucketBillingInfo.getName());
+				
+				if(objectBucket != null) {
+					// set api type
+					bucketBillingInfo.setApiType(objectBucket.getApiType());
+				}
+			}
+			
 			// Push collected info into datastore
 			if( this.billingDAO != null ) {
 				// insert something
@@ -142,6 +161,16 @@ public class BillingBO {
 				
 				if( namespaceBillingResponse != null ) {
 					namespaceRequest.setNextMarker(namespaceBillingResponse.getNextMarker());
+					
+					// add object bucket attributes
+					for(BucketBillingInfo bucketBillingInfo : namespaceBillingResponse.getBucketBillingInfo()) {
+						ObjectBucket objectBucket = objectBuckets.get(bucketBillingInfo.getName());
+						
+						if(objectBucket != null) {
+							// set api type
+							bucketBillingInfo.setApiType(objectBucket.getApiType());
+						}
+					}
 					
 					// Push collected info into datastore
 					if( this.billingDAO != null ) {
@@ -160,13 +189,15 @@ public class BillingBO {
 	 * Collects Bucket metadata for all namespace defined on a cluster
 	 * @param Date
 	 */
-	public void collectObjectBukcetData( Date collectionTime ) {
+	public Map<String, ObjectBucket> collectObjectBukcetData( Date collectionTime ) {
 										
 		
 		// Start collecting billing data from ECS systems
 		List<Namespace> namespaceList = getNamespaces();
 		
 		// At this point we should have all the namespace supported by the ECS system
+		
+		Map<String, ObjectBucket> bucketMap = new HashMap<String, ObjectBucket>();
 		
 		for( Namespace namespace : namespaceList ) {
 			
@@ -188,6 +219,13 @@ public class BillingBO {
 				billingDAO.insert(objectBucketsResponse, collectionTime);
 			}
 			
+			// Add to return map
+			if(objectBucketsResponse.getObjectBucket() != null ) {
+				for ( ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
+				bucketMap.put(objectBucket.getName(), objectBucket);
+				}
+			}
+			
 			// collect n subsequent pages
 			while(namespaceRequest.getNextMarker() != null) {
 				objectBucketsResponse = client.getNamespaceBucketInfo(namespaceRequest);
@@ -200,11 +238,22 @@ public class BillingBO {
 						// insert something
 						billingDAO.insert(objectBucketsResponse, collectionTime);
 					}
+					
+					// Add to return map
+					if(objectBucketsResponse.getObjectBucket() != null ) {
+						for ( ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
+							bucketMap.put(objectBucket.getName(), objectBucket);
+						}
+					}
+					
 				} else {
 					namespaceRequest.setNextMarker(null);
 				}
 			}			
-		}		
+		}
+		
+		
+		return bucketMap;
 	}
 	
 	

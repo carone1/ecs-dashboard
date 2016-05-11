@@ -275,6 +275,9 @@ public class ElasticBillingDAO implements BillingDAO {
 		                            	// VPOOL ID Not Analyzed
 		                            	.startObject( BucketBillingInfo.VPOOL_ID_TAG ).field("type", "string")
 	                            			.field("index", NOT_ANALYZED_INDEX).endObject()
+	                            		// API_TYPE
+	                            		.startObject( BucketBillingInfo.API_TYPE ).field("type", "string")
+	                            			.field("index", NOT_ANALYZED_INDEX).endObject()
 	                            		// COLLECTION TIME
 			                            .startObject( COLLECTION_TIME ).field("type", "date")
 			                            	.field("format", "strict_date_optional_time||epoch_millis").endObject() 
@@ -320,6 +323,7 @@ public class ElasticBillingDAO implements BillingDAO {
 					.field(BucketBillingInfo.TOTAL_SIZE_TAG, bucketInfo.getTotalSize())
 					.field(BucketBillingInfo.TOTAL_SIZE_UNIT_TAG, bucketInfo.getTotalSizeUnit())
 					.field(BucketBillingInfo.VPOOL_ID_TAG, bucketInfo.getVpoolId())
+					.field(BucketBillingInfo.API_TYPE, bucketInfo.getApiType())
 					.field(COLLECTION_TIME, collectionTime)
 					.endObject();
 

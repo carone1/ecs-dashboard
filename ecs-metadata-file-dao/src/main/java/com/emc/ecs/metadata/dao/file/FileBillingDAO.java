@@ -56,7 +56,7 @@ public class FileBillingDAO implements BillingDAO {
 			jaxbContext = JAXBContext.newInstance( ObjectBuckets.class );
 		  	Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 	    	
-	    	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, false );    	
+	    	jaxbMarshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, true );    	
 	    	OutputStream byteOut = new ByteArrayOutputStream();    	
 	    	jaxbMarshaller.marshal( bucketResponse, byteOut );
 	       	String bytesOutStr = byteOut.toString();	    	

@@ -164,14 +164,13 @@ public class MetadataCollectorClient {
 		Date collectionTime = new Date(System.currentTimeMillis());
 		
 		
-		if(collectData.contains(ECS_COLLECT_BILLING_DATA)){
+		if(collectData.contains(ECS_COLLECT_BILLING_DATA) ){
 			// collect billing data
 			collectBillingData(collectionTime);
-		} else if(collectData.contains(ECS_COLLECT_BUCKET_DATA)){
-			// collect billing data
+		} else if (collectData.contains(ECS_COLLECT_BUCKET_DATA)) {
+			// collect object bucket info
 			collectObjectBucketData(collectionTime);
-		}
-		else if(collectData.contains(ECS_COLLECT_OBJECT_DATA)) {
+		} else if(collectData.contains(ECS_COLLECT_OBJECT_DATA)) {
 			
 			// object hosts
 			if(ecsObjectHosts.isEmpty()) {
@@ -224,8 +223,6 @@ public class MetadataCollectorClient {
 											 Arrays.asList(ecsHosts.split(",")),
 											 ecsMgmtPort,
 											 billingDAO );
-		
-		
 		
 		// Start collection
 		billingBO.collectBillingData(collectionTime);

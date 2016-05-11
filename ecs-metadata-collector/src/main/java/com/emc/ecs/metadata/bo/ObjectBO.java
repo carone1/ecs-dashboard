@@ -29,6 +29,7 @@ public class ObjectBO {
 	List<String> ecsObjectHosts;
 	ObjectDAO 	 objectDAO;
 	
+	
 	//================================
 	// Constructor
 	//================================
