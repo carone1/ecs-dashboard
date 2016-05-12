@@ -1,54 +1,39 @@
 package com.emc.ecs.metadata.bo;
 
 
-import java.util.Date;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.Callable;
 
-import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.object.s3.bean.Bucket;
-
 import com.emc.object.s3.bean.ListObjectsResult;
-import com.emc.object.s3.jersey.S3JerseyClient;
 import com.emc.object.s3.request.ListObjectsRequest;
 
 
 
-public class BucketObjectCollection implements Runnable {
+
+public class BucketObjectCollection implements Callable<String> {
 
 	
 	private static final Integer maxObjectPerRequest = 10000;
 	
-	private String         namespace;
-	private S3JerseyClient s3JerseyClient;
-	private ObjectDAO      objectDAO;
-	private Date           collectionTime;
-	private AtomicLong     objectCount;
+	private ObjectCollectionConfig collectionConfig;
 	private Bucket         bucket;
 
 	
 	//===========================
 	// Public methods
 	//===========================
-	public BucketObjectCollection( S3JerseyClient s3JerseyClient, 
-								   String 		  namespace, 
-								   Bucket         bucket,
-								   ObjectDAO      objectDAO, 
-								   Date           collectionTime,
-								   AtomicLong     objectCount     ) {
+	public BucketObjectCollection( ObjectCollectionConfig collectionConfig, 
+								   Bucket         bucket                   ) {
 		
-		this.s3JerseyClient = s3JerseyClient;
-		this.namespace      = namespace;
-		this.bucket         = bucket;
-		this.objectDAO      = objectDAO;
-		this.collectionTime = collectionTime;
-		this.objectCount    = objectCount;
-		
+		this.collectionConfig = collectionConfig;
+		this.bucket           = bucket;
 	}
 	
 	
 	@Override
-	public void run() {
+	public String call() throws Exception {
 		collectObjectsPerBucket();
+		return "ok";
 	}
 	
 	private void collectObjectsPerBucket( ) {
@@ -58,49 +43,67 @@ public class BucketObjectCollection implements Runnable {
 
 		ListObjectsRequest listObjectsRequest = new ListObjectsRequest(bucket.getName());
 		listObjectsRequest.setMaxKeys(maxObjectPerRequest);
-		listObjectsRequest.setNamespace(namespace);
-
+		listObjectsRequest.setNamespace(this.collectionConfig.getNamespace());
+		
 		long startTime = System.currentTimeMillis();
-		ListObjectsResult listObjectsResult = s3JerseyClient.listObjects(listObjectsRequest);
+		
+		// collect objects
+		ListObjectsResult listObjectsResult = this.collectionConfig.getS3JerseyClient().listObjects(listObjectsRequest);
+		
+		//QueryObjectsRequest queryRequest = new QueryObjectsRequest(this.bucket.getName());
+		//QueryObjectsResult queryResult = this.collectionConfig.getS3JerseyClient().queryObjects(queryRequest);
+		
 		long stopTime = System.currentTimeMillis();
 		Double elapsedTime = Double.valueOf(stopTime - startTime) / 1000;
 
 		if(listObjectsResult != null) {
 			
 			Long collected = (long)listObjectsResult.getObjects().size();
-			this.objectCount.getAndAdd(collected);
+			
+			this.collectionConfig.getObjectCount().getAndAdd(collected);
 			
 			System.out.println("Took: " + elapsedTime + " seconds to collect " +
-								collected + " objects from namespace: " + namespace + " bucket: " + bucket.getName());
+								collected + " objects from namespace: " + 
+								this.collectionConfig.getNamespace() + " bucket: " + bucket.getName());
 
-			if(this.objectDAO != null) {					
-				objectDAO.insert( listObjectsResult, namespace, bucket.getName(), collectionTime );
+			if(this.collectionConfig.getObjectDAO() != null) {					
+				this.collectionConfig.getObjectDAO().insert( listObjectsResult, 
+															 this.collectionConfig.getNamespace(),
+															 bucket.getName(), 
+															 this.collectionConfig.getCollectionTime() );
 			}
 
 			while(listObjectsResult.isTruncated()) {
 				
 				ListObjectsRequest moreListObjectsRequest = new ListObjectsRequest(bucket.getName());
 				moreListObjectsRequest.setMaxKeys(maxObjectPerRequest);
-				moreListObjectsRequest.setNamespace(namespace);
+				moreListObjectsRequest.setNamespace(this.collectionConfig.getNamespace());
 				moreListObjectsRequest.setMarker(listObjectsResult.getNextMarker());
 
 				startTime = System.currentTimeMillis();
-				listObjectsResult = s3JerseyClient.listObjects(moreListObjectsRequest);
+				listObjectsResult = this.collectionConfig.getS3JerseyClient().listObjects(moreListObjectsRequest);
 				stopTime = System.currentTimeMillis();
 				
 				elapsedTime = Double.valueOf(stopTime - startTime) / 1000;
 
 				collected = (long)listObjectsResult.getObjects().size();
-				this.objectCount.getAndAdd(collected);
+				this.collectionConfig.getObjectCount().getAndAdd(collected);
 
 				System.out.println("Took: " + elapsedTime + " seconds to collect " +
-						           collected + " objects from namespace: " + namespace + " bucket: " + bucket.getName());
+						           collected + " objects from namespace: " + 
+						           this.collectionConfig.getNamespace() + " bucket: " + bucket.getName());
 
-				if(this.objectDAO != null) {
-					objectDAO.insert( listObjectsResult, namespace, bucket.getName(), collectionTime );
+				if(this.collectionConfig.getObjectDAO() != null) {
+					this.collectionConfig.getObjectDAO().insert( listObjectsResult, 
+																this.collectionConfig.getNamespace(), 
+																bucket.getName(), 
+																this.collectionConfig.getCollectionTime() );
 				}
 			}				
 		}		
 
 	}
+
+
+
 }

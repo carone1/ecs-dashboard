@@ -1,63 +1,47 @@
 package com.emc.ecs.metadata.bo;
 
 
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.Callable;
+import java.util.concurrent.RejectedExecutionException;
 
-import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.object.s3.bean.Bucket;
 import com.emc.object.s3.bean.ListBucketsResult;
-import com.emc.object.s3.jersey.S3JerseyClient;
 import com.emc.object.s3.request.ListBucketsRequest;
 
 
 
 
-public class NamespaceObjectCollection implements Runnable {
+public class NamespaceObjectCollection implements Callable<String> {
 
 	
-	private final static int MAX_THREADS = 10;
+	//private final static int MAX_THREADS = 10;
 	
-	private String         namespace;
-	private S3JerseyClient s3JerseyClient;
-	private ObjectDAO      objectDAO;
-	private Date           collectionTime;
-	private AtomicLong     objectCount;
-	ThreadPoolExecutor 	   executorThreadPoolExecutor;
+	ObjectCollectionConfig collectionConfig;
+	//ThreadPoolExecutor 	   executorThreadPoolExecutor;
 
 	
 	//===========================
 	// Public methods
 	//===========================
-	public NamespaceObjectCollection( S3JerseyClient s3JerseyClient, 
-									  String             namespace, 
-									  ObjectDAO          objectDAO, 
-									  Date               collectionTime,
-									  AtomicLong         objectCount     ) {
+	public NamespaceObjectCollection( ObjectCollectionConfig collectionConfig ) {
 		
-		this.s3JerseyClient 			= s3JerseyClient;
-		this.namespace      			= namespace;
-		this.objectDAO      			= objectDAO;
-		this.collectionTime 			= collectionTime;
-		this.objectCount    		    = objectCount;
-		this.executorThreadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_THREADS);;
+		this.collectionConfig = collectionConfig;
+		//this.executorThreadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_THREADS);;
 		
 	}
 	
 	
 	@Override
-	public void run() {
+	public String call() throws Exception {
 		collectObjects();
+		return "ok";
 	}
 	
 	private void collectObjects() {
 		
 		// First bucket batch
-		ListBucketsResult listBucketsResult = s3JerseyClient.listBuckets();			
+		ListBucketsResult listBucketsResult = this.collectionConfig.getS3JerseyClient().listBuckets();			
 		collectObjectsPerBucketBatch( listBucketsResult.getBuckets() );			
 
 		// subsequent bucket batch
@@ -65,25 +49,25 @@ public class NamespaceObjectCollection implements Runnable {
 			
 			ListBucketsRequest listBucketRequest = new ListBucketsRequest();
 			listBucketRequest.setMarker(listBucketsResult.getMarker());
-			listBucketRequest.setNamespace(namespace);
+			listBucketRequest.setNamespace(this.collectionConfig.getNamespace());
 								
-			listBucketsResult = s3JerseyClient.listBuckets(listBucketRequest);
+			listBucketsResult = this.collectionConfig.getS3JerseyClient().listBuckets(listBucketRequest);
 			collectObjectsPerBucketBatch( listBucketsResult.getBuckets() );				
 		}
 		
-		// take everything down once all thread have completed their work
-		executorThreadPoolExecutor.shutdown();
-		
-		// wait for all threads to terminate
-		boolean termination = false; 
-		do {
-			try {
-				termination = executorThreadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} while(!termination);
+//		// take everything down once all thread have completed their work
+//		executorThreadPoolExecutor.shutdown();
+//		
+//		// wait for all threads to terminate
+//		boolean termination = false; 
+//		do {
+//			try {
+//				termination = executorThreadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		} while(!termination);
 		
 	}
 	
@@ -93,69 +77,27 @@ public class NamespaceObjectCollection implements Runnable {
 		for( Bucket bucket : bucketList ) {
 			
 			BucketObjectCollection bucketObjectCollection = 
-					new BucketObjectCollection( s3JerseyClient, namespace, bucket, this.objectDAO, 
-												collectionTime, objectCount );
+					new BucketObjectCollection( collectionConfig, bucket );
 			
 			// submit bucket collection to thread pool
-			executorThreadPoolExecutor.execute(bucketObjectCollection);
-			
-			//collectObjectsPerBucket(bucket);
+			try {
+				ObjectBO.getFutures().add(ObjectBO.getThreadPool().submit(bucketObjectCollection));
+			} catch (RejectedExecutionException e) {
+				// Thread pool didn't accept bucket collection
+				// running in the current thread
+				System.err.println("Thread pool didn't accept bucket collection - running in current thread");
+				try {
+					bucketObjectCollection.call();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+				
 		}
 	}
 
-	
-//	private void collectObjectsPerBucket( Bucket bucket ) {
-//
-//		// Collect all objects in that bucket 
-//		System.out.println("Collecting object for bucket: " + bucket.getName() );
-//
-//		ListObjectsRequest listObjectsRequest = new ListObjectsRequest(bucket.getName());
-//		listObjectsRequest.setMaxKeys(maxObjectPerRequest);
-//		listObjectsRequest.setNamespace(namespace);
-//
-//		long startTime = System.currentTimeMillis();
-//		ListObjectsResult listObjectsResult = s3JerseyClient.listObjects(listObjectsRequest);
-//		long stopTime = System.currentTimeMillis();
-//		Double elapsedTime = Double.valueOf(stopTime - startTime) / 1000;
-//
-//		if(listObjectsResult != null) {
-//			Long collected = (long)listObjectsResult.getObjects().size();
-//			this.objectCount.getAndAdd(collected);
-//			System.out.println("Took: " + elapsedTime + " seconds to collect " + collected + " objects");
-//
-//			if(this.objectDAO != null) {					
-//				objectDAO.insert( listObjectsResult, 
-//									namespace, bucket.getName(),
-//									collectionTime );
-//			}
-//
-//			while(listObjectsResult.isTruncated()) {
-//				
-//				ListObjectsRequest moreListObjectsRequest = new ListObjectsRequest(bucket.getName());
-//				moreListObjectsRequest.setMaxKeys(maxObjectPerRequest);
-//				moreListObjectsRequest.setNamespace(namespace);
-//				moreListObjectsRequest.setMarker(listObjectsResult.getNextMarker());
-//
-//				startTime = System.currentTimeMillis();
-//				listObjectsResult = s3JerseyClient.listObjects(moreListObjectsRequest);
-//				stopTime = System.currentTimeMillis();
-//				
-//				elapsedTime = Double.valueOf(stopTime - startTime) / 1000;
-//
-//				collected = (long)listObjectsResult.getObjects().size();
-//				this.objectCount.getAndAdd(collected);
-//
-//				System.out.println("Took: " + elapsedTime + " seconds to collect " + 
-//						collected + " objects from bucket: " + bucket.getName());
-//
-//				if(this.objectDAO != null) {
-//					objectDAO.insert( listObjectsResult,
-//							namespace,
-//							bucket.getName(),
-//							collectionTime   );
-//				}
-//			}				
-//		}		
-//
-//	}
+
+
+
 }

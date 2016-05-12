@@ -1,15 +1,21 @@
 package com.emc.ecs.metadata.bo;
 
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.emc.ecs.management.entity.ObjectBucket;
 import com.emc.ecs.management.entity.ObjectUserDetails;
 import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.object.Protocol;
@@ -20,19 +26,21 @@ import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
 public class ObjectBO {
 
-	private final static int MAX_THREADS = 50;
 	
 	private AtomicLong objectCount = new AtomicLong(0L);
 	
 	//================================
 	// Private members
 	//================================
-	BillingBO 	       billingBO;
-	List<String>       ecsObjectHosts;
-	ObjectDAO 	 	   objectDAO;
-	ThreadPoolExecutor executorThreadPoolExecutor;
+	private BillingBO 	       			billingBO;
+	private List<String>       			ecsObjectHosts;
+	private ObjectDAO 	 	   			objectDAO;
+	private static ThreadPoolExecutor 	executorThreadPoolExecutor = 
+			        (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+	private static Collection<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
+
 	
-	
+
 	//================================
 	// Constructor
 	//================================
@@ -41,17 +49,28 @@ public class ObjectBO {
 		this.billingBO = billingBO;
 		this.ecsObjectHosts = ecsObjectHosts;
 		this.objectDAO = objectDAO;
-		this.executorThreadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_THREADS);
-		
 	}
 	
 	//================================
 	// Public methods
 	//================================
+	
+	public static ThreadPoolExecutor getThreadPool() {
+		return executorThreadPoolExecutor;
+	}
+	
+	public static Collection<Future<?>> getFutures() {
+		return futures;
+	}
+	
 	public void collectObjectData(Date collectionTime) {
 
 		// collect S3 user Id and credentials
 		List<ObjectUserDetails> objectUserDetailsList = billingBO.getObjectUserSecretKeys();
+		
+		// Collect bucket details
+		Map<NamespaceBucketKey, ObjectBucket> objectBucketMap = new HashMap<>();
+		billingBO.getObjectBukcetData(objectBucketMap);
 
 		Map<String, S3JerseyClient> s3ObjectClientMap = null;
 		Long objectCollectionStart = System.currentTimeMillis();
@@ -61,7 +80,7 @@ public class ObjectBO {
 			s3ObjectClientMap = createS3ObjectClients(objectUserDetailsList, this.ecsObjectHosts);
 
 			objectCollectionStart = System.currentTimeMillis();
-
+			
 			// collect objects for all users
 			for( ObjectUserDetails objectUserDetails : objectUserDetailsList ) {
 
@@ -79,16 +98,53 @@ public class ObjectBO {
 
 				if(s3JerseyClient != null && namespace != null) {
 				
-					NamespaceObjectCollection namespaceObjectCollection = 
-							new NamespaceObjectCollection( s3JerseyClient, namespace, this.objectDAO, 
-														   collectionTime, objectCount);
+					ObjectCollectionConfig collectionConfig = new ObjectCollectionConfig(s3JerseyClient, 
+																						 namespace,
+																						 this.objectDAO,
+																						 objectBucketMap,
+																						 collectionTime,
+																						 objectCount  );
 					
-					// submit namespace collection to thread pool
-					executorThreadPoolExecutor.execute(namespaceObjectCollection);
+					NamespaceObjectCollection namespaceObjectCollection = 
+							new NamespaceObjectCollection( collectionConfig );
+				
+					try {
+						// submit namespace collection to thread pool
+						futures.add(executorThreadPoolExecutor.submit(namespaceObjectCollection));
+					} catch (RejectedExecutionException e) {
+						// Thread pool didn't accept bucket collection
+						// running in the current thread
+						System.err.println("Thread pool didn't accept bucket collection - running in current thread");
+						try {
+							namespaceObjectCollection.call();
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}
 				}
 			}
 
-			// take everything down once all thread have completed their work
+			// wait for all threads to complete their work
+			for (Future<?> future:futures) {
+			    try {
+					future.get();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			
+			Long objectCollectionFinish = System.currentTimeMillis();
+			Double deltaTime = Double.valueOf((objectCollectionFinish - objectCollectionStart)) / 1000 ;
+			System.out.println("Collected " + objectCount.get() + " objects");
+			System.out.println("Total collection time: " + deltaTime + " seconds");
+			
+			// take everything down once all threads have completed their work
 			executorThreadPoolExecutor.shutdown();
 			
 			// wait for all threads to terminate
@@ -101,11 +157,6 @@ public class ObjectBO {
 					e.printStackTrace();
 				}
 			} while(!termination);
-			
-			Long objectCollectionFinish = System.currentTimeMillis();
-			Double deltaTime = Double.valueOf((objectCollectionFinish - objectCollectionStart)) / 1000 ;
-			System.out.println("Collected " + objectCount.get() + " objects");
-			System.out.println("Total collection time: " + deltaTime + " seconds");
 			
 		} finally {
 			// ensure to clean up S3 jersey clients

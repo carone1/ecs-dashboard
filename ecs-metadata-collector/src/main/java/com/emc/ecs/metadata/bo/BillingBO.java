@@ -117,11 +117,11 @@ public class BillingBO {
 		
 		// Collect the object bucket data first in order to use some of
 		// the fields from object bucket
-		Map<String, ObjectBucket> objectBuckets = collectObjectBukcetData(collectionTime);
+		Map<NamespaceBucketKey, ObjectBucket> objectBuckets = new HashMap<NamespaceBucketKey, ObjectBucket>();
+		getObjectBukcetData(objectBuckets);
 		
 		// Start collecting billing data from ECS systems
 		List<Namespace> namespaceList = getNamespaces();
-		
 		
 		// At this point we should have all namespaces in the ECS system
 		
@@ -184,20 +184,43 @@ public class BillingBO {
 		}		
 	}
 
+	/**
+	 * Collects Bucket metadata for all namespace defined on a cluster
+	 * @param Date
+	 */
+	public void getObjectBukcetData( Map<NamespaceBucketKey, ObjectBucket> objectBucketMap) {
+		
+		collectObjectBukcetData( objectBucketMap,
+								 null,            // no collection time required
+								 null             // no DAO required 
+								       );
+		
+	}
 	
 	/**
 	 * Collects Bucket metadata for all namespace defined on a cluster
 	 * @param Date
 	 */
-	public Map<String, ObjectBucket> collectObjectBukcetData( Date collectionTime ) {
+	public void collectObjectBukcetData( Date collectionTime ) {
+		
+		collectObjectBukcetData( null,  // no map required
+				 				 collectionTime,    
+				 				 this.billingDAO
+				       							 );						
+	}
+	
+	/**
+	 * Collects Bucket metadata for all namespace defined on a cluster
+	 * @param Date
+	 */
+	private  void collectObjectBukcetData( Map<NamespaceBucketKey, ObjectBucket> objectBucketMap,
+										   Date collectionTime, BillingDAO billDAO    ) {
 										
 		
 		// Start collecting billing data from ECS systems
 		List<Namespace> namespaceList = getNamespaces();
 		
 		// At this point we should have all the namespace supported by the ECS system
-		
-		Map<String, ObjectBucket> bucketMap = new HashMap<String, ObjectBucket>();
 		
 		for( Namespace namespace : namespaceList ) {
 			
@@ -214,16 +237,20 @@ public class BillingBO {
 			}
 			
 			// Push collected info into datastore
-			if( this.billingDAO != null ) {
+			if( billDAO != null ) {
 				// insert something
-				billingDAO.insert(objectBucketsResponse, collectionTime);
+				billDAO.insert(objectBucketsResponse, collectionTime);
 			}
 			
 			// Add to return map
-			if(objectBucketsResponse.getObjectBucket() != null ) {
+			if( objectBucketsResponse.getObjectBucket() != null && 
+				objectBucketMap	!= null                            ) {
+				
 				for ( ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
-				bucketMap.put(objectBucket.getName(), objectBucket);
+					NamespaceBucketKey key = new NamespaceBucketKey(namespace.getName(), objectBucket.getName());
+					objectBucketMap.put(key, objectBucket);
 				}
+				
 			}
 			
 			// collect n subsequent pages
@@ -234,26 +261,31 @@ public class BillingBO {
 					namespaceRequest.setNextMarker(objectBucketsResponse.getNextMarker());
 					
 					// Push collected info into datastore
-					if( this.billingDAO != null ) {
+					if( billDAO != null ) {
 						// insert something
-						billingDAO.insert(objectBucketsResponse, collectionTime);
+						billDAO.insert(objectBucketsResponse, collectionTime);
 					}
 					
 					// Add to return map
-					if(objectBucketsResponse.getObjectBucket() != null ) {
+					if( objectBucketsResponse.getObjectBucket() != null  && 
+					    objectBucketMap	!= null                             ) {
+						
 						for ( ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
-							bucketMap.put(objectBucket.getName(), objectBucket);
+							NamespaceBucketKey key = new NamespaceBucketKey(namespace.getName(), objectBucket.getName());
+							objectBucketMap.put(key, objectBucket);
 						}
+						
 					}
 					
 				} else {
+					// stop the loop
 					namespaceRequest.setNextMarker(null);
 				}
 			}			
 		}
 		
 		
-		return bucketMap;
+		//return bucketMap;
 	}
 	
 	
