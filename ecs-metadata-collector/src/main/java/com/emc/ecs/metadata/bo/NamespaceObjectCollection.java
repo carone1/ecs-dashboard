@@ -13,12 +13,8 @@ import com.emc.object.s3.request.ListBucketsRequest;
 
 
 public class NamespaceObjectCollection implements Callable<String> {
-
-	
-	//private final static int MAX_THREADS = 10;
 	
 	ObjectCollectionConfig collectionConfig;
-	//ThreadPoolExecutor 	   executorThreadPoolExecutor;
 
 	
 	//===========================
@@ -27,8 +23,6 @@ public class NamespaceObjectCollection implements Callable<String> {
 	public NamespaceObjectCollection( ObjectCollectionConfig collectionConfig ) {
 		
 		this.collectionConfig = collectionConfig;
-		//this.executorThreadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_THREADS);;
-		
 	}
 	
 	
@@ -54,21 +48,6 @@ public class NamespaceObjectCollection implements Callable<String> {
 			listBucketsResult = this.collectionConfig.getS3JerseyClient().listBuckets(listBucketRequest);
 			collectObjectsPerBucketBatch( listBucketsResult.getBuckets() );				
 		}
-		
-//		// take everything down once all thread have completed their work
-//		executorThreadPoolExecutor.shutdown();
-//		
-//		// wait for all threads to terminate
-//		boolean termination = false; 
-//		do {
-//			try {
-//				termination = executorThreadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		} while(!termination);
-		
 	}
 	
 	

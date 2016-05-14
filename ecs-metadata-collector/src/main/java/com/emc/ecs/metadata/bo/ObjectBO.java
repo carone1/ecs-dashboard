@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -37,7 +38,7 @@ public class ObjectBO {
 	private ObjectDAO 	 	   			objectDAO;
 	private static ThreadPoolExecutor 	executorThreadPoolExecutor = 
 			        (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-	private static Collection<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
+	private static Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
 
 	
 
@@ -126,9 +127,12 @@ public class ObjectBO {
 			}
 
 			// wait for all threads to complete their work
-			for (Future<?> future:futures) {
+			while ( !futures.isEmpty() ) {
 			    try {
-					future.get();
+					Future<?> future = futures.poll();
+					if(future != null){
+						future.get();
+					}
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
