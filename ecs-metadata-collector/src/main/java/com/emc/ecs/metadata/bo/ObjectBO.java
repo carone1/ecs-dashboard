@@ -16,6 +16,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.emc.ecs.management.entity.ObjectBucket;
 import com.emc.ecs.management.entity.ObjectUserDetails;
 import com.emc.ecs.metadata.dao.ObjectDAO;
@@ -27,9 +30,6 @@ import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
 public class ObjectBO {
 
-	
-	private AtomicLong objectCount = new AtomicLong(0L);
-	
 	//================================
 	// Private members
 	//================================
@@ -38,7 +38,9 @@ public class ObjectBO {
 	private ObjectDAO 	 	   			objectDAO;
 	private static ThreadPoolExecutor 	executorThreadPoolExecutor = 
 			        (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-	private static Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
+	private static Queue<Future<?>>     futures = new ConcurrentLinkedQueue<Future<?>>();
+	private        AtomicLong           objectCount = new AtomicLong(0L);
+	private final static Logger         logger = LoggerFactory.getLogger(ObjectBO.class);
 
 	
 
@@ -115,12 +117,11 @@ public class ObjectBO {
 					} catch (RejectedExecutionException e) {
 						// Thread pool didn't accept bucket collection
 						// running in the current thread
-						System.err.println("Thread pool didn't accept bucket collection - running in current thread");
+						logger.error("Thread pool didn't accept bucket collection - running in current thread");
 						try {
 							namespaceObjectCollection.call();
 						} catch (Exception e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
+							logger.error("Error occured during namespace object collection operation - message: " + e.getLocalizedMessage());
 						}
 					}
 				}

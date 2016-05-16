@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.RejectedExecutionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.emc.object.s3.bean.Bucket;
 import com.emc.object.s3.bean.ListBucketsResult;
 import com.emc.object.s3.request.ListBucketsRequest;
@@ -14,7 +17,11 @@ import com.emc.object.s3.request.ListBucketsRequest;
 
 public class NamespaceObjectCollection implements Callable<String> {
 	
-	ObjectCollectionConfig collectionConfig;
+	//===========================
+	// Private members
+	//===========================
+	private final static Logger                 logger = LoggerFactory.getLogger(NamespaceObjectCollection.class);
+	private              ObjectCollectionConfig collectionConfig;
 
 	
 	//===========================
@@ -64,15 +71,13 @@ public class NamespaceObjectCollection implements Callable<String> {
 			} catch (RejectedExecutionException e) {
 				// Thread pool didn't accept bucket collection
 				// running in the current thread
-				System.err.println("Thread pool didn't accept bucket collection - running in current thread");
+				logger.error("Thread pool didn't accept bucket collection - running in current thread");
 				try {
 					bucketObjectCollection.call();
 				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					logger.error("Error occured during bucket object collection operation - message: " + e.getLocalizedMessage());
 				}
-			}
-				
+			}	
 		}
 	}
 

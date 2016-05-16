@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.emc.ecs.metadata.bo.BillingBO;
 import com.emc.ecs.metadata.bo.ObjectBO;
 import com.emc.ecs.metadata.dao.BillingDAO;
@@ -47,7 +50,9 @@ public class MetadataCollectorClient {
 	private static String  ecsObjectHosts   = "";
 	private static Integer ecsMgmtPort      = DEFAULT_ECS_MGMT_PORT;
 	private static String  collectData      = ECS_COLLECT_ALL_DATA;
-
+	
+	final static Logger logger = LoggerFactory.getLogger(MetadataCollectorClient.class);
+	
 	public static void main(String[] args) throws Exception {
 
 		String menuString = "Usage: MetadataCollector [" + ECS_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " + 

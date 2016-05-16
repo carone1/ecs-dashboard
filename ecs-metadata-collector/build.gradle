@@ -46,7 +46,11 @@ repositories {
 
 dependencies {
     
-    compile "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+    // To connect log4j app to use logback which runs on top of slf4j
+    // http://mvnrepository.com/artifact/org.slf4j/log4j-over-slf4j
+    compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.21'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7'
+    
     compile "org.eclipse.persistence:org.eclipse.persistence.moxy:2.5.0"
     compile project(':ecs-mgmt-client')
     compile project(':ecs-metadata-dao')
