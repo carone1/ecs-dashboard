@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.Map.Entry;
 
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
@@ -21,6 +22,9 @@ import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.object.s3.bean.ListObjectsResult;
+import com.emc.object.s3.bean.QueryMetadata;
+import com.emc.object.s3.bean.QueryObject;
+import com.emc.object.s3.bean.QueryObjectsResult;
 import com.emc.object.s3.bean.S3Object;
 
 
@@ -82,6 +86,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			}
 			
 			initS3ObjectIndex();
+			//configS3ObjectDynamicFields();
 			
 		} catch (UnknownHostException e) {
 			throw new RuntimeException(e.getLocalizedMessage());
@@ -100,14 +105,21 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	}
 	
 	
+	@Override
+	public void insert( QueryObjectsResult queryObjectsResult, String namespace,
+						String bucketName, Date collectionTime ) {
+		// Generate JSON for object buckets info
+		for( QueryObject queryObject : queryObjectsResult.getObjects() ) {
+			XContentBuilder s3ObjectBuilder = toJsonFormat(queryObject, namespace, bucketName, collectionTime);
+			elasticClient.prepareIndex(S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE).setSource(s3ObjectBuilder).get();
+		}
+	}
+	
 	//=======================
 	// Private methods
 	//=======================
 
-	//===========================
-	// Billing namespace methods
-	//===========================
-
+	
 	private void initS3ObjectIndex() {
 
 		if (elasticClient
@@ -127,8 +139,12 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 					.preparePutMapping(S3_OBJECT_INDEX_NAME)
 					.setType(S3_OBJECT_INDEX_TYPE)
 					.setSource(XContentFactory.jsonBuilder().prettyPrint()
-							.startObject()
-							.startObject(S3_OBJECT_INDEX_TYPE)
+					  .startObject()
+						.startObject(S3_OBJECT_INDEX_TYPE)
+						
+							// ========================================
+							// Define how the basic fields are defined
+							// ========================================
 							.startObject("properties")
 							// LAST_MODIFIED_TAG
 							.startObject( LAST_MODIFIED_TAG ).field("type", "date")
@@ -159,12 +175,29 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 							.startObject( COLLECTION_TIME ).field("type", "date")
 								.field("format", "strict_date_optional_time||epoch_millis").endObject() 
 							.endObject()
-							.endObject()
-							.endObject())
-							.execute().actionGet();
+							
+							// =================================
+							// Dynamic fields won't be analyzed
+							// =================================
+							.startArray("dynamic_templates")
+							  .startObject()
+								.startObject("notanalyzed")
+									.field("match", "*")
+									.field("match_mapping_type", "string")
+										.startObject( "mapping" ).field("type", "string")
+											.field("index", NOT_ANALYZED_INDEX).endObject()
+								.endObject()
+							  .endObject()
+							 .endArray()
+								
+						.endObject()
+					.endObject()		)
+				.execute().actionGet();
 
 			if (putMappingResponse.isAcknowledged()) {
-				LOGGER.info("Index Created: {}", S3_OBJECT_INDEX_NAME);
+				LOGGER.info("Index Created: " + S3_OBJECT_INDEX_NAME);
+				// configure dynamic fields behavior
+				//configS3ObjectDynamicFields();
 			} else {
 				LOGGER.error("Index {} did not exist. " + 
 						"While attempting to create the index from stored ElasticSearch " +
@@ -178,9 +211,8 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 					S3_OBJECT_INDEX_NAME +
 					" " + e.getMessage()           );  
 		}
-
 	}
-
+	
 
 	private static XContentBuilder toJsonFormat( S3Object s3Object, 
 			String namespace, 
@@ -210,8 +242,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 					.endObject();
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException(e.getLocalizedMessage());
 		}	
 
 		return builder;
@@ -221,5 +252,61 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	public static XContentBuilder toJsonFormat( S3Object s3Object, String namespace, String bucket, Date collectionTime ) {						
 		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
 	}
+
+
+	private static XContentBuilder toJsonFormat( QueryObject queryObject, 
+			String namespace, 
+			String bucket,
+			Date collectionTime,
+			XContentBuilder builder) {
+
+		try {
+			if(builder == null) {
+				builder = XContentFactory.jsonBuilder();
+			}
+
+			//queryObject.getObjectName()
+			//queryObject.getObjectId()
+			//queryObject.getVersionId()
+			
+			
+			// add relevant fields
+			builder = builder.startObject()	    
+//					.field( LAST_MODIFIED_TAG, Object.getLastModified() )
+//					.field( SIZE_TAG, s3Object.getSize() )
+					.field( KEY_TAG, queryObject.getObjectName() )
+					.field( KEY_TAG + ANALYZED_TAG, queryObject.getObjectId() )
+//					.field( ETAG_TAG , s3Object.getETag())
+					.field( NAMESPACE_TAG, namespace )
+					.field( BUCKET_TAG, bucket )
+					
+
+					
+//					.field( OWNER_ID_TAG, (s3Object.getOwner() != null && s3Object.getOwner().getId() != null)
+//																			? s3Object.getOwner().getId() : null )	
+//					.field( OWNER_NAME_TAG, (s3Object.getOwner() != null && s3Object.getOwner().getDisplayName() != null) 
+//																			? s3Object.getOwner().getDisplayName() : null )	
+					.field( COLLECTION_TIME, collectionTime );
+			
+			for( QueryMetadata metadata : queryObject.getQueryMds() ) {
+				for( Entry<String, String> entry : metadata.getMdMap().entrySet() ) {
+					builder.field(entry.getKey(), entry.getValue());
+				}
+			}
+			
+			builder.endObject();
+
+		} catch (IOException e) {
+			throw new RuntimeException(e.getLocalizedMessage());
+		}	
+
+		return builder;
+	}
+
+
+	public static XContentBuilder toJsonFormat( QueryObject s3Object, String namespace, String bucket, Date collectionTime ) {						
+		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
+	}
+
 
 }

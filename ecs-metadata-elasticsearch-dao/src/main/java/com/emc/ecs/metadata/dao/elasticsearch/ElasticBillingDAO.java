@@ -172,12 +172,28 @@ public class ElasticBillingDAO implements BillingDAO {
 			                            .startObject( COLLECTION_TIME ).field("type", "date")
 			                            	.field("format", "strict_date_optional_time||epoch_millis").endObject() 
 			                        .endObject()
+			                        
+								// =================================
+							    // Dynamic fields won't be analyzed
+							    // =================================	
+								.startArray("dynamic_templates")
+								   .startObject()
+								  		.startObject("notanalyzed")
+								  			.field("match", "*")
+								  			.field("match_mapping_type", "string")
+										   .startObject( "mapping" ).field("type", "string")
+											  .field("index", NOT_ANALYZED_INDEX).endObject()
+									    .endObject()
+								   .endObject()
+							    .endArray()
+							    
+			                        
 			                    .endObject()
 			                .endObject())
 			    .execute().actionGet();
 			
 			if (putMappingResponse.isAcknowledged()) {
-	            LOGGER.info("Index Created: {}", BILLING_NAMESPACE_INDEX_NAME);
+	            LOGGER.info("Index Created: " + BILLING_NAMESPACE_INDEX_NAME);
 	        } else {
 	            LOGGER.error("Index {} did not exist. " + 
 	                         "While attempting to create the index from stored ElasticSearch " +
@@ -282,12 +298,27 @@ public class ElasticBillingDAO implements BillingDAO {
 			                            .startObject( COLLECTION_TIME ).field("type", "date")
 			                            	.field("format", "strict_date_optional_time||epoch_millis").endObject() 
 			                        .endObject()
+			                        
+								// =================================
+							    // Dynamic fields won't be analyzed
+							    // =================================	
+								.startArray("dynamic_templates")
+								   .startObject()
+								  		.startObject("notanalyzed")
+								  			.field("match", "*")
+								  			.field("match_mapping_type", "string")
+										   .startObject( "mapping" ).field("type", "string")
+											  .field("index", NOT_ANALYZED_INDEX).endObject()
+									    .endObject()
+								   .endObject()
+							    .endArray()
+			                        
 			                    .endObject()
 			                .endObject())
 			    .execute().actionGet();
 			
 			if (putMappingResponse.isAcknowledged()) {
-	            LOGGER.info("Index Created: {}", BILLING_BUCKET_INDEX_NAME);
+	            LOGGER.info("Index Created: " + BILLING_BUCKET_INDEX_NAME);
 	        } else {
 	            LOGGER.error("Index {} did not exist. " + 
 	                         "While attempting to create the index from stored ElasticSearch " +
@@ -448,12 +479,27 @@ public class ElasticBillingDAO implements BillingDAO {
 									.startObject(COLLECTION_TIME).field("type", "date")
 										.field("format", "strict_date_optional_time||epoch_millis").endObject()
 								.endObject()
+								
+								// =================================
+							    // Dynamic fields won't be analyzed
+							    // =================================	
+								.startArray("dynamic_templates")
+								   .startObject()
+								  		.startObject("notanalyzed")
+								  			.field("match", "*")
+								  			.field("match_mapping_type", "string")
+										   .startObject( "mapping" ).field("type", "string")
+											  .field("index", NOT_ANALYZED_INDEX).endObject()
+									    .endObject()
+								   .endObject()
+							    .endArray()
+							    
 							.endObject()
 						.endObject())
 					.execute().actionGet();
 
 			if (putMappingResponse.isAcknowledged()) {
-	            LOGGER.info("Index Created: {}", BUCKET_INDEX_NAME);
+	            LOGGER.info("Index Created: " + BUCKET_INDEX_NAME);
 	        } else {
 	            LOGGER.error("Index {} did not exist. " + 
 	                         "While attempting to create the index from stored ElasticSearch " +

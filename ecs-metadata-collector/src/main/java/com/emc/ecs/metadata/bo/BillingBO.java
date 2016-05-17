@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.emc.ecs.management.client.ManagementClient;
 import com.emc.ecs.management.client.ManagementClientConfig;
 import com.emc.ecs.management.entity.BucketBillingInfo;
@@ -32,6 +35,7 @@ public class BillingBO {
 	//================================
 	private ManagementClient client;
 	private BillingDAO       billingDAO;
+	private final static Logger         logger = LoggerFactory.getLogger(BillingBO.class);
 	
 	//================================
 	// Constructor
@@ -235,6 +239,8 @@ public class BillingBO {
 			if(objectBucketsResponse == null) {
 				continue;
 			}
+			
+			logger.info("Collect Billing Data for namespace: " + namespace.getName());
 			
 			// Push collected info into datastore
 			if( billDAO != null ) {

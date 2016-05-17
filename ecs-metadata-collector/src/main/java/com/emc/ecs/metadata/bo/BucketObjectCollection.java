@@ -76,9 +76,9 @@ public class BucketObjectCollection implements Callable<String> {
 
 	private void listObjects( ObjectBucket objectBucket ) {
 		
-		ListObjectsCollection queryObjectsCollection = 
-				new ListObjectsCollection( collectionConfig, objectBucket );
-		
-		queryObjectsCollection.collectObjectKeys();
+//		ListObjectsCollection queryObjectsCollection = 
+//				new ListObjectsCollection( collectionConfig, objectBucket );
+//		
+//		queryObjectsCollection.collectObjectKeys();
 	}
 }

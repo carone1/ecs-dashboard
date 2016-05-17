@@ -52,9 +52,9 @@ public class QueryObjectsCollection implements Callable<String> {
 		
 		if(queryRequest == null) {
 			// if the createQueryObjectRequest method returned null
-			// is because there are non useful MD keys configureed 
+			// is because there are non useful MD keys configured 
 			// against bucket.  return false so list objects operation
-			// will be trigerred
+			// will be triggered
 			return false;
 		}
 		
@@ -79,10 +79,10 @@ public class QueryObjectsCollection implements Callable<String> {
 						collectionConfig.getNamespace() + " bucket: " + queryResult.getBucketName());
 
 				if(this.collectionConfig.getObjectDAO() != null) {					
-					//this.collectionConfig.getObjectDAO().insert( queryResult, 
-					//										 	 this.collectionConfig.getNamespace(),
-					//										 	 listObjectsResult.getBucketName(), 
-					//										 	 this.collectionConfig.getCollectionTime() );
+					this.collectionConfig.getObjectDAO().insert( queryResult, 
+															 	 collectionConfig.getNamespace(),
+															 	 queryResult.getBucketName(), 
+															 	 collectionConfig.getCollectionTime() );
 				}
 
 				// extra pages to collect
@@ -107,10 +107,10 @@ public class QueryObjectsCollection implements Callable<String> {
 							     this.collectionConfig.getNamespace() + " bucket: " + queryResult.getBucketName());
 
 					if(this.collectionConfig.getObjectDAO() != null) {					
-						//this.collectionConfig.getObjectDAO().insert( queryResult, 
-						//										 	 this.collectionConfig.getNamespace(),
-						//										 	 listObjectsResult.getBucketName(), 
-						//										 	 this.collectionConfig.getCollectionTime() );
+						this.collectionConfig.getObjectDAO().insert( queryResult, 
+																 	 collectionConfig.getNamespace(),
+																 	 queryResult.getBucketName(), 
+																 	 collectionConfig.getCollectionTime() );
 					}
 				}				
 			}
@@ -150,8 +150,8 @@ public class QueryObjectsCollection implements Callable<String> {
 			
 			// Only want to use MD keys (Last Modified Time or Size) which have
 			// the better chance of being present on all objects
-			if( LAST_MODIFIED_KEY.equals(metadata.getName()) ||  
-					SIZE_KEY.equals(metadata.getName()) ) {
+			//if( LAST_MODIFIED_KEY.equals(metadata.getName()) ||  
+			//		SIZE_KEY.equals(metadata.getName()) ) {
 
 				String dataType = metadata.getDataType().trim().toLowerCase();
 				if( dataType.equals("string" ) ) {
@@ -177,7 +177,7 @@ public class QueryObjectsCollection implements Callable<String> {
 				} else {
 					System.err.println("Unhandled data type: " + dataType);
 				}
-			}
+			//}
 		}
 		
 		if(queryString.length() == 0 ) {

@@ -10,59 +10,38 @@
 			</Pattern>
 		</layout>
 	</appender>
-	
-	
-	<appender name="FILE-AUDIT"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${DEV_HOME}/debug.log</file>
-		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>
-				%d{yyyy-MM-dd HH:mm:ss} - %msg%n
-			</Pattern>
-		</encoder>
 
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<!-- rollover daily -->
-			<fileNamePattern>${DEV_HOME}/archived/debug.%d{yyyy-MM-dd}.%i.log
-                        </fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy
-				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>10MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-		</rollingPolicy>
+   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>${DEV_HOME}/ecs-metadata-collector.log</file>
+    <append>true</append>
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+    </encoder>
+  </appender>
 
-	</appender>
+   <appender name="FILE-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${DEV_HOME}/ecs-metadata-collector.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <!-- rollover daily -->
+      <fileNamePattern>ecs-metadata-collector-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+       <!-- each file should be at most 10MB, keep 60 days worth of history, but at most 20GB -->
+       <maxFileSize>10MB</maxFileSize>    
+       <maxHistory>60</maxHistory>
+       <totalSizeCap>10GB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
+    </encoder>
+  </appender>
 
-	<appender name="FILE-ERROR"
-		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${DEV_HOME}/error.log</file>
-		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>
-				%d{yyyy-MM-dd HH:mm:ss} - %msg%n
-			</Pattern>
-		</encoder>
 
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<!-- rollover daily -->
-			<fileNamePattern>${DEV_HOME}/archived/error.%d{yyyy-MM-dd}.%i.log
-                        </fileNamePattern>
-			<timeBasedFileNamingAndTriggeringPolicy
-				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>10MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
-		</rollingPolicy>
-
-	</appender>
-	
-	<!-- Send logs to both console and file audit -->
-	<logger name="com.mkyong.web" level="info"
-		additivity="false">
-		<appender-ref ref="FILE-AUDIT" />
+	<root level="info">
+		<appender-ref ref="FILE" />
+		<!-- Uncomment if you want to see logs on std out
 		<appender-ref ref="STDOUT" />
-	</logger>
-
-	<root level="error">
-		<appender-ref ref="FILE-ERROR" />
+		-->
 	</root>
 
 </configuration>
