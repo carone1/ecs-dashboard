@@ -4,6 +4,7 @@ package com.emc.ecs.metadata.client;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +20,12 @@ import com.emc.ecs.metadata.dao.file.FileBillingDAO;
 import com.emc.ecs.metadata.dao.file.FileObjectDAO;
 
 
-
-
 /**
  * ECS S3 client to collect Metadata from various ECS systems 
  * Created by Eric Caron
  */
 public class MetadataCollectorClient {
+	
 	
 	private static final Integer DEFAULT_ECS_MGMT_PORT = 4443;
 	private static final String  ECS_COLLECT_BILLING_DATA = "billing";
@@ -41,6 +41,9 @@ public class MetadataCollectorClient {
 	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT  = "--collect-data";
 	private static final String ELASTIC_HOSTS_CONFIG_ARGUMENT     = "--elastic-hosts";
 	private static final String ELASTIC_PORT_CONFIG_ARGUMENT      = "--elastic-port";
+	// secret argument to test various collection time
+	// specific x number of days before current day
+	private static final String ECS_COLLECTION_DAY_SHIFT_ARGUMENT = "--collection-day-shift"; 
 		
 	private static String  ecsHosts         = "";
 	private static String  ecsMgmtAccessKey = "";
@@ -50,6 +53,7 @@ public class MetadataCollectorClient {
 	private static String  ecsObjectHosts   = "";
 	private static Integer ecsMgmtPort      = DEFAULT_ECS_MGMT_PORT;
 	private static String  collectData      = ECS_COLLECT_ALL_DATA;
+	private static Integer relativeDayShift = 0;
 	
 	final static Logger logger = LoggerFactory.getLogger(MetadataCollectorClient.class);
 	
@@ -137,6 +141,13 @@ public class MetadataCollectorClient {
 						System.err.println(ECS_MGMT_PORT_CONFIG_ARGUMENT + " requires a mgmt port value");
 						System.exit(0);
 					}
+				} else if (arg.equals(ECS_COLLECTION_DAY_SHIFT_ARGUMENT)) {
+					if (i < args.length) {
+						relativeDayShift = Integer.valueOf(args[i++]);
+					} else {
+						System.err.println(ECS_COLLECTION_DAY_SHIFT_ARGUMENT + " requires a day shift value port value");
+						System.exit(0);
+					}
 				} else {
 					System.err.println(menuString);
 					System.exit(0);
@@ -168,6 +179,12 @@ public class MetadataCollectorClient {
 		// to label collected data with time
 		Date collectionTime = new Date(System.currentTimeMillis());
 		
+		// check if secret day shifting testing option was specified
+		if( relativeDayShift != 0 ) {
+			Long epochTime = collectionTime.getTime();
+			Long daysShift = TimeUnit.DAYS.toMillis(relativeDayShift);
+			collectionTime = new Date(epochTime - daysShift);
+		}	
 		
 		if(collectData.contains(ECS_COLLECT_BILLING_DATA) ){
 			// collect billing data
@@ -267,9 +284,6 @@ public class MetadataCollectorClient {
 	}
 	
 	private static void collectObjectData(Date collectionTime) {
-		
-		
-		
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
 		List<String> objectHosts = Arrays.asList(ecsObjectHosts.split(","));

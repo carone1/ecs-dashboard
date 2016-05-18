@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +21,11 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import com.emc.ecs.management.entity.BucketBillingInfo;
+import com.emc.ecs.management.entity.Metadata;
 import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.ObjectBucket;
 import com.emc.ecs.management.entity.ObjectBuckets;
+import com.emc.ecs.management.entity.Tag;
 import com.emc.ecs.metadata.dao.BillingDAO;
 
 
@@ -540,19 +543,47 @@ public class ElasticBillingDAO implements BillingDAO {
 					.field(ObjectBucket.DEFAULT_RETENTION_TAG, objectBucket.getDefaultRetention())
 					.field(ObjectBucket.BLOCK_SIZE_TAG, objectBucket.getBlockSize())
 					.field(ObjectBucket.NOTIFICATION_SIZE_TAG, objectBucket.getNotificationSize())
-					.field(ObjectBucket.API_TYPE_TAG, objectBucket.getApiType())
-					//.field(ObjectBucket.TAG_SET_TAG, objectBucket.getTagSet())
-					.field(ObjectBucket.RETENTION_TAG, objectBucket.getRetention())
+					.field(ObjectBucket.API_TYPE_TAG, objectBucket.getApiType());
+					
+					// TAG_SET_TAG
+			         if( objectBucket.getTagSet()!= null &&
+			             !objectBucket.getTagSet().isEmpty()	 ) {
+			        	 
+			        	 builder.startArray(ObjectBucket.TAG_SET_TAG);
+			        	 for( Tag tag : objectBucket.getTagSet() ) {
+			        		 builder.startObject()
+			        		   .field( "key", tag.getKey())
+			        		   .field( "value", tag.getValue())
+			        		 .endObject();
+			        	 }
+			        	 builder.endArray();
+			         }
+					
+					builder.field(ObjectBucket.RETENTION_TAG, objectBucket.getRetention())
 					.field(ObjectBucket.DEFAULT_GROUP_FILE_READ_PERMISSION_TAG, objectBucket.getDefaultGroupFileReadPermission())
 					.field(ObjectBucket.DEFAULT_GROUP_FILE_WRITE_PERMISSION_TAG, objectBucket.getDefaultGroupFileWritePermission())
 					.field(ObjectBucket.DEFAULT_GROUP_FILE_EXECUTE_PERMISSION_TAG, objectBucket.getDefaultGroupFileExecutePermission())
 					.field(ObjectBucket.DEFAULT_GROUP_DIR_READ_PERMISSION_TAG, objectBucket.getDefaultGroupDirReadPermission())
 					.field(ObjectBucket.DEFAULT_GROUP_DIR_WRITE_PERMISSION_TAG, objectBucket.getDefaultGroupDirWritePermission())
 					.field(ObjectBucket.DEFAULT_GROUP_DIR_EXECUTE_PERMISSION_TAG, objectBucket.getDefaultGroupDirExecutePermission())
-					.field(ObjectBucket.DEFAULT_GROUP_TAG, objectBucket.getDefaultGroup())
-					// To decide if search tag should be included
-					//.field(ObjectBucket.SEARCH_METADATA_TAG, objectBucket.getSearchMetadata())					
-					.field(ObjectBucket.NAME_TAG, objectBucket.getName())
+					.field(ObjectBucket.DEFAULT_GROUP_TAG, objectBucket.getDefaultGroup());
+					 
+					 // SEARCH_METADATA_TAG
+			         if( objectBucket.getSearchMetadata() != null &&
+			             !objectBucket.getSearchMetadata().isEmpty()	 ) {
+			        	 
+			        	 builder.startArray(ObjectBucket.SEARCH_METADATA_TAG);
+			        	 for( Metadata metadata : objectBucket.getSearchMetadata() ) {
+			        		 builder.startObject()
+			        		   .field( "data_type", metadata.getDataType())
+			        		   .field( "name", metadata.getName())
+			        		   .field( "type", metadata.getType())
+			        		 .endObject();
+			        	 }
+			        	 builder.endArray();
+			         }
+			
+					 builder.field(ObjectBucket.NAME_TAG, objectBucket.getName())
 					.field(ObjectBucket.NAME_TAG + ANALYZED_TAG, objectBucket.getName())
 					.field(ObjectBucket.ID_TAG, (objectBucket.getId() != null) ? objectBucket.getId().toString() : null)
 					.field(ObjectBucket.LINK_TAG, objectBucket.getLink())			     

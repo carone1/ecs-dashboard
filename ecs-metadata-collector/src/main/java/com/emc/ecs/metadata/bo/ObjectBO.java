@@ -135,19 +135,16 @@ public class ObjectBO {
 						future.get();
 					}
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getLocalizedMessage());
 				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getLocalizedMessage());
 				}
 			}
 			
-			
 			Long objectCollectionFinish = System.currentTimeMillis();
 			Double deltaTime = Double.valueOf((objectCollectionFinish - objectCollectionStart)) / 1000 ;
-			System.out.println("Collected " + objectCount.get() + " objects");
-			System.out.println("Total collection time: " + deltaTime + " seconds");
+			logger.info("Collected " + objectCount.get() + " objects");
+			logger.info("Total collection time: " + deltaTime + " seconds");
 			
 			// take everything down once all threads have completed their work
 			executorThreadPoolExecutor.shutdown();
@@ -158,8 +155,8 @@ public class ObjectBO {
 				try {
 					termination = executorThreadPoolExecutor.awaitTermination(2, TimeUnit.MINUTES);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error(e.getLocalizedMessage());
+					termination = true;
 				}
 			} while(!termination);
 			
@@ -207,8 +204,7 @@ public class ObjectBO {
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getLocalizedMessage());
 		} // wait for poll to complete
 		
 		return s3JerseyClientList;

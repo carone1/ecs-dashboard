@@ -264,30 +264,17 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			if(builder == null) {
 				builder = XContentFactory.jsonBuilder();
 			}
-
-			//queryObject.getObjectName()
-			//queryObject.getObjectId()
-			//queryObject.getVersionId()
-			
-			
-			// add relevant fields
+						
+			// add known basic fields
 			builder = builder.startObject()	    
-//					.field( LAST_MODIFIED_TAG, Object.getLastModified() )
-//					.field( SIZE_TAG, s3Object.getSize() )
 					.field( KEY_TAG, queryObject.getObjectName() )
-					.field( KEY_TAG + ANALYZED_TAG, queryObject.getObjectId() )
-//					.field( ETAG_TAG , s3Object.getETag())
+					.field( KEY_TAG + ANALYZED_TAG, queryObject.getObjectName() )
+					.field( ETAG_TAG , queryObject.getObjectId())
 					.field( NAMESPACE_TAG, namespace )
 					.field( BUCKET_TAG, bucket )
-					
-
-					
-//					.field( OWNER_ID_TAG, (s3Object.getOwner() != null && s3Object.getOwner().getId() != null)
-//																			? s3Object.getOwner().getId() : null )	
-//					.field( OWNER_NAME_TAG, (s3Object.getOwner() != null && s3Object.getOwner().getDisplayName() != null) 
-//																			? s3Object.getOwner().getDisplayName() : null )	
 					.field( COLLECTION_TIME, collectionTime );
 			
+			// Add custom MS Key values as dynamic fields
 			for( QueryMetadata metadata : queryObject.getQueryMds() ) {
 				for( Entry<String, String> entry : metadata.getMdMap().entrySet() ) {
 					builder.field(entry.getKey(), entry.getValue());
