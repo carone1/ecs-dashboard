@@ -44,6 +44,7 @@ repositories {
     mavenCentral()
 }
 
+
 dependencies {
     
     // To connect log4j app to use logback which runs on top of slf4j
@@ -63,4 +64,18 @@ dependencies {
 
 
 mainClassName="com.emc.ecs.metadata.client.MetadataCollectorClient"
+
+
+applicationDistribution.from("conf/logback.xml") {
+	into "config"
+}
+
+applicationDefaultJvmArgs = ["-Dlogback.configurationFile=MY_APP_HOME/config/logback.xml"]
+	
+startScripts {
+	doLast {
+		unixScript.text = unixScript.text.replace('MY_APP_HOME', '\$APP_HOME') 
+		windowsScript.text = windowsScript.text.replace('MY_APP_HOME', '%~dp0..')
+	}
+}
 

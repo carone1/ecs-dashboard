@@ -17,7 +17,7 @@ public class QueryObjectsCollection implements Callable<String> {
 
 	private static final Integer maxObjectPerRequest = 10000;
 	private static final String  SIZE_KEY            = "Size";
-	private static final String  LAST_MODIFIED_KEY   = "mtime";
+	private static final String  LAST_MODIFIED_KEY   = "LastModified";
 	
 	//=============================
 	// Private members
@@ -122,8 +122,8 @@ public class QueryObjectsCollection implements Callable<String> {
 			} else if(ex.getMessage().contains("We encountered an internal error. Please try again")) {
 				// Here we could try again
 				
-				//System.err.println( "Error: Namespace: " + collectionConfig.getNamespace() + " bucket: " + objectBucket.getName() +
-           		//	    " Query string: `" + queryRequest.getQuery() + "`" + ex.getMessage() );
+				logger.error( "Error: Namespace: " + collectionConfig.getNamespace() + " bucket: " + objectBucket.getName() +
+           			    " Query string: `" + queryRequest.getQuery() + "`" + ex.getMessage() );
 			}
 		}
 		
@@ -150,8 +150,8 @@ public class QueryObjectsCollection implements Callable<String> {
 			
 			// Only want to use MD keys (Last Modified Time or Size) which have
 			// the better chance of being present on all objects
-			//if( LAST_MODIFIED_KEY.equals(metadata.getName()) ||  
-			//		SIZE_KEY.equals(metadata.getName()) ) {
+			if( LAST_MODIFIED_KEY.equals(metadata.getName()) ||  
+					SIZE_KEY.equals(metadata.getName()) ) {
 
 				String dataType = metadata.getDataType().trim().toLowerCase();
 				if( dataType.equals("string" ) ) {
@@ -175,9 +175,9 @@ public class QueryObjectsCollection implements Callable<String> {
 					}
 					queryString.append("(" + metadata.getName() +" <= '2015-01-01:00:00:00Z' ) or (" + metadata.getName() + " >= '2015-01-01:00:00:00Z' )");
 				} else {
-					System.err.println("Unhandled data type: " + dataType);
+					logger.error("Unhandled data type: " + dataType);
 				}
-			//}
+			}
 		}
 		
 		if(queryString.length() == 0 ) {
@@ -191,7 +191,7 @@ public class QueryObjectsCollection implements Callable<String> {
 		queryRequest.setMaxKeys( maxObjectPerRequest );
 		queryRequest.setNamespace( collectionConfig.getNamespace() );
 		
-		logger.debug("Namespace: " + collectionConfig.getNamespace() + " bucket: " + objectBucket.getName() +
+		logger.info("Namespace: " + collectionConfig.getNamespace() + " bucket: " + objectBucket.getName() +
 		           			" Query string: `" + queryString.toString() + "`" );
 		
 		return queryRequest;

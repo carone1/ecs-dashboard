@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<property name="DEV_HOME" value="/Users/carone1/ecs-collector-logs" />
+	<property name="DEV_HOME" value="update-to-your-location/ecs-collector-logs" />
 
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<layout class="ch.qos.logback.classic.PatternLayout">
@@ -10,16 +10,19 @@
 			</Pattern>
 		</layout>
 	</appender>
-
+	
+   <!-- 
    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>${DEV_HOME}/ecs-metadata-collector.log</file>
+    <file>${DEV_HOME}/ecs-metadata-collector-single-file.log</file>
     <append>true</append>
+    -->
     <!-- encoders are assigned the type
-         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default 
     <encoder>
       <pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
     </encoder>
   </appender>
+  -->
 
    <appender name="FILE-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>${DEV_HOME}/ecs-metadata-collector.log</file>
@@ -38,7 +41,7 @@
 
 
 	<root level="info">
-		<appender-ref ref="FILE" />
+		<appender-ref ref="FILE-ROLLING" />
 		<!-- Uncomment if you want to see logs on std out
 		<appender-ref ref="STDOUT" />
 		-->

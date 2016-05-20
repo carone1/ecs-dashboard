@@ -59,10 +59,10 @@ public class BucketObjectCollection implements Callable<String> {
 			if( !queryObjects(objectBucket) ) {
 				// Something went wonky during the query operation
 				// revert to list object call
-				listObjects(objectBucket);
+				//listObjects(objectBucket);
 			}		
 		} else {
-			listObjects(objectBucket);
+			//listObjects(objectBucket);
 		}
 	}
 
