@@ -145,11 +145,16 @@ public class BillingBO {
 			
 			// add object bucket attributes
 			for(BucketBillingInfo bucketBillingInfo : namespaceBillingResponse.getBucketBillingInfo()) {
-				ObjectBucket objectBucket = objectBuckets.get(bucketBillingInfo.getName());
+				
+				NamespaceBucketKey namespaceBucketKey = new NamespaceBucketKey( namespace.getName(), 
+																				bucketBillingInfo.getName());
+				ObjectBucket objectBucket = objectBuckets.get( namespaceBucketKey);
 				
 				if(objectBucket != null) {
 					// set api type
 					bucketBillingInfo.setApiType(objectBucket.getApiType());
+					// set namespace
+					bucketBillingInfo.setNamespace(namespace.getName());
 				}
 			}
 			
