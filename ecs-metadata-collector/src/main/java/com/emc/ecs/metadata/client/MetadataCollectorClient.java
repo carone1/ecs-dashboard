@@ -277,6 +277,7 @@ public class MetadataCollectorClient {
 			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
 			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
 			billingDAO = new ElasticBillingDAO(daoConfig);
 		} else {
 			// Instantiate file DAO
@@ -318,6 +319,7 @@ public class MetadataCollectorClient {
 			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
 			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
 		} else {
 			// Instantiate file DAO
