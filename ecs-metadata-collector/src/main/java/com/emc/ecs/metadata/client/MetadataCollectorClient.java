@@ -41,6 +41,8 @@ public class MetadataCollectorClient {
 	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT  = "--collect-data";
 	private static final String ELASTIC_HOSTS_CONFIG_ARGUMENT     = "--elastic-hosts";
 	private static final String ELASTIC_PORT_CONFIG_ARGUMENT      = "--elastic-port";
+	private static final String ELASTIC_CLUSTER_CONFIG_ARGUMENT   = "--elastic-cluster";
+	
 	// secret argument to test various collection time
 	// specific x number of days before current day
 	private static final String ECS_COLLECTION_DAY_SHIFT_ARGUMENT = "--collection-day-shift"; 
@@ -50,6 +52,7 @@ public class MetadataCollectorClient {
 	private static String  ecsMgmtSecretKey = "";
 	private static String  elasticHosts     = "";
 	private static Integer elasticPort      = 9300;
+	private static String  elasticCluster   = "ecs-analytics";
 	private static String  ecsObjectHosts   = "";
 	private static Integer ecsMgmtPort      = DEFAULT_ECS_MGMT_PORT;
 	private static String  collectData      = ECS_COLLECT_ALL_DATA;
@@ -66,6 +69,7 @@ public class MetadataCollectorClient {
 													"[" + ECS_MGMT_PORT_CONFIG_ARGUMENT + "<mgmt-port>]" +
 													"[" + ELASTIC_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
 													"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port>]" +
+													"[" + ELASTIC_CLUSTER_CONFIG_ARGUMENT + "<elastic-cluster>]" +
 				                                    "[" + ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <" + 
 															ECS_COLLECT_BILLING_DATA + "|" + 
 															ECS_COLLECT_BUCKET_DATA + "|" +
@@ -138,7 +142,14 @@ public class MetadataCollectorClient {
 					if (i < args.length) {
 						elasticPort = Integer.valueOf(args[i++]);
 					} else {
-						System.err.println(ECS_MGMT_PORT_CONFIG_ARGUMENT + " requires a mgmt port value");
+						System.err.println(ELASTIC_PORT_CONFIG_ARGUMENT + " requires a port value");
+						System.exit(0);
+					}
+				} else if (arg.equals(ELASTIC_CLUSTER_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						elasticCluster = args[i++];
+					} else {
+						System.err.println( ELASTIC_CLUSTER_CONFIG_ARGUMENT + " requires a cluster value");
 						System.exit(0);
 					}
 				} else if (arg.equals(ECS_COLLECTION_DAY_SHIFT_ARGUMENT)) {
@@ -210,6 +221,9 @@ public class MetadataCollectorClient {
 									"<host1,host2> to specify a value" );
 			}
 			
+			// collect object bucket info
+			collectObjectBucketData(collectionTime);
+			
 			// collect billing data 
 			collectBillingData(collectionTime);
 
@@ -233,6 +247,7 @@ public class MetadataCollectorClient {
 			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
 			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
 			billingDAO = new ElasticBillingDAO(daoConfig);
 		} else {
 			// Instantiate file DAO

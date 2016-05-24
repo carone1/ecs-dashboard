@@ -66,9 +66,19 @@ dependencies {
 mainClassName="com.emc.ecs.metadata.client.MetadataCollectorClient"
 
 
+applicationDistribution.from("scripts/kibana") {
+	into "scripts"
+}
+
+applicationDistribution.from("scripts/run-ecs-collector") {
+	into "bin"
+}
+
 applicationDistribution.from("conf/logback.xml") {
 	into "config"
 }
+
+
 
 applicationDefaultJvmArgs = ["-Dlogback.configurationFile=MY_APP_HOME/config/logback.xml"]
 	
