@@ -5,9 +5,12 @@ package com.emc.ecs.metadata.dao.file;
 import java.util.Date;
 
 import com.emc.ecs.metadata.dao.ObjectDAO;
+
 import com.emc.object.s3.bean.ListObjectsResult;
+import com.emc.object.s3.bean.ListVersionsResult;
 import com.emc.object.s3.bean.QueryObject;
 import com.emc.object.s3.bean.QueryObjectsResult;
+
 
 
 public class FileObjectDAO implements ObjectDAO {
@@ -42,6 +45,26 @@ public class FileObjectDAO implements ObjectDAO {
 		}
 		
 		return;
+	}
+
+	@Override
+	public void insert(ListVersionsResult listVersionsResult, String namespace,
+			String bucketName, Date collectionTime) {
+		
+//		System.out.println("namespace: " + namespace + " bucket: " + bucketName);
+//		
+//		for( AbstractVersion abstractVersion : listVersionsResult.getVersions() ) {
+//			Version version = (Version)abstractVersion;
+//			System.out.println("Object key: " + version.getKey() );
+//			System.out.println("  lastModified: " + version.getLastModified().toString());
+//			System.out.println("  rawETag: " + version.getRawETag());
+//			System.out.println("  size: " + version.getSize());
+//			System.out.println("  storageClass: " + version.getStorageClass().toString());
+//			System.out.println("  owner: " + version.getOwner().toString());		    
+//		}
+		
+		return;
+		
 	}
 
 }

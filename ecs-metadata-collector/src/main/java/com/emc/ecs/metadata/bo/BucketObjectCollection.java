@@ -56,11 +56,11 @@ public class BucketObjectCollection implements Callable<String> {
 			
 			// Bucket has search keys
 			// need to collect those values
-			//if( !queryObjects(objectBucket) ) {
+			if( !queryObjects(objectBucket) ) {
 				// Something went wonky during the query operation
 				// revert to list object call
 				listObjects(objectBucket);
-			//}		
+			}		
 		} else {
 			listObjects(objectBucket);
 		}

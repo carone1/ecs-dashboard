@@ -58,6 +58,7 @@ public class QueryObjectsCollection implements Callable<String> {
 			return false;
 		}
 		
+		Long bucketObjectCount = 0L;
 		long startTime = System.currentTimeMillis();
 		
 		// Query Objects
@@ -66,20 +67,25 @@ public class QueryObjectsCollection implements Callable<String> {
 
 
 			long stopTime = System.currentTimeMillis();
+			
 			Double elapsedTime = Double.valueOf(stopTime - startTime) / 1000;
 
 			if(queryResult != null) {
 
 				Long collected = (long)queryResult.getObjects().size();
+				
+				// increase local counter
+				bucketObjectCount += collected;
 
+				// Increase central counter
 				this.collectionConfig.getObjectCount().getAndAdd(collected);
 
 				logger.info("Took: " + elapsedTime + " seconds to query " +
 						collected + " objects from namespace: " + 
 						collectionConfig.getNamespace() + " bucket: " + queryResult.getBucketName());
 
-				if(this.collectionConfig.getObjectDAO() != null) {					
-					this.collectionConfig.getObjectDAO().insert( queryResult, 
+				if(collectionConfig.getObjectDAO() != null) {					
+					collectionConfig.getObjectDAO().insert( queryResult, 
 															 	 collectionConfig.getNamespace(),
 															 	 queryResult.getBucketName(), 
 															 	 collectionConfig.getCollectionTime() );
@@ -100,7 +106,12 @@ public class QueryObjectsCollection implements Callable<String> {
 					elapsedTime = Double.valueOf(stopTime - startTime) / 1000;
 
 					collected = (long)queryResult.getObjects().size();
-					this.collectionConfig.getObjectCount().getAndAdd(collected);
+					
+					// increase local counter
+					bucketObjectCount += collected;
+					
+					// Increase central counter
+					collectionConfig.getObjectCount().getAndAdd(collected);
 
 					logger.info("Took: " + elapsedTime + " seconds to query " +
 							     collected + " objects from namespace: " + 
@@ -125,6 +136,13 @@ public class QueryObjectsCollection implements Callable<String> {
 				logger.error( "Error: Namespace: " + collectionConfig.getNamespace() + " bucket: " + objectBucket.getName() +
            			    " Query string: `" + queryRequest.getQuery() + "`" + ex.getMessage() );
 			}
+		}
+		
+		if(bucketObjectCount.compareTo(0L) == 0) {
+			// there was no object collected using MD keys configured 
+			// against the bucket.  Return false so list object operations
+			// will be triggered
+			return false;
 		}
 		
 		return true;

@@ -31,6 +31,7 @@ public class MetadataCollectorClient {
 	private static final String  ECS_COLLECT_BILLING_DATA = "billing";
 	private static final String  ECS_COLLECT_BUCKET_DATA = "bucket";
 	private static final String  ECS_COLLECT_OBJECT_DATA = "object";
+	private static final String  ECS_COLLECT_OBJECT_VERSION_DATA = "object-version";
 	private static final String  ECS_COLLECT_ALL_DATA = "all";
 	
 	private static final String ECS_HOSTS_CONFIG_ARGUMENT         = "--ecs-hosts";
@@ -74,6 +75,7 @@ public class MetadataCollectorClient {
 															ECS_COLLECT_BILLING_DATA + "|" + 
 															ECS_COLLECT_BUCKET_DATA + "|" +
 															ECS_COLLECT_OBJECT_DATA + "|" +
+															ECS_COLLECT_OBJECT_VERSION_DATA + "|" +
 															ECS_COLLECT_ALL_DATA +">] "; 
 
 		
@@ -197,13 +199,13 @@ public class MetadataCollectorClient {
 			collectionTime = new Date(epochTime - daysShift);
 		}	
 		
-		if(collectData.contains(ECS_COLLECT_BILLING_DATA) ){
+		if(collectData.equals(ECS_COLLECT_BILLING_DATA) ){
 			// collect billing data
 			collectBillingData(collectionTime);
-		} else if (collectData.contains(ECS_COLLECT_BUCKET_DATA)) {
+		} else if (collectData.equals(ECS_COLLECT_BUCKET_DATA)) {
 			// collect object bucket info
 			collectObjectBucketData(collectionTime);
-		} else if(collectData.contains(ECS_COLLECT_OBJECT_DATA)) {
+		} else if(collectData.equals(ECS_COLLECT_OBJECT_DATA)) {
 			
 			// object hosts
 			if(ecsObjectHosts.isEmpty()) {
@@ -213,7 +215,17 @@ public class MetadataCollectorClient {
 			
 			// collect object data
 			collectObjectData(collectionTime);
-		} else if(collectData.contains(ECS_COLLECT_ALL_DATA)) {
+		} else if(collectData.equals(ECS_COLLECT_OBJECT_VERSION_DATA)) {
+			
+			// object hosts
+			if(ecsObjectHosts.isEmpty()) {
+				System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
+									"<host1,host2> to specify a value" );
+			}
+			
+			// collect object data
+			collectObjectVersionData(collectionTime);
+		} else if(collectData.equals(ECS_COLLECT_ALL_DATA)) {
 			
 			// object hosts
 			if(ecsObjectHosts.isEmpty()) {
@@ -229,6 +241,9 @@ public class MetadataCollectorClient {
 
 			// collect object data
 			collectObjectData(collectionTime);
+			
+			// collect object version data
+			collectObjectVersionData(collectionTime);
 		} else {		
 			System.err.println("Unsupported data collection action: " + collectData );
 			System.err.println(menuString);
@@ -331,6 +346,43 @@ public class MetadataCollectorClient {
 		
 		// Start collection
 		objectBO.collectObjectData(collectionTime);
+		
+		objectBO.shutdown();
+	}
+	
+	
+	private static void collectObjectVersionData(Date collectionTime) {
+		
+		List<String> hosts = Arrays.asList(ecsHosts.split(","));
+		List<String> objectHosts = Arrays.asList(ecsObjectHosts.split(","));
+		
+		// instantiate billing BO
+		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
+											 ecsMgmtSecretKey,
+											 hosts,
+											 ecsMgmtPort,
+											 null );  // dao is not required in this case
+		
+		// Instantiate DAO
+		ObjectDAO objectDAO = null;
+		if(!elasticHosts.isEmpty()) {
+			
+			// Instantiate ElasticSearch DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
+			objectDAO = new ElasticS3ObjectDAO(daoConfig);
+		} else {
+			// Instantiate file DAO
+			objectDAO = new FileObjectDAO();
+		}
+		
+		
+		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO );
+		
+		// Start collection
+		objectBO.collectObjectVersionData(collectionTime);
 		
 		objectBO.shutdown();
 	}
