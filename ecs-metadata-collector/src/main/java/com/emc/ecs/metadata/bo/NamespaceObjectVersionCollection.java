@@ -67,7 +67,7 @@ public class NamespaceObjectVersionCollection implements Callable<String> {
 			
 			// submit bucket collection to thread pool
 			try {
-				ObjectBO.getFutures().add(ObjectBO.getThreadPool().submit(bucketObjectVersionCollection));
+				collectionConfig.getFutures().add(collectionConfig.getThreadPoolExecutor().submit(bucketObjectVersionCollection));
 			} catch (RejectedExecutionException e) {
 				// Thread pool didn't accept bucket collection
 				// running in the current thread

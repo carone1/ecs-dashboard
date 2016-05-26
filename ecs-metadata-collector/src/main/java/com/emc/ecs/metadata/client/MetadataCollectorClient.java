@@ -4,7 +4,14 @@ package com.emc.ecs.metadata.client;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +66,11 @@ public class MetadataCollectorClient {
 	private static String  collectData      = ECS_COLLECT_ALL_DATA;
 	private static Integer relativeDayShift = 0;
 	
-	final static Logger logger = LoggerFactory.getLogger(MetadataCollectorClient.class);
+	private final static Logger       logger             = LoggerFactory.getLogger(MetadataCollectorClient.class);
+	
+	private static ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+	private static Queue<Future<?>>   futures            = new ConcurrentLinkedQueue<Future<?>>();
+	private static AtomicLong         objectCount        = new AtomicLong(0L);
 	
 	public static void main(String[] args) throws Exception {
 
@@ -250,6 +261,41 @@ public class MetadataCollectorClient {
 			System.exit(0);
 		}
 		
+		
+		// wait for all threads to complete their work
+		while ( !futures.isEmpty() ) {
+		    try {
+				Future<?> future = futures.poll();
+				if(future != null){
+					future.get();
+				}
+			} catch (InterruptedException e) {
+				logger.error(e.getLocalizedMessage());
+			} catch (ExecutionException e) {
+				logger.error(e.getLocalizedMessage());
+			}
+		}
+		
+		Long objectCollectionFinish = System.currentTimeMillis();
+		Double deltaTime = Double.valueOf((objectCollectionFinish - collectionTime.getTime())) / 1000 ;
+		logger.info("Collected " + objectCount.get() + " objects");
+		logger.info("Total collection time: " + deltaTime + " seconds");
+		
+		// take everything down once all threads have completed their work
+		threadPoolExecutor.shutdown();
+		
+		// wait for all threads to terminate
+		boolean termination = false; 
+		do {
+			try {
+				termination = threadPoolExecutor.awaitTermination(2, TimeUnit.MINUTES);
+			} catch (InterruptedException e) {
+				logger.error(e.getLocalizedMessage());
+				termination = true;
+			}
+		} while(!termination);
+		
+		
 	}
 
 	private static void collectBillingData(Date collectionTime) {
@@ -342,7 +388,7 @@ public class MetadataCollectorClient {
 		}
 		
 		
-		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO );
+		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO, threadPoolExecutor, futures, objectCount );
 		
 		// Start collection
 		objectBO.collectObjectData(collectionTime);
@@ -379,7 +425,7 @@ public class MetadataCollectorClient {
 		}
 		
 		
-		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO );
+		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO, threadPoolExecutor, futures, objectCount );
 		
 		// Start collection
 		objectBO.collectObjectVersionData(collectionTime);

@@ -2,6 +2,9 @@ package com.emc.ecs.metadata.bo;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.emc.ecs.management.entity.ObjectBucket;
@@ -19,6 +22,8 @@ public class ObjectCollectionConfig {
 	private Date                                  collectionTime;
 	private AtomicLong                            objectCount;
 	private Map<NamespaceBucketKey, ObjectBucket> bucketMap;
+	private ThreadPoolExecutor 					  threadPoolExecutor;
+	private Queue<Future<?>>     				  futures;
 	
 	
 
@@ -28,20 +33,40 @@ public class ObjectCollectionConfig {
 								   ObjectDAO                             objectDAO, 
 								   Map<NamespaceBucketKey, ObjectBucket> bucketMap,
 								   Date                                  collectionTime,
-								   AtomicLong                            objectCount     ) {
+								   AtomicLong                            objectCount,
+								   ThreadPoolExecutor 					 threadPoolExecutor,
+								   Queue<Future<?>>     				 futures	         ) {
 
-		this.s3JerseyClient = s3JerseyClient;
-		this.namespace      = namespace;
-		this.bucketMap      = bucketMap;
-		this.objectDAO      = objectDAO;
-		this.collectionTime = collectionTime;
-		this.objectCount    = objectCount;
+		this.s3JerseyClient     = s3JerseyClient;
+		this.namespace          = namespace;
+		this.bucketMap          = bucketMap;
+		this.objectDAO          = objectDAO;
+		this.collectionTime     = collectionTime;
+		this.objectCount        = objectCount;
+		this.threadPoolExecutor = threadPoolExecutor;
+		this.futures            = futures;
 	}
 	
 	//=======================
 	// Public methods
 	//=======================
 	
+	public ThreadPoolExecutor getThreadPoolExecutor() {
+		return threadPoolExecutor;
+	}
+
+	public void setThreadPoolExecutor(ThreadPoolExecutor threadPoolExecutor) {
+		this.threadPoolExecutor = threadPoolExecutor;
+	}
+
+	public Queue<Future<?>> getFutures() {
+		return futures;
+	}
+
+	public void setFutures(Queue<Future<?>> futures) {
+		this.futures = futures;
+	}
+
 	public String getNamespace() {
 		return namespace;
 	}

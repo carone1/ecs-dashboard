@@ -7,9 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -36,10 +35,10 @@ public class ObjectBO {
 	private BillingBO 	       			billingBO;
 	private List<String>       			ecsObjectHosts;
 	private ObjectDAO 	 	   			objectDAO;
-	private static ThreadPoolExecutor 	executorThreadPoolExecutor = 
-			        (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-	private static Queue<Future<?>>     futures = new ConcurrentLinkedQueue<Future<?>>();
-	private        AtomicLong           objectCount = new AtomicLong(0L);
+	private ThreadPoolExecutor 			threadPoolExecutor;
+	private Queue<Future<?>>     		futures;
+	private AtomicLong           		objectCount;
+	
 	private final static Logger         logger = LoggerFactory.getLogger(ObjectBO.class);
 
 	
@@ -47,22 +46,30 @@ public class ObjectBO {
 	//================================
 	// Constructor
 	//================================
-	public ObjectBO(BillingBO billingBO, List<String> ecsObjectHosts, ObjectDAO objectDAO ) {
+	public ObjectBO( BillingBO          billingBO, 
+					 List<String>       ecsObjectHosts,
+					 ObjectDAO          objectDAO,
+					 ThreadPoolExecutor threadPoolExecutor,
+					 Queue<Future<?>>   futures,
+					 AtomicLong         objectCount ) {
 				
 		this.billingBO = billingBO;
 		this.ecsObjectHosts = ecsObjectHosts;
+		this.threadPoolExecutor = threadPoolExecutor;
+		this.futures = futures;
 		this.objectDAO = objectDAO;
+		this.objectCount = objectCount;
 	}
 	
 	//================================
 	// Public methods
 	//================================
 	
-	public static ThreadPoolExecutor getThreadPool() {
-		return executorThreadPoolExecutor;
+	public ThreadPoolExecutor getThreadPool() {
+		return threadPoolExecutor;
 	}
 	
-	public static Collection<Future<?>> getFutures() {
+	public Collection<Future<?>> getFutures() {
 		return futures;
 	}
 	
@@ -76,13 +83,10 @@ public class ObjectBO {
 		billingBO.getObjectBukcetData(objectBucketMap);
 
 		Map<String, S3JerseyClient> s3ObjectClientMap = null;
-		Long objectCollectionStart = System.currentTimeMillis();
 		
 		try {
 			// create all required S3 jersey clients for very S3 users
 			s3ObjectClientMap = createS3ObjectClients(objectUserDetailsList, this.ecsObjectHosts);
-
-			objectCollectionStart = System.currentTimeMillis();
 			
 			// collect objects for all users
 			for( ObjectUserDetails objectUserDetails : objectUserDetailsList ) {
@@ -106,14 +110,16 @@ public class ObjectBO {
 																						 this.objectDAO,
 																						 objectBucketMap,
 																						 collectionTime,
-																						 objectCount  );
+																						 objectCount,
+																						 threadPoolExecutor,
+																						 futures);
 					
 					NamespaceObjectCollection namespaceObjectCollection = 
 							new NamespaceObjectCollection( collectionConfig );
 				
 					try {
 						// submit namespace collection to thread pool
-						futures.add(executorThreadPoolExecutor.submit(namespaceObjectCollection));
+						futures.add(threadPoolExecutor.submit(namespaceObjectCollection));
 					} catch (RejectedExecutionException e) {
 						// Thread pool didn't accept bucket collection
 						// running in the current thread
@@ -127,38 +133,7 @@ public class ObjectBO {
 				}
 			}
 
-			// wait for all threads to complete their work
-			while ( !futures.isEmpty() ) {
-			    try {
-					Future<?> future = futures.poll();
-					if(future != null){
-						future.get();
-					}
-				} catch (InterruptedException e) {
-					logger.error(e.getLocalizedMessage());
-				} catch (ExecutionException e) {
-					logger.error(e.getLocalizedMessage());
-				}
-			}
-			
-			Long objectCollectionFinish = System.currentTimeMillis();
-			Double deltaTime = Double.valueOf((objectCollectionFinish - objectCollectionStart)) / 1000 ;
-			logger.info("Collected " + objectCount.get() + " objects");
-			logger.info("Total collection time: " + deltaTime + " seconds");
-			
-			// take everything down once all threads have completed their work
-			executorThreadPoolExecutor.shutdown();
-			
-			// wait for all threads to terminate
-			boolean termination = false; 
-			do {
-				try {
-					termination = executorThreadPoolExecutor.awaitTermination(2, TimeUnit.MINUTES);
-				} catch (InterruptedException e) {
-					logger.error(e.getLocalizedMessage());
-					termination = true;
-				}
-			} while(!termination);
+
 			
 		} finally {
 			// ensure to clean up S3 jersey clients
@@ -206,19 +181,21 @@ public class ObjectBO {
 
 				if(s3JerseyClient != null && namespace != null) {
 				
-					ObjectCollectionConfig collectionConfig = new ObjectCollectionConfig(s3JerseyClient, 
-																						 namespace,
-																						 this.objectDAO,
-																						 objectBucketMap,
-																						 collectionTime,
-																						 objectCount  );
+					ObjectCollectionConfig collectionConfig = new ObjectCollectionConfig( s3JerseyClient, 
+																						  namespace,
+																						  objectDAO,
+																						  objectBucketMap,
+																						  collectionTime,
+																						  objectCount,
+																						  threadPoolExecutor,
+																						  futures      );
 					
 					NamespaceObjectVersionCollection namespaceObjectVersionCollection = 
 							new NamespaceObjectVersionCollection( collectionConfig );
 				
 					try {
 						// submit namespace collection to thread pool
-						futures.add(executorThreadPoolExecutor.submit(namespaceObjectVersionCollection));
+						futures.add(threadPoolExecutor.submit(namespaceObjectVersionCollection));
 					} catch (RejectedExecutionException e) {
 						// Thread pool didn't accept bucket collection
 						// running in the current thread
@@ -253,13 +230,13 @@ public class ObjectBO {
 			logger.info("Total collection time: " + deltaTime + " seconds");
 			
 			// take everything down once all threads have completed their work
-			executorThreadPoolExecutor.shutdown();
+			threadPoolExecutor.shutdown();
 			
 			// wait for all threads to terminate
 			boolean termination = false; 
 			do {
 				try {
-					termination = executorThreadPoolExecutor.awaitTermination(2, TimeUnit.MINUTES);
+					termination = threadPoolExecutor.awaitTermination(2, TimeUnit.MINUTES);
 				} catch (InterruptedException e) {
 					logger.error(e.getLocalizedMessage());
 					termination = true;
