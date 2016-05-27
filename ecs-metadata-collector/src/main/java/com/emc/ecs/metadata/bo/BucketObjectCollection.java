@@ -54,8 +54,8 @@ public class BucketObjectCollection implements Callable<String> {
 			  objectBucket.getSearchMetadata() != null &&
 			! objectBucket.getSearchMetadata().isEmpty()  ) {
 			
-			// Bucket has search keys
-			// need to collect those values
+			// Bucket has search MD keys configured
+			// need to query those objects for that bucket
 			if( !queryObjects(objectBucket) ) {
 				// Something went wonky during the query operation
 				// revert to list object call

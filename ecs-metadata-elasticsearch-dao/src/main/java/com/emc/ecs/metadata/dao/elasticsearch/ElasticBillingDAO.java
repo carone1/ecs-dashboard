@@ -607,6 +607,12 @@ public class ElasticBillingDAO implements BillingDAO {
 	public static XContentBuilder toJsonFormat( ObjectBucket objectBucket, Date collectionTime ) {						
 		return toJsonFormat(objectBucket, collectionTime, null);
 	}
+
+	@Override
+	public void purgeOldData(Date collectionTime) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 
 }

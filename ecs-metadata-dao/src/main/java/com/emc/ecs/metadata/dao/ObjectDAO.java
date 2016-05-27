@@ -18,5 +18,7 @@ public interface ObjectDAO {
 	public void insert(ListVersionsResult listVersionsResult, String namespace,
 			String name, Date collectionTime);
 	
+	public void purgeOldData( Date collectionTime);
+	
 	
 }

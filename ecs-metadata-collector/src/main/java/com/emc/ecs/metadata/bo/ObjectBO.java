@@ -156,13 +156,10 @@ public class ObjectBO {
 		billingBO.getObjectBukcetData(objectBucketMap);
 
 		Map<String, S3JerseyClient> s3ObjectClientMap = null;
-		Long objectCollectionStart = System.currentTimeMillis();
 		
 		try {
 			// create all required S3 jersey clients for very S3 users
 			s3ObjectClientMap = createS3ObjectClients(objectUserDetailsList, this.ecsObjectHosts);
-
-			objectCollectionStart = System.currentTimeMillis();
 			
 			// collect objects for all users
 			for( ObjectUserDetails objectUserDetails : objectUserDetailsList ) {
@@ -209,39 +206,6 @@ public class ObjectBO {
 					}
 				}
 			}
-
-			// wait for all threads to complete their work
-			while ( !futures.isEmpty() ) {
-			    try {
-					Future<?> future = futures.poll();
-					if(future != null){
-						future.get();
-					}
-				} catch (InterruptedException e) {
-					logger.error(e.getLocalizedMessage());
-				} catch (ExecutionException e) {
-					logger.error(e.getLocalizedMessage());
-				}
-			}
-			
-			Long objectCollectionFinish = System.currentTimeMillis();
-			Double deltaTime = Double.valueOf((objectCollectionFinish - objectCollectionStart)) / 1000 ;
-			logger.info("Collected " + objectCount.get() + " objects");
-			logger.info("Total collection time: " + deltaTime + " seconds");
-			
-			// take everything down once all threads have completed their work
-			threadPoolExecutor.shutdown();
-			
-			// wait for all threads to terminate
-			boolean termination = false; 
-			do {
-				try {
-					termination = threadPoolExecutor.awaitTermination(2, TimeUnit.MINUTES);
-				} catch (InterruptedException e) {
-					logger.error(e.getLocalizedMessage());
-					termination = true;
-				}
-			} while(!termination);
 			
 		} finally {
 			// ensure to clean up S3 jersey clients

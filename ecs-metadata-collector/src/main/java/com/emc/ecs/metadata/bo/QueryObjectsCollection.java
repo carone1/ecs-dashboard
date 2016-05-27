@@ -16,8 +16,8 @@ import com.emc.object.s3.request.QueryObjectsRequest;
 public class QueryObjectsCollection implements Callable<String> {
 
 	private static final Integer maxObjectPerRequest = 10000;
-	private static final String  SIZE_KEY            = "Size";
-	private static final String  LAST_MODIFIED_KEY   = "LastModified";
+	//private static final String  SIZE_KEY            = "Size";
+	//private static final String  LAST_MODIFIED_KEY   = "LastModified";
 	
 	//=============================
 	// Private members
@@ -130,6 +130,8 @@ public class QueryObjectsCollection implements Callable<String> {
 			// known issue ECs returns this error when a bucket has MD keys but has not objects
 			if(ex.getMessage().contains("Invalid search index value format or operator used")) {
 			  // just silently let this go. This error will eventually be fixed by ECS 
+				logger.error( "Error: Namespace: " + collectionConfig.getNamespace() + " bucket: " + objectBucket.getName() +
+           			    " Query string: `" + queryRequest.getQuery() + "`" + ex.getMessage() );
 			} else if(ex.getMessage().contains("We encountered an internal error. Please try again")) {
 				// Here we could try again
 				
@@ -156,6 +158,7 @@ public class QueryObjectsCollection implements Callable<String> {
 		
 		List<String> attributeList = new ArrayList<String>();
 		StringBuilder queryString = new StringBuilder();
+		
 		// add index keys to the search query
 		for( Metadata metadata: objectBucket.getSearchMetadata() ) {
 			
@@ -168,8 +171,8 @@ public class QueryObjectsCollection implements Callable<String> {
 			
 			// Only want to use MD keys (Last Modified Time or Size) which have
 			// the better chance of being present on all objects
-			if( LAST_MODIFIED_KEY.equals(metadata.getName()) ||  
-					SIZE_KEY.equals(metadata.getName()) ) {
+			//if( LAST_MODIFIED_KEY.equals(metadata.getName()) 
+			//		SIZE_KEY.equals(metadata.getName()) ) {
 
 				String dataType = metadata.getDataType().trim().toLowerCase();
 				if( dataType.equals("string" ) ) {
@@ -191,12 +194,12 @@ public class QueryObjectsCollection implements Callable<String> {
 					if(queryString.length() > 0) {
 						queryString.append(" or ");
 					}
-					queryString.append("(" + metadata.getName() +" <= '2015-01-01:00:00:00Z' ) or (" + metadata.getName() + " >= '2015-01-01:00:00:00Z' )");
+					queryString.append( "( " + metadata.getName() + " > '1970-01-01T00:00:00Z' )");
 				} else {
 					logger.error("Unhandled data type: " + dataType);
 				}
 			}
-		}
+		//}
 		
 		if(queryString.length() == 0 ) {
 			// no  MD keys are configured
@@ -204,13 +207,20 @@ public class QueryObjectsCollection implements Callable<String> {
 			return null;
 		}
 		
+		// append ( at beginning
+		queryString.insert(0, "( ");
+		// append ) at end
+		queryString.append(" )");
+		
+		
 		queryRequest.withQuery( queryString.toString() );
 		queryRequest.withAttributes( attributeList );
 		queryRequest.setMaxKeys( maxObjectPerRequest );
 		queryRequest.setNamespace( collectionConfig.getNamespace() );
 		
-		logger.info("Namespace: " + collectionConfig.getNamespace() + " bucket: " + objectBucket.getName() +
-		           			" Query string: `" + queryString.toString() + "`" );
+		logger.info("QueryObject Collection for Namespace: " + collectionConfig.getNamespace() + " Bucket: " + objectBucket.getName() );
+		
+		logger.debug(" Using query string: `" + queryString.toString() + "`" );
 		
 		return queryRequest;
 	}

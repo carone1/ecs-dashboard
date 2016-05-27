@@ -12,4 +12,5 @@ public interface BillingDAO {
 	 */
 	public void insert(NamespaceBillingInfo billingData, Date collectionTime);
 	public void insert(ObjectBuckets bucketResponse, Date collectionTime);
+	public void purgeOldData( Date collectionTime);
 }

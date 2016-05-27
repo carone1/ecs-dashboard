@@ -8,9 +8,12 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.Map.Entry;
 
+import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
@@ -144,6 +147,15 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		}
 	}
 	
+	@Override
+	public void purgeOldData(Date collectionTime) {
+		
+		//GetRequest request = new GetRequest();
+		//request.index(S3_OBJECT_INDEX_NAME);
+		//request.type(S3_OBJECT_VERSION_INDEX_TYPE);
+		
+		//ActionFuture<GetResponse> result = elasticClient.get(request);
+	}
 	
 	public static XContentBuilder toJsonFormat( S3Object s3Object, String namespace, String bucket, Date collectionTime ) {						
 		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
@@ -167,6 +179,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	// Private methods
 	//=======================
 
+	
 	private void initS3ObjectIndex() {
 
 		if (elasticClient
@@ -508,6 +521,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	public static XContentBuilder toJsonFormat( QueryObject s3Object, String namespace, String bucket, Date collectionTime ) {						
 		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
 	}
+
+
+
 
 
 
