@@ -5,21 +5,31 @@ package com.emc.ecs.metadata.dao.elasticsearch;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Map.Entry;
 
-import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequestBuilder;
+import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,16 +61,19 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	public  final static String ANALYZED_INDEX               = "analyzed";
 	
 	
-	public  final static String LAST_MODIFIED_TAG = "last_modified";
-	public  final static String SIZE_TAG          = "size";
-	public  final static String KEY_TAG           = "key";
-	public  final static String OWNER_ID_TAG      = "owner_id";
-	public  final static String OWNER_NAME_TAG    = "owner_name";
-	public  final static String NAMESPACE_TAG     = "namespace";
-	public  final static String BUCKET_TAG        = "bucket";
-	public  final static String ETAG_TAG          = "e_tag";
-	public  final static String VERSION_ID_TAG    = "version_id";
-	public  final static String IS_LATEST_TAG     = "is_latest";
+	public  final static String LAST_MODIFIED_TAG        = "last_modified";
+	public  final static String SIZE_TAG                 = "size";
+	public  final static String KEY_TAG                  = "key";
+	public  final static String OWNER_ID_TAG             = "owner_id";
+	public  final static String OWNER_NAME_TAG           = "owner_name";
+	public  final static String NAMESPACE_TAG            = "namespace";
+	public  final static String BUCKET_TAG               = "bucket";
+	public  final static String ETAG_TAG                 = "e_tag";
+	public  final static String VERSION_ID_TAG           = "version_id";
+	public  final static String IS_LATEST_TAG            = "is_latest";
+	public  final static String CUSTOM_GID_TAG           = "x-amz-meta-x-emc-posix-group-owner-name";
+	public  final static String CUSTOM_UID_TAG           = "x-amz-meta-x-emc-posix-owner-name";
+	public  final static String CUSTOM_MODIFIED_TIME_TAG = "mtime";
 	
 	
 	//=========================
@@ -68,6 +81,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	//=========================
 	private TransportClient elasticClient;
 	private static Logger LOGGER = LoggerFactory.getLogger(ElasticS3ObjectDAO.class);
+	
+	private static final String            OLD_DATA_DATE_PATTERN = "yyyy-MM-dd";
+	private static final SimpleDateFormat  OLD_DATA_DATE_FORMAT = new  SimpleDateFormat(OLD_DATA_DATE_PATTERN);
 	
 	//=========================
 	// Public methods
@@ -112,10 +128,36 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	@Override
 	public void insert(ListObjectsResult listObjectsResult, String namespace, String bucket, Date collectionTime) {
 		
+		if( listObjectsResult == null ||
+		    listObjectsResult.getObjects() == null ||
+		    listObjectsResult.getObjects().isEmpty()  ) {
+			
+			// nothing to insert
+			return;
+		}
+		
+		BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
+		
 		// Generate JSON for object buckets info
 		for( S3Object s3Object : listObjectsResult.getObjects() ) {
 			XContentBuilder s3ObjectBuilder = toJsonFormat(s3Object, namespace, bucket, collectionTime);
-			elasticClient.prepareIndex(S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE).setSource(s3ObjectBuilder).get();
+
+			IndexRequestBuilder request = elasticClient.prepareIndex()
+					.setIndex(S3_OBJECT_INDEX_NAME)
+					.setType(S3_OBJECT_INDEX_TYPE)
+					.setSource(s3ObjectBuilder);
+			requestBuilder.add(request);
+		}
+		
+		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
+	    int items = bulkResponse.getItems().length;
+	    
+		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+					 S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE ); 
+    
+		if( bulkResponse.hasFailures() ) {
+			LOGGER.error( "Failure(s) occured while items in " + "index: " + 
+							S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE );
 		}
 	}
 	
@@ -123,10 +165,37 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	@Override
 	public void insert( QueryObjectsResult queryObjectsResult, String namespace,
 						String bucketName, Date collectionTime ) {
+		
+		if( queryObjectsResult == null ||
+			queryObjectsResult.getObjects() == null ||
+			queryObjectsResult.getObjects().isEmpty()  ) {
+				
+			// nothing to insert
+			return;
+		}
+		
+		
+		BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
+		
 		// Generate JSON for object buckets info
 		for( QueryObject queryObject : queryObjectsResult.getObjects() ) {
 			XContentBuilder s3ObjectBuilder = toJsonFormat(queryObject, namespace, bucketName, collectionTime);
-			elasticClient.prepareIndex(S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE).setSource(s3ObjectBuilder).get();
+
+			IndexRequestBuilder request = elasticClient.prepareIndex()
+					.setIndex(S3_OBJECT_INDEX_NAME)
+					.setType(S3_OBJECT_INDEX_TYPE)
+					.setSource(s3ObjectBuilder);
+			requestBuilder.add(request);
+		}
+		
+		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
+	    int items = bulkResponse.getItems().length;
+		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+				 S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE ); 
+
+		if( bulkResponse.hasFailures() ) {
+			LOGGER.error( "Failure(s) occured while items in " + "index: " + 
+						S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE );
 		}
 	}
 	
@@ -135,26 +204,61 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	public void insert(ListVersionsResult listVersionsResult, String namespace,
 			           String bucketName, Date collectionTime) {
 		
+		if( listVersionsResult == null ||
+			listVersionsResult.getVersions() == null ||
+			listVersionsResult.getVersions().isEmpty()  ) {
+					
+			// nothing to insert
+			return;
+		}
+		
+		BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
+		
 		// Generate JSON for object version info
 		for( AbstractVersion abstractVersion : listVersionsResult.getVersions() ) {
 			if(abstractVersion instanceof Version) {
 				XContentBuilder s3ObjectVersionBuilder = toJsonFormat((Version)abstractVersion, namespace, bucketName, collectionTime);
-				elasticClient.prepareIndex(S3_OBJECT_VERSION_INDEX_NAME, S3_OBJECT_VERSION_INDEX_TYPE).setSource(s3ObjectVersionBuilder).get();
+				
+				IndexRequestBuilder request = elasticClient.prepareIndex()
+			                .setIndex(S3_OBJECT_VERSION_INDEX_NAME)
+			                .setType(S3_OBJECT_VERSION_INDEX_TYPE)
+			                .setSource(s3ObjectVersionBuilder);
+			    requestBuilder.add(request);
+				
 			} else if(abstractVersion instanceof DeleteMarker) {
-				XContentBuilder s3ObjectBuilder = toJsonFormat((DeleteMarker)abstractVersion, namespace, bucketName, collectionTime);
-				elasticClient.prepareIndex(S3_OBJECT_VERSION_INDEX_NAME, S3_OBJECT_VERSION_INDEX_TYPE).setSource(s3ObjectBuilder).get();
+				XContentBuilder s3ObjectVersionBuilder = toJsonFormat((DeleteMarker)abstractVersion, namespace, bucketName, collectionTime);
+				
+				IndexRequestBuilder request = elasticClient.prepareIndex()
+		                .setIndex(S3_OBJECT_VERSION_INDEX_NAME)
+		                .setType(S3_OBJECT_VERSION_INDEX_TYPE)
+		                .setSource(s3ObjectVersionBuilder);
+		        requestBuilder.add(request);
 			}
+		}
+		
+		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
+	    int items = bulkResponse.getItems().length;
+	    
+		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+					 S3_OBJECT_VERSION_INDEX_NAME + " index type: " +  S3_OBJECT_VERSION_INDEX_TYPE ); 
+
+		if( bulkResponse.hasFailures() ) {
+			LOGGER.error( "Failure(s) occured while items in " + "index: " + 
+						  S3_OBJECT_VERSION_INDEX_NAME + " index type: " +  S3_OBJECT_VERSION_INDEX_TYPE );
 		}
 	}
 	
 	@Override
-	public void purgeOldData(Date collectionTime) {
+	public void purgeOldData(Date collectionDate) {
+			
+		QueryBuilder qb = QueryBuilders.rangeQuery(COLLECTION_TIME).lt(OLD_DATA_DATE_FORMAT.format(collectionDate));
+		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(qb);
 		
-		//GetRequest request = new GetRequest();
-		//request.index(S3_OBJECT_INDEX_NAME);
-		//request.type(S3_OBJECT_VERSION_INDEX_TYPE);
+		// Purge old S3 Objects 
+		purgeIndex(boolQuery, S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE);
 		
-		//ActionFuture<GetResponse> result = elasticClient.get(request);
+		// Purge old S3 Object Versions
+		purgeIndex(boolQuery, S3_OBJECT_VERSION_INDEX_NAME, S3_OBJECT_VERSION_INDEX_TYPE);
 	}
 	
 	public static XContentBuilder toJsonFormat( S3Object s3Object, String namespace, String bucket, Date collectionTime ) {						
@@ -172,6 +276,10 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			String namespace, String bucketName, Date collectionTime) {
 		
 		return toJsonFormat( deleteMarker, namespace, bucketName, collectionTime, null);
+	}
+	
+	public static XContentBuilder toJsonFormat( QueryObject s3Object, String namespace, String bucket, Date collectionTime ) {						
+		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
 	}
 	
 	
@@ -234,6 +342,15 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 							// COLLECTION_TIME
 							.startObject( COLLECTION_TIME ).field("type", "date")
 								.field("format", "strict_date_optional_time||epoch_millis").endObject() 
+							// CUSTOM_GID_TAG
+							.startObject( CUSTOM_GID_TAG ).field("type", "string")
+								.field("index", NOT_ANALYZED_INDEX).endObject()
+							// CUSTOM_UID_TAG
+							.startObject( CUSTOM_UID_TAG ).field("type", "string")
+								.field("index", NOT_ANALYZED_INDEX).endObject()	
+						    // CUSTOM_MODIFIED_TIME_TAG
+							.startObject( CUSTOM_MODIFIED_TIME_TAG ).field("type", "string")
+								.field("index", NOT_ANALYZED_INDEX).endObject()	
 							.endObject()
 							
 							// =================================
@@ -411,10 +528,10 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	
 	
 	private static XContentBuilder toJsonFormat( Version version, 
-												String   namespace, 
-												String   bucket,
-												Date     collectionTime,
-												XContentBuilder builder) {
+												 String   namespace, 
+												 String   bucket,
+												 Date     collectionTime,
+												 XContentBuilder builder) {
 
 		try {
 			if(builder == null) {
@@ -518,13 +635,54 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	}
 
 
-	public static XContentBuilder toJsonFormat( QueryObject s3Object, String namespace, String bucket, Date collectionTime ) {						
-		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
+
+
+
+
+	private void purgeIndex(BoolQueryBuilder boolQuery, String indexName, String indexType) {
+		
+		// Purge 
+		SearchRequestBuilder searchRequestBuilder = elasticClient.prepareSearch(indexName);
+		searchRequestBuilder.setTypes(indexType);
+		searchRequestBuilder.setQuery(boolQuery);
+		
+		SearchResponse response = searchRequestBuilder.execute().actionGet();
+		SearchHits searchHits = response.getHits();
+		Iterator<SearchHit> itr = searchHits.iterator();	
+		
+		BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
+		
+		// loop all found entries and 
+		// add them to bulk delete request
+		while( itr.hasNext() ) { 
+			SearchHit searchHit = itr.next();	
+			
+			DeleteRequestBuilder deleteRequest = elasticClient.prepareDelete()
+	                .setIndex(indexName)
+	                .setType(indexType)
+	                .setId(searchHit.getId());
+	                
+			requestBuilder.add(deleteRequest);
+		}
+		
+		if (requestBuilder.numberOfActions() == 0 ) {
+			// nothing was found so no need 
+			// to continue futher
+			return;
+		}
+		
+		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
+	    int items = bulkResponse.getItems().length;
+	    
+		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+				     indexName + " index type: " +  indexType ); 
+
+		if( bulkResponse.hasFailures() ) {
+			LOGGER.error( "Failure(s) occured while items in " + "index: " + 
+					      indexName + " index type: " +  indexType );
+		}
+
 	}
-
-
-
-
 
 
 
