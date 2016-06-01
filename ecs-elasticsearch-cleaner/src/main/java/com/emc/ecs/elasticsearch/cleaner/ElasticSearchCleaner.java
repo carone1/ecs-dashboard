@@ -55,8 +55,6 @@ public class ElasticSearchCleaner {
 	
 	private final static Logger       logger             = LoggerFactory.getLogger(ElasticSearchCleaner.class);
 	
-	//private static ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-	//private static Queue<Future<?>>   futures            = new ConcurrentLinkedQueue<Future<?>>();
 	private static AtomicLong         objectCount        = new AtomicLong(0L);
 	
 	public static void main(String[] args) throws Exception {
@@ -183,39 +181,10 @@ public class ElasticSearchCleaner {
 		}
 		
 		
-		// wait for all threads to complete their work
-//		while ( !futures.isEmpty() ) {
-//		    try {
-//				Future<?> future = futures.poll();
-//				if(future != null){
-//					future.get();
-//				}
-//			} catch (InterruptedException e) {
-//				logger.error(e.getLocalizedMessage());
-//			} catch (ExecutionException e) {
-//				logger.error(e.getLocalizedMessage());
-//			}
-//		}
-		
 		Long objectCollectionFinish = System.currentTimeMillis();
 		Double deltaTime = Double.valueOf((objectCollectionFinish - epochTime)) / 1000 ;
 		logger.info("Deleted " + objectCount.get() + " objects");
 		logger.info("Total deletion time: " + deltaTime + " seconds");
-		
-//		// take everything down once all threads have completed their work
-//		threadPoolExecutor.shutdown();
-//		
-//		// wait for all threads to terminate
-//		boolean termination = false; 
-//		do {
-//			try {
-//				termination = threadPoolExecutor.awaitTermination(2, TimeUnit.MINUTES);
-//			} catch (InterruptedException e) {
-//				logger.error(e.getLocalizedMessage());
-//				termination = true;
-//			}
-//		} while(!termination);
-		
 		
 	}
 
