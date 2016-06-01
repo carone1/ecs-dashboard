@@ -5,8 +5,18 @@ import java.util.Date;
 import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.ObjectBuckets;
 
+
+
+
+
 public interface BillingDAO {
 
+	public enum ManagementDataType {
+		billing_namespace,
+		billing_bucket,
+		object_bucket
+	};
+	
 	/**
 	 * 
 	 */
@@ -16,5 +26,5 @@ public interface BillingDAO {
 	public void insert(ObjectBuckets bucketResponse, Date collectionTime);
 	
 	
-	public void purgeOldData( Date collectionTime);
+	public void purgeOldData( ManagementDataType type, Date collectionTime);
 }

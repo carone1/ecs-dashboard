@@ -8,6 +8,11 @@ import com.emc.object.s3.bean.QueryObjectsResult;
 
 public interface ObjectDAO {
 
+	public enum ObjectDataType {
+		object,
+		object_versions
+	};
+	
 	
 	public void insert( ListObjectsResult listObjectsResult, String namespace,
 						String bucketName, Date collectionTime );
@@ -18,7 +23,7 @@ public interface ObjectDAO {
 	public void insert(ListVersionsResult listVersionsResult, String namespace,
 			String name, Date collectionTime);
 	
-	public void purgeOldData( Date collectionTime);
+	public void purgeOldData( ObjectDataType type, Date collectionTime);
 	
 	
 }

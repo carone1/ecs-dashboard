@@ -15,14 +15,17 @@ import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsReques
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -249,16 +252,20 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	}
 	
 	@Override
-	public void purgeOldData(Date collectionDate) {
+	public void purgeOldData(ObjectDataType type, Date thresholdDate) {
 			
-		QueryBuilder qb = QueryBuilders.rangeQuery(COLLECTION_TIME).lt(OLD_DATA_DATE_FORMAT.format(collectionDate));
-		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(qb);
-		
-		// Purge old S3 Objects 
-		purgeIndex(boolQuery, S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE);
-		
-		// Purge old S3 Object Versions
-		purgeIndex(boolQuery, S3_OBJECT_VERSION_INDEX_NAME, S3_OBJECT_VERSION_INDEX_TYPE);
+		switch(type) {
+		  case object:
+			// Purge old S3 Objects 
+			purgeIndex(thresholdDate, S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE);
+			break;
+		  case object_versions:
+			// Purge old S3 Object Versions
+			purgeIndex(thresholdDate, S3_OBJECT_VERSION_INDEX_NAME, S3_OBJECT_VERSION_INDEX_TYPE);
+			break;
+		  default:
+			break;
+		}
 	}
 	
 	public static XContentBuilder toJsonFormat( S3Object s3Object, String namespace, String bucket, Date collectionTime ) {						
@@ -636,52 +643,75 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 
 
 
-
-
-
-	private void purgeIndex(BoolQueryBuilder boolQuery, String indexName, String indexType) {
+	private void purgeIndex(Date thresholdDate, String indexName, String indexType) {
+		
+		String thresholdDateString = OLD_DATA_DATE_FORMAT.format(thresholdDate);
+		QueryBuilder qb = QueryBuilders.rangeQuery(COLLECTION_TIME).lt(thresholdDateString);
+		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(qb);
 		
 		// Purge 
 		SearchRequestBuilder searchRequestBuilder = elasticClient.prepareSearch(indexName);
 		searchRequestBuilder.setTypes(indexType);
 		searchRequestBuilder.setQuery(boolQuery);
+		// just need the id
+		searchRequestBuilder.setNoFields();
+		// limit the query to 50000 entries
+		searchRequestBuilder.setSize(50000);
+		// limit search time to 10 seconds
+		searchRequestBuilder.setScroll(new TimeValue(10000));
 		
-		SearchResponse response = searchRequestBuilder.execute().actionGet();
-		SearchHits searchHits = response.getHits();
-		Iterator<SearchHit> itr = searchHits.iterator();	
+		SearchResponse searchResponse;
 		
-		BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
-		
-		// loop all found entries and 
-		// add them to bulk delete request
-		while( itr.hasNext() ) { 
-			SearchHit searchHit = itr.next();	
-			
-			DeleteRequestBuilder deleteRequest = elasticClient.prepareDelete()
-	                .setIndex(indexName)
-	                .setType(indexType)
-	                .setId(searchHit.getId());
-	                
-			requestBuilder.add(deleteRequest);
-		}
-		
-		if (requestBuilder.numberOfActions() == 0 ) {
-			// nothing was found so no need 
-			// to continue futher
-			return;
-		}
-		
-		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
-	    int items = bulkResponse.getItems().length;
-	    
-		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
-				     indexName + " index type: " +  indexType ); 
+		do {
+			searchResponse = searchRequestBuilder.execute().actionGet();
+			SearchHits searchHits = searchResponse.getHits();
+			Iterator<SearchHit> itr = searchHits.iterator();	
 
-		if( bulkResponse.hasFailures() ) {
-			LOGGER.error( "Failure(s) occured while items in " + "index: " + 
-					      indexName + " index type: " +  indexType );
-		}
+			BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
 
+			// loop all found entries and 
+			// add them to bulk delete request
+			while( itr.hasNext() ) { 
+				SearchHit searchHit = itr.next();	
+
+				DeleteRequest deleteRequest = new DeleteRequest()
+				.index(indexName)
+				.type(indexType)
+				.id(searchHit.getId());
+
+				requestBuilder.add(deleteRequest);
+			}
+
+			if (requestBuilder.numberOfActions() > 0 ) {
+				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to purge in index: " + 
+				        indexName + " due to collection_time < " + thresholdDateString);
+				//System.out.println( "Found " + requestBuilder.numberOfActions() + " documents to purge in index: " + 
+				//		indexName + " due to collection_time < " + thresholdDateString);
+
+			} else {
+				// nothing was found so no need 
+				// to continue futher
+				return;
+			}
+
+			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
+			int items = bulkResponse.getItems().length;
+
+			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+					     indexName + " index type: " +  indexType ); 
+			//System.out.println( "Took " + bulkResponse.getTookInMillis() + " in ms to delete [" + items + "] items in " + "index: " + 
+			//		indexName + " index type: " +  indexType ); 
+
+			if( bulkResponse.hasFailures() ) {
+				LOGGER.error( "Failure(s) occured while items in " + "index: " + 
+						      indexName + " index type: " +  indexType );
+
+				//System.out.println( "Failure(s) occured while items in " + "index: " + 
+				//		indexName + " index type: " +  indexType );
+			}
+		} while ( (searchResponse != null) && 
+				(searchResponse.getHits() != null) && 
+				(searchResponse.getHits().getTotalHits() > 0) );
 	}
 
 

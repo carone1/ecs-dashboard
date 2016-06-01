@@ -1,26 +1,9 @@
 package com.emc.ecs.management.client;
 
 
-import java.util.Arrays;
-import java.util.Properties;
 
 //import org.apache.log4j.Logger;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
-import com.emc.ecs.management.entity.ListNamespaceRequest;
-import com.emc.ecs.management.entity.ListNamespacesResult;
-import com.emc.ecs.management.entity.Namespace;
-import com.emc.ecs.management.entity.NamespaceBillingInfo;
-import com.emc.ecs.management.entity.NamespaceRequest;
-import com.emc.ecs.management.entity.ObjectBucket;
-import com.emc.ecs.management.entity.ObjectBuckets;
-import com.emc.ecs.management.entity.ObjectUser;
-import com.emc.ecs.management.entity.ObjectUserSecretKeys;
-import com.emc.ecs.management.entity.ObjectUsers;
-import com.emc.ecs.management.entity.ObjectUsersRequest;
 
 
 public class ManagementClientTest {

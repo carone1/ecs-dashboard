@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+./ecs-elasticsearch-cleaner --elastic-hosts <elastic-host-1, elastic-host-2> --elastic-port 9300 --elastic-cluster ecs-analytics --clean-data all

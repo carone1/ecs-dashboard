@@ -5,7 +5,7 @@ package com.emc.ecs.metadata.dao.file;
 import java.util.Date;
 
 import com.emc.ecs.metadata.dao.ObjectDAO;
-
+//import com.emc.ecs.metadata.dao.ObjectDAO.ObjectDataType;
 import com.emc.object.s3.bean.ListObjectsResult;
 import com.emc.object.s3.bean.ListVersionsResult;
 import com.emc.object.s3.bean.QueryObject;
@@ -68,7 +68,7 @@ public class FileObjectDAO implements ObjectDAO {
 	}
 
 	@Override
-	public void purgeOldData(Date collectionTime) {
+	public void purgeOldData(ObjectDataType type, Date collectionTime) {
 		// TODO Auto-generated method stub
 		
 	}

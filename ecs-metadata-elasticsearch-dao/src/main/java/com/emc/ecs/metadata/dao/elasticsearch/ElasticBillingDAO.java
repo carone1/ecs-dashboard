@@ -24,6 +24,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -195,19 +196,24 @@ public class ElasticBillingDAO implements BillingDAO {
 	
 	
 	@Override
-	public void purgeOldData(Date collectionDate) {
-			
-		QueryBuilder qb = QueryBuilders.rangeQuery(COLLECTION_TIME).lt(OLD_DATA_DATE_FORMAT.format(collectionDate));
-		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(qb);
-		
-		// Purge old Billing Namespace entries 
-		purgeIndex(boolQuery, BILLING_NAMESPACE_INDEX_NAME, BILLING_NAMESPACE_INDEX_TYPE);
-		
-		// Purge old Billing Bucket entries
-		purgeIndex(boolQuery, BILLING_BUCKET_INDEX_NAME, BILLING_BUCKET_INDEX_TYPE);
-		
-		// Purge old Object Bucket entries
-		purgeIndex(boolQuery, OBJECT_BUCKET_INDEX_NAME, OBJECT_BUCKET_INDEX_TYPE);
+	public void purgeOldData(ManagementDataType type, Date thresholdDate) {
+
+		switch(type) {
+		  case billing_bucket:
+			// Purge old Billing Bucket entries
+			purgeIndex(thresholdDate, BILLING_BUCKET_INDEX_NAME, BILLING_BUCKET_INDEX_TYPE);
+			break;
+		  case billing_namespace:
+			// Purge old Billing Namespace entries 
+			purgeIndex(thresholdDate, BILLING_NAMESPACE_INDEX_NAME, BILLING_NAMESPACE_INDEX_TYPE);
+			break;
+		  case object_bucket:
+			// Purge old Object Bucket entries
+			purgeIndex(thresholdDate, OBJECT_BUCKET_INDEX_NAME, OBJECT_BUCKET_INDEX_TYPE);
+			break;
+		  default:
+			break;
+		}
 	}
 	
 	
@@ -686,52 +692,69 @@ public class ElasticBillingDAO implements BillingDAO {
 	}
 
 
-	private void purgeIndex(BoolQueryBuilder boolQuery, String indexName, String indexType) {
+	private void purgeIndex(Date thresholdDate, String indexName, String indexType) {
+		
+		String thresholdDateString = OLD_DATA_DATE_FORMAT.format(thresholdDate);
+		QueryBuilder qb = QueryBuilders.rangeQuery(COLLECTION_TIME).lt(thresholdDateString);
+		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(qb);
 		
 		// Purge 
 		SearchRequestBuilder searchRequestBuilder = elasticClient.prepareSearch(indexName);
 		searchRequestBuilder.setTypes(indexType);
 		searchRequestBuilder.setQuery(boolQuery);
+		// just need the id
+		searchRequestBuilder.setNoFields();
+		// limit the query to 50000 entries
+		searchRequestBuilder.setSize(50000);
+		// limit search time to 10 seconds
+		searchRequestBuilder.setScroll(new TimeValue(10000));
 		
-		SearchResponse response = searchRequestBuilder.execute().actionGet();
-		SearchHits searchHits = response.getHits();
-		Iterator<SearchHit> itr = searchHits.iterator();	
+		SearchResponse searchResponse;
 		
-		BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
-		
-		// loop all found entries and 
-		// add them to bulk delete request
-		while( itr.hasNext() ) { 
-			SearchHit searchHit = itr.next();	
-			
-			DeleteRequestBuilder deleteRequest = elasticClient.prepareDelete()
-	                .setIndex(indexName)
-	                .setType(indexType)
-	                .setId(searchHit.getId());
-	                
-			requestBuilder.add(deleteRequest);
-		}
-		
-		if (requestBuilder.numberOfActions() == 0 ) {
-			// nothing was found so no need 
-			// to continue further
-			return;
-		}
-		
-		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
-	    int items = bulkResponse.getItems().length;
-	    
-		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
-				     indexName + " index type: " +  indexType ); 
+		do {
+			searchResponse = searchRequestBuilder.execute().actionGet();
+			SearchHits searchHits = searchResponse.getHits();
+			Iterator<SearchHit> itr = searchHits.iterator();	
 
-		if( bulkResponse.hasFailures() ) {
-			LOGGER.error( "Failure(s) occured while items in " + "index: " + 
-					      indexName + " index type: " +  indexType );
-		}
+			BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
 
+			// loop all found entries and 
+			// add them to bulk delete request
+			while( itr.hasNext() ) { 
+				SearchHit searchHit = itr.next();	
+
+				DeleteRequestBuilder deleteRequest = elasticClient.prepareDelete()
+						.setIndex(indexName)
+						.setType(indexType)
+						.setId(searchHit.getId());
+
+				requestBuilder.add(deleteRequest);
+			}
+
+			if (requestBuilder.numberOfActions() > 0 ) {
+				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to purge in index: " + 
+						indexName + " as their collection_time < " + thresholdDateString);
+			} else {
+				// nothing was found so no need 
+				// to continue further
+				return;
+			}
+
+			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
+			int items = bulkResponse.getItems().length;
+
+			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to delete [" + items + "] items in " + "index: " + 
+					indexName + " index type: " +  indexType ); 
+
+			if( bulkResponse.hasFailures() ) {
+				LOGGER.error( "Failure(s) occured while deleting items from index: " + 
+						indexName + " index type: " +  indexType );
+			}
+		} while ((searchResponse != null) && 
+				(searchResponse.getHits() != null) && 
+				(searchResponse.getHits().getTotalHits() > 0));
 	}
 
 	
-
 }
 
