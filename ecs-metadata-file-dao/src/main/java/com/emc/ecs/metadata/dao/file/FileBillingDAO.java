@@ -74,9 +74,9 @@ public class FileBillingDAO implements BillingDAO {
 
 
 	@Override
-	public void purgeOldData(ManagementDataType type, Date collectionTime) {
+	public Long purgeOldData(ManagementDataType type, Date collectionTime) {
 		// TODO Auto-generated method stub
-		
+		return 0L;
 	}
 
 }

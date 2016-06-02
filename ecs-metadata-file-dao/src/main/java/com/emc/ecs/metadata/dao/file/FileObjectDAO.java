@@ -68,9 +68,9 @@ public class FileObjectDAO implements ObjectDAO {
 	}
 
 	@Override
-	public void purgeOldData(ObjectDataType type, Date collectionTime) {
+	public Long purgeOldData(ObjectDataType type, Date collectionTime) {
 		// TODO Auto-generated method stub
-		
+		return 0L;
 	}
 
 }

@@ -26,5 +26,5 @@ public interface BillingDAO {
 	public void insert(ObjectBuckets bucketResponse, Date collectionTime);
 	
 	
-	public void purgeOldData( ManagementDataType type, Date collectionTime);
+	public Long purgeOldData( ManagementDataType type, Date collectionTime);
 }

@@ -20,10 +20,10 @@ public interface ObjectDAO {
 	public void insert( QueryObjectsResult queryObjectsResult, String namespace,
 						String bucketName, Date collectionTime );
 
-	public void insert(ListVersionsResult listVersionsResult, String namespace,
-			String name, Date collectionTime);
+	public void insert( ListVersionsResult listVersionsResult, String namespace,
+						String name, Date collectionTime);
 	
-	public void purgeOldData( ObjectDataType type, Date collectionTime);
+	public Long purgeOldData( ObjectDataType type, Date collectionTime);
 	
 	
 }

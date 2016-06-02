@@ -250,19 +250,17 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	}
 	
 	@Override
-	public void purgeOldData(ObjectDataType type, Date thresholdDate) {
+	public Long purgeOldData(ObjectDataType type, Date thresholdDate) {
 			
 		switch(type) {
 		  case object:
 			// Purge old S3 Objects 
-			purgeIndex(thresholdDate, S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE);
-			break;
+			return purgeIndex(thresholdDate, S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE);
 		  case object_versions:
 			// Purge old S3 Object Versions
-			purgeIndex(thresholdDate, S3_OBJECT_VERSION_INDEX_NAME, S3_OBJECT_VERSION_INDEX_TYPE);
-			break;
+			return purgeIndex(thresholdDate, S3_OBJECT_VERSION_INDEX_NAME, S3_OBJECT_VERSION_INDEX_TYPE);
 		  default:
-			break;
+			return 0L;
 		}
 	}
 	
@@ -641,7 +639,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 
 
 
-	private void purgeIndex(Date thresholdDate, String indexName, String indexType) {
+	private Long purgeIndex(Date thresholdDate, String indexName, String indexType) {
+		
+		Long deletedDocs = 0L;
 		
 		String thresholdDateString = OLD_DATA_DATE_FORMAT.format(thresholdDate);
 		QueryBuilder qb = QueryBuilders.rangeQuery(COLLECTION_TIME).lt(thresholdDateString);
@@ -683,13 +683,10 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			if (requestBuilder.numberOfActions() > 0 ) {
 				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to purge in index: " + 
 				        indexName + " due to collection_time < " + thresholdDateString);
-				//System.out.println( "Found " + requestBuilder.numberOfActions() + " documents to purge in index: " + 
-				//		indexName + " due to collection_time < " + thresholdDateString);
-
 			} else {
-				// nothing was found so no need 
-				// to continue futher
-				return;
+				// nothing was found no need 
+				// to continue further
+				return deletedDocs;
 			}
 
 			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
@@ -697,19 +694,19 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 
 			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
 					     indexName + " index type: " +  indexType ); 
-			//System.out.println( "Took " + bulkResponse.getTookInMillis() + " in ms to delete [" + items + "] items in " + "index: " + 
-			//		indexName + " index type: " +  indexType ); 
 
+			deletedDocs += items;
+			
 			if( bulkResponse.hasFailures() ) {
 				LOGGER.error( "Failure(s) occured while items in " + "index: " + 
 						      indexName + " index type: " +  indexType );
 
-				//System.out.println( "Failure(s) occured while items in " + "index: " + 
-				//		indexName + " index type: " +  indexType );
 			}
 		} while ( (searchResponse != null) && 
 				(searchResponse.getHits() != null) && 
 				(searchResponse.getHits().getTotalHits() > 0) );
+		
+		return deletedDocs;
 	}
 
 

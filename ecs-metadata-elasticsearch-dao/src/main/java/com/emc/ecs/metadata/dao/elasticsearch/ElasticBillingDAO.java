@@ -196,23 +196,20 @@ public class ElasticBillingDAO implements BillingDAO {
 	
 	
 	@Override
-	public void purgeOldData(ManagementDataType type, Date thresholdDate) {
+	public Long purgeOldData(ManagementDataType type, Date thresholdDate) {
 
 		switch(type) {
 		  case billing_bucket:
 			// Purge old Billing Bucket entries
-			purgeIndex(thresholdDate, BILLING_BUCKET_INDEX_NAME, BILLING_BUCKET_INDEX_TYPE);
-			break;
-		  case billing_namespace:
+			return purgeIndex(thresholdDate, BILLING_BUCKET_INDEX_NAME, BILLING_BUCKET_INDEX_TYPE);
+		case billing_namespace:
 			// Purge old Billing Namespace entries 
-			purgeIndex(thresholdDate, BILLING_NAMESPACE_INDEX_NAME, BILLING_NAMESPACE_INDEX_TYPE);
-			break;
-		  case object_bucket:
+			return purgeIndex(thresholdDate, BILLING_NAMESPACE_INDEX_NAME, BILLING_NAMESPACE_INDEX_TYPE);
+		case object_bucket:
 			// Purge old Object Bucket entries
-			purgeIndex(thresholdDate, OBJECT_BUCKET_INDEX_NAME, OBJECT_BUCKET_INDEX_TYPE);
-			break;
-		  default:
-			break;
+			return purgeIndex(thresholdDate, OBJECT_BUCKET_INDEX_NAME, OBJECT_BUCKET_INDEX_TYPE);
+		default:
+			return 0L;
 		}
 	}
 	
@@ -692,7 +689,9 @@ public class ElasticBillingDAO implements BillingDAO {
 	}
 
 
-	private void purgeIndex(Date thresholdDate, String indexName, String indexType) {
+	private Long purgeIndex(Date thresholdDate, String indexName, String indexType) {
+		
+		Long deletedDocs = 0L;
 		
 		String thresholdDateString = OLD_DATA_DATE_FORMAT.format(thresholdDate);
 		QueryBuilder qb = QueryBuilders.rangeQuery(COLLECTION_TIME).lt(thresholdDateString);
@@ -737,7 +736,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			} else {
 				// nothing was found so no need 
 				// to continue further
-				return;
+				return deletedDocs;
 			}
 
 			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
@@ -746,6 +745,8 @@ public class ElasticBillingDAO implements BillingDAO {
 			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to delete [" + items + "] items in " + "index: " + 
 					indexName + " index type: " +  indexType ); 
 
+			deletedDocs += items;
+			
 			if( bulkResponse.hasFailures() ) {
 				LOGGER.error( "Failure(s) occured while deleting items from index: " + 
 						indexName + " index type: " +  indexType );
@@ -753,8 +754,9 @@ public class ElasticBillingDAO implements BillingDAO {
 		} while ((searchResponse != null) && 
 				(searchResponse.getHits() != null) && 
 				(searchResponse.getHits().getTotalHits() > 0));
+		
+		return deletedDocs;
 	}
 
-	
 }
 
