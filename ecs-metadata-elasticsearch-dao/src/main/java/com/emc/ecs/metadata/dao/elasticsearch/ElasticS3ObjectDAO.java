@@ -681,7 +681,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			}
 
 			if (requestBuilder.numberOfActions() > 0 ) {
-				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to purge in index: " + 
+				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to delete in index: " + 
 				        indexName + " due to collection_time < " + thresholdDateString);
 			} else {
 				// nothing was found no need 
@@ -692,7 +692,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 			int items = bulkResponse.getItems().length;
 
-			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to delete [" + items + "] items in " + "index: " + 
 					     indexName + " index type: " +  indexType ); 
 
 			deletedDocs += items;

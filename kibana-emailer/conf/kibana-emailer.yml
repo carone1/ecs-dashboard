@@ -1,0 +1,9 @@
+# Config file for kibana emailer
+
+# Should be in the form of - url: "http://kibana_username:kibana_password@url_to_kibana_dashboard"
+kibana.urls:
+ - url: "http://10.1.83.126:5601/app/kibana#/dashboard/Top-100-S3-Objects-Users?_g=(refreshInterval:(display:'10%20seconds',pause:!f,section:1,value:10000),time:(from:now-30d,mode:quick,to:now))&_a=(filters:!(),options:(darkTheme:!t),panels:!((col:1,id:Table-Top-100-User-Per-S3-Data-Size,panelIndex:1,row:1,size_x:6,size_y:4,type:visualization),(col:7,id:Table-Object-Count-Per-User,panelIndex:2,row:1,size_x:6,size_y:4,type:visualization),(col:1,id:Chart-Total-S3-Data-Size-Per-User,panelIndex:3,row:5,size_x:6,size_y:3,type:visualization),(col:7,id:Top-25-S3-Objects-Per-User,panelIndex:4,row:5,size_x:6,size_y:3,type:visualization)),query:(query_string:(analyze_wildcard:!t,query:'*')),title:'Top%20100%20S3%20Objects%20Users',uiState:())"
+
+ 
+chromedriver.path: /Users/carone1/Documents/chromedriver
+  

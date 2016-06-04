@@ -731,7 +731,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			}
 
 			if (requestBuilder.numberOfActions() > 0 ) {
-				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to purge in index: " + 
+				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to delete in index: " + 
 						indexName + " as their collection_time < " + thresholdDateString);
 			} else {
 				// nothing was found so no need 
@@ -742,7 +742,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 			int items = bulkResponse.getItems().length;
 
-			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to delete [" + items + "] items in " + "index: " + 
+			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to delete [" + items + "] items in " + "index: " + 
 					indexName + " index type: " +  indexType ); 
 
 			deletedDocs += items;
