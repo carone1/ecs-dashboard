@@ -1,0 +1,38 @@
+# Config file for kibana emailer
+
+
+# kibana.urls:
+# - url: "http://kibana_username:kibana_password@url_to_kibana_dashboard"
+
+# chrome driver location
+chrome.driver: "/Users/carone1/Documents/chromedriver"
+# chrome browser location
+#chrome.browser: "some location"
+
+
+#destination.path: ""
+
+# email section 
+# smtp
+#smtp.host: "localhost"
+#smtp.port: 587
+#smtp.username: "user"
+#smtp.password: "password"
+# Specify tls or ssl. Default to tls
+#smtp.security: "tls"
+
+# source host
+#source.host: "localhost"
+
+# e-mail address
+#source.address: "from-email@gmail.com"
+#destination.address: "destination-mail@gmail.com"
+
+#destination.addresses:
+# - "destination1@gmail.com"
+# - "destination2@gmail.com"
+
+
+# e-mail content
+#mail.title: "Kibana Reports"
+#mail.body: "Kibana Body"

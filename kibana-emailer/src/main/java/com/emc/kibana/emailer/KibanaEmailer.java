@@ -43,8 +43,6 @@ import com.esotericsoftware.yamlbeans.YamlReader;
 
 
 
-
-
 /**
  * Utility to grab web sites' content and email them.
  * Created by Eric Caron
@@ -55,7 +53,8 @@ public class KibanaEmailer {
 	
 	private static final String KIBANA_URLS_CONFIG = "kibana.urls";
 	
-	private static final String CHROME_DRIVER_CONFIG = "chromedriver";
+	private static final String CHROME_DRIVER_CONFIG = "chrome.driver";
+	private static final String CHROME_BROWSER_CONFIG = "chrome.browser";
 	
 	private static final String DESTINATION_PATH_CONFIG = "destination.path";
 	
@@ -73,7 +72,7 @@ public class KibanaEmailer {
 		
 
 	private static final String SOURCE_ADDRESS_CONFIG = "source.address";
-	private static final String DESTINATION_ADDRESS_CONFIG = "destination.address";
+	private static final String DESTINATION_ADDRESS_CONFIG = "destination.addresses";
 	
 	private static final String MAIL_TITLE_CONFIG = "mail.title";
 	
@@ -90,23 +89,25 @@ public class KibanaEmailer {
 	private static final SimpleDateFormat  DATA_DATE_FORMAT = new  SimpleDateFormat(DATA_DATE_PATTERN);
 		
 	private static String chromeDriverPath = "";
-	private static String kibanaConfigFile = "kibana-emailer.yml";
+	private static String chromeBrowserPath = "";
+	private static String kibanaConfigFile = "../config/kibana-emailer.yml";
 	private static String destinationPath = ".";
 
 	private static ArrayList<Map<String, String>> kibanaUrls = new ArrayList<Map<String, String>>();
 	
 	private static List<Map<String, String>> kibanaScreenCaptures = new ArrayList<Map<String, String>>();
 	
-	private static String smtpHost = "localhost";
-	private static String smtpPort = "587"; 
-	private static String smtpUsername = "username";
-	private static String smtpPassword = "password"; 
-	private static String smtpSecurity = SMTP_SECURITY_TLS;
-	private static String sourceHost = "localhost"; 
-	private static String sourceAddress = "name@mail.com"; 
-	private static String destinationAddress = "name@mail.com"; 
-	private static String mailTitle = "Title";
-	private static String mailBody = "Body"; 
+	private static String       smtpHost = "localhost";
+	private static String       smtpPort = "587"; 
+	private static String       smtpUsername = "username";
+	private static String       smtpPassword = "password"; 
+	private static String       smtpSecurity = SMTP_SECURITY_TLS;
+	private static String       sourceHost = "localhost"; 
+	private static String       sourceAddress = "name@mail.com"; 
+	private static List<String> destinationAddressList = new ArrayList<String>();
+	private static String       mailTitle = "Title";
+	private static String       mailBody = "Body"; 
+	
 	
 	
 	private final static Logger       logger      = LoggerFactory.getLogger(KibanaEmailer.class);
@@ -124,18 +125,17 @@ public class KibanaEmailer {
 		// generate screen captures
 		generatePdfReports();	
 		
-		if(smtpSecurity.equals(SMTP_SECURITY_TLS)){
-			sendFileEmailViaTLS();
-		} else if (smtpSecurity.equals(SMTP_SECURITY_SSL)) {
-			sendFileEmailViaSSL();
-		}
+		// destination e-mails present
+		if( ! destinationAddressList.isEmpty() ){
+			sendFileEmail(smtpSecurity);
+		} 
 	}
 
 	
 	private static void handleArguments( String[] args ) {
 		
 		String menuString = "Usage: KibanaEmailer " +
-				"[" + CONFIG_FILE_CONFIG_ARGUMENT + " <configfile> [Default: ./config/kibana-emailer.yml]] - Specify config file \n";
+				"[" + CONFIG_FILE_CONFIG_ARGUMENT + " <configfile> [Default: ../config/kibana-emailer.yml]] - Specify config file \n";
 
 		if ( args.length > 0 && args[0].contains("--help")) {
 			System.err.println (menuString);
@@ -169,7 +169,8 @@ public class KibanaEmailer {
 	private static void loadConfig() {
 		try {
 			
-			FileReader fr = new FileReader(ClassLoader.getSystemResource(kibanaConfigFile).getFile());
+			FileReader fr;
+			fr = new FileReader(kibanaConfigFile);
 			
 			logger.info("Loading configuration from config file: " + kibanaConfigFile);
 			
@@ -182,12 +183,16 @@ public class KibanaEmailer {
 		    // chromedriver
 			chromeDriverPath = (String)map.get(CHROME_DRIVER_CONFIG);
 			
+			// chromebrowser
+			chromeBrowserPath = (String)map.get(CHROME_BROWSER_CONFIG);
+			
 			Object urls = map.get(KIBANA_URLS_CONFIG);
 			
 			if(urls instanceof ArrayList<?>) {
 				kibanaUrls =  (ArrayList<Map<String, String>>)urls;
 			}
 				
+			// file destination path
 			destinationPath = (String)map.get(DESTINATION_PATH_CONFIG);
 			
 			
@@ -211,8 +216,14 @@ public class KibanaEmailer {
 			// e-mail addresses config
 			// source.mail
 			sourceAddress = (String)map.get(SOURCE_ADDRESS_CONFIG);
+			
 			// destination.mail
-			destinationAddress = (String)map.get(DESTINATION_ADDRESS_CONFIG);
+			Object destinations = map.get(DESTINATION_ADDRESS_CONFIG);
+			
+			if(destinations instanceof ArrayList<?>) {
+				destinationAddressList =  (ArrayList<String>)destinations;
+			}
+			
 			// e-mail content
 			// mail.title
 			mailTitle = (String)map.get(MAIL_TITLE_CONFIG);
@@ -231,7 +242,7 @@ public class KibanaEmailer {
 						SMTP_USERNAME_CONFIG + ": `" + smtpUsername + "`, " +
 						SOURCE_HOST_CONFIG  + ": `" + sourceHost + "`, " +
 						SOURCE_ADDRESS_CONFIG + ": `" + sourceAddress + "`, " +
-						DESTINATION_ADDRESS_CONFIG + ": `" + destinationAddress + "`, " +
+						DESTINATION_ADDRESS_CONFIG + ": `" + destinationAddressList.toString() + "`, " +
 						MAIL_TITLE_CONFIG + ": `" + mailTitle + "`, " +
 						MAIL_BODY_CONFIG + ": `" + mailBody
 				    );
@@ -246,7 +257,13 @@ public class KibanaEmailer {
 		try {
 			 System.setProperty("webdriver.chrome.driver", chromeDriverPath);		 
 			 
-			 Map<String, Object> chromeOptions = new HashMap<String, Object>();		 
+			 Map<String, Object> chromeOptions = new HashMap<String, Object>();	
+			 
+			 // Specify alternate browser location
+			 if(chromeBrowserPath != null && !chromeBrowserPath.isEmpty()) {
+				 chromeOptions.put("binary", chromeBrowserPath);
+			 }
+			 
 			 DesiredCapabilities capabilities = DesiredCapabilities.chrome();		 
 			 
 			 capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);
@@ -259,36 +276,44 @@ public class KibanaEmailer {
 				 String dashboardName = entry.get(NAME_KEY);
 				 String dashboardUrl = entry.get(URL_KEY);
 				 
-				 if(dashboardUrl != null) {
-					
-					 WebDriver driver = new ChromeDriver(capabilities);
-					 driver.manage().window().maximize();
-					 driver.get(dashboardUrl);
-
-					 // let kibana load for 20 seconds before taking the snapshot
-					 Thread.sleep(20000);
-					 // take screenshot
-					 File scrnshot= ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
-					 // generate filename
-					 String filename = (dashboardName != null) ? dashboardName + ".png" : "dashboard-" + index++  + ".png";
-					 // generate absolute path filename
-					 String absoluteFileName = destinationPath + File.separator + 
-			                                   DATA_DATE_FORMAT.format(timestamp) + File.separator + filename;
-					 Map<String, String> fileMap = new HashMap<String, String>();
-					 // file name portion
-					 fileMap.put(FILE_NAME_KEY, filename);
-					 fileMap.put(ABSOLUE_FILE_NAME_KEY, absoluteFileName);
-					 
-					 kibanaScreenCaptures.add(fileMap);
-					 File destFile = new File( absoluteFileName);
-
-					 logger.info("Copying " + scrnshot + " in " +  destFile.getAbsolutePath());
-					 
-					 FileUtils.copyFile(scrnshot, destFile);
-					 driver.close();
+				 if(dashboardUrl == null) {
+					 continue;
 				 }
-			 }	
 
+				 String filename;
+				 
+				 if((dashboardName != null)) {
+					 String invalidCharRemoved = dashboardName.replaceAll("[\\/:\"*?<>|]+", "_").replaceAll(" ", "_");
+					 filename = invalidCharRemoved + ".png";
+				 } else {
+					 filename = "dashboard-" + index++  + ".png";
+				 }
+				 
+				 WebDriver driver = new ChromeDriver(capabilities);
+				 driver.manage().window().maximize();
+				 driver.get(dashboardUrl);
+
+				 // let kibana load for 20 seconds before taking the snapshot
+				 Thread.sleep(20000);
+				 // take screenshot
+				 File scrnshot= ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
+				 
+				 // generate absolute path filename
+				 String absoluteFileName = destinationPath + File.separator + 
+						 DATA_DATE_FORMAT.format(timestamp) + File.separator + filename;
+				 Map<String, String> fileMap = new HashMap<String, String>();
+				 // file name portion
+				 fileMap.put(FILE_NAME_KEY, filename);
+				 fileMap.put(ABSOLUE_FILE_NAME_KEY, absoluteFileName);
+
+				 kibanaScreenCaptures.add(fileMap);
+				 File destFile = new File( absoluteFileName);
+
+				 logger.info("Copying " + scrnshot + " in " +  destFile.getAbsolutePath());
+
+				 FileUtils.copyFile(scrnshot, destFile);
+				 driver.close();
+			 }
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e1) {
@@ -297,7 +322,7 @@ public class KibanaEmailer {
 	}
 	
 	
-	private static void sendFileEmailViaTLS()
+	private static void sendFileEmail(String security)
 	{
 
 	      final String username = smtpUsername;
@@ -309,10 +334,18 @@ public class KibanaEmailer {
 	      // Setup mail server
 	      properties.setProperty("mail.smtp.host", smtpHost);
 
-	      properties.put("mail.smtp.auth", "true");
-	      properties.put("mail.smtp.starttls.enable", "true");
-	      properties.put("mail.smtp.host", smtpHost);
-	      properties.put("mail.smtp.port", smtpPort);
+	      if( security.equals(SMTP_SECURITY_TLS) ) {
+	    	  properties.put("mail.smtp.auth", "true");
+	    	  properties.put("mail.smtp.starttls.enable", "true");
+	    	  properties.put("mail.smtp.host", smtpHost);
+	    	  properties.put("mail.smtp.port", smtpPort);
+	      } else if( security.equals(SMTP_SECURITY_SSL) ) {
+		      properties.put("mail.smtp.socketFactory.port", smtpPort);
+		      properties.put("mail.smtp.socketFactory.class",
+					              "javax.net.ssl.SSLSocketFactory");
+		      properties.put("mail.smtp.auth", "true");      
+		      properties.put("mail.smtp.port", smtpPort);
+	      }
 
 			Session session = Session.getInstance(properties,
 			  new javax.mail.Authenticator() {
@@ -329,8 +362,10 @@ public class KibanaEmailer {
 	         message.setFrom(new InternetAddress(sourceAddress));
 
 	         // Set To: header field of the header.
-	         message.addRecipient(Message.RecipientType.TO,
-	                                  new InternetAddress(destinationAddress));
+	         for( String destinationAddress : destinationAddressList ) {
+	        	 message.addRecipient( Message.RecipientType.TO,
+	                                   new InternetAddress(destinationAddress));
+	         }
 
 	         // Set Subject: header field
 	         message.setSubject(mailTitle);
@@ -349,7 +384,7 @@ public class KibanaEmailer {
 	        	 String urlName = kibanaUrl.get(NAME_KEY);
 	        	 String reportUrl = kibanaUrl.get(URL_KEY);
 	        	 if(urlName != null && reportUrl != null) {
-	        		 bodyBuffer.append("- ").append(urlName).append(": ").append(reportUrl).append("\n");
+	        		 bodyBuffer.append("- ").append(urlName).append(": ").append(reportUrl).append("\n\n\n");
 	        	 }
 	         }
 	         
@@ -381,88 +416,8 @@ public class KibanaEmailer {
 	         Transport.send(message);
 	         logger.info("Sent mail message successfully");
 	      }catch (MessagingException mex) {
-	         mex.printStackTrace();
+	         throw new RuntimeException(mex);
 	      }
 	   }
 	
-	
-	
-	private static void sendFileEmailViaSSL()
-	{
-
-	      final String username = smtpUsername;
-	      final String password = smtpPassword;
-	      
-	      // Get system properties
-	      Properties properties = System.getProperties();
-
-	      // Setup mail server
-	      properties.setProperty("mail.smtp.host", smtpHost);
-
-	      properties.put("mail.smtp.host", smtpHost);
-	      properties.put("mail.smtp.socketFactory.port", smtpPort);
-	      properties.put("mail.smtp.socketFactory.class",
-				              "javax.net.ssl.SSLSocketFactory");
-	      properties.put("mail.smtp.auth", "true");
-	      
-	      
-	      
-	      properties.put("mail.smtp.port", smtpPort);
-	      
-	      
-			Session session = Session.getDefaultInstance(properties,
-			  new javax.mail.Authenticator() {
-				protected PasswordAuthentication getPasswordAuthentication() {
-					return new PasswordAuthentication(username, password);
-				}
-			  });
-
-	      
-	      // Get the default Session object.
-	      //Session session = Session.getDefaultInstance(properties);
-
-	      try{
-	         // Create a default MimeMessage object.
-	         MimeMessage message = new MimeMessage(session);
-
-	         // Set From: header field of the header.
-	         message.setFrom(new InternetAddress(sourceAddress));
-
-	         // Set To: header field of the header.
-	         message.addRecipient(Message.RecipientType.TO,
-	                                  new InternetAddress(destinationAddress));
-
-	         // Set Subject: header field
-	         message.setSubject(mailTitle);
-
-	         // Create the message part 
-	         BodyPart messageBodyPart = new MimeBodyPart();
-
-	         // Fill the message
-	         messageBodyPart.setText(mailBody);
-	         
-	         // Create a multipar message
-	         Multipart multipart = new MimeMultipart();
-
-	         // Set text message part
-	         multipart.addBodyPart(messageBodyPart);
-
-	         // Part two is attachment
-	         messageBodyPart = new MimeBodyPart();
-	         String filename = "googlesnapshot.png";
-	         DataSource source = new FileDataSource(filename);
-	         messageBodyPart.setDataHandler(new DataHandler(source));
-	         messageBodyPart.setFileName(filename);
-	         multipart.addBodyPart(messageBodyPart);
-
-	         // Send the complete message parts
-	         message.setContent(multipart );
-
-	         // Send message
-	         Transport.send(message);
-	         System.out.println("Sent message successfully....");
-	      }catch (MessagingException mex) {
-	         mex.printStackTrace();
-	      }
-	   }
 }

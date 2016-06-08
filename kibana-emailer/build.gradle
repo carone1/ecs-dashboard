@@ -24,7 +24,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-description = 'Kibana Eamiler'
+description = 'Kibana Emailer'
 
 
 apply plugin: 'java'
@@ -57,12 +57,9 @@ dependencies {
       
     // http://mvnrepository.com/artifact/com.esotericsoftware.yamlbeans/yamlbeans
 	compile group: 'com.esotericsoftware.yamlbeans', name: 'yamlbeans', version: '1.09'
-    
-    // http://mvnrepository.com/artifact/javax.mail/javax.mail-api
-	compile group: 'javax.mail', name: 'javax.mail-api', version: '1.5.5'
 	
-
-	
+    // http://mvnrepository.com/artifact/com.sun.mail/javax.mail
+    compile group: 'com.sun.mail', name: 'javax.mail', version: '1.5.5'
     
 }
 
@@ -70,24 +67,21 @@ dependencies {
 mainClassName="com.emc.kibana.emailer.KibanaEmailer"
 
 
-//applicationDistribution.from("scripts/run-kibana-emailer") {
-//	into "bin"
-//}
-
-applicationDistribution.from("conf/logback.xml") {
+applicationDistribution.from("config/logback.xml") {
 	into "config"
 }
 
-applicationDistribution.from("conf/kibana-emailer.yml") {
+applicationDistribution.from("config/kibana-emailer.yml") {
 	into "config"
 }
 
 applicationDefaultJvmArgs = ["-Dlogback.configurationFile=MY_APP_HOME/config/logback.xml"]
+
 	
 startScripts {
 	doLast {
 		unixScript.text = unixScript.text.replace('MY_APP_HOME', '\$APP_HOME') 
-		windowsScript.text = windowsScript.text.replace('MY_APP_HOME', '%~dp0..')
+		windowsScript.text = windowsScript.text.replace('MY_APP_HOME', '%~dp0..')	
 	}
 }
 
