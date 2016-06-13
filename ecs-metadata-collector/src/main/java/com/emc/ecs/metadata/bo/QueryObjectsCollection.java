@@ -47,8 +47,19 @@ public class QueryObjectsCollection implements Callable<String> {
 
 	public boolean queryObjects(){
 		
+		String queryCriteria = collectionConfig.getQueryCriteria();
+		
 		// create request
-		QueryObjectsRequest queryRequest = createQueryObjectRequest();
+		QueryObjectsRequest queryRequest;
+		
+		if(  queryCriteria != null &&
+			!queryCriteria.isEmpty()	) {
+			// there is a criteria defined
+			queryRequest = createQueryObjectRequest(queryCriteria);
+		} else {
+			// no criteria we will just collect all possible objects
+			queryRequest = createQueryObjectRequest();
+		}
 		
 		if(queryRequest == null) {
 			// if the createQueryObjectRequest method returned null
@@ -224,4 +235,58 @@ public class QueryObjectsCollection implements Callable<String> {
 		
 		return queryRequest;
 	}
+	
+	
+	private QueryObjectsRequest createQueryObjectRequest(String queryString) {
+		
+		// create request
+		QueryObjectsRequest queryRequest = new QueryObjectsRequest(objectBucket.getName());
+		
+		List<String> attributeList = new ArrayList<String>();
+		List<String> attributeListDetails = new ArrayList<String>();
+		StringBuilder queryBufferString = new StringBuilder();
+		
+		// add all attribute to attr list
+		for( Metadata metadata: objectBucket.getSearchMetadata() ) {
+			
+			if( metadata.getName() == null ||
+				metadata.getName().isEmpty() ) {
+				continue;
+			}
+			
+			attributeList.add(metadata.getName());
+			
+			String attributeDetails = "Name: " + metadata.getName() + " Type:" + metadata.getDataType().trim().toLowerCase();
+			attributeListDetails.add(attributeDetails);
+		}
+		
+		
+		// add search queryString if at least
+		// one search metadata key is defined
+		if( attributeList.isEmpty() ) {
+			// no  MD keys are configured
+			// return null to prevent any querying
+			return null;	
+		} else {
+			queryBufferString.append(queryString);
+		}
+		
+		// append ( at beginning
+		queryBufferString.insert(0, "( ");
+		// append ) at end
+		queryBufferString.append(" )");
+		
+		
+		queryRequest.withQuery( queryString.toString() );
+		queryRequest.withAttributes( attributeList );
+		queryRequest.setMaxKeys( maxObjectPerRequest );
+		queryRequest.setNamespace( collectionConfig.getNamespace() );
+		
+		logger.info("QueryObject Collection for Namespace: " + collectionConfig.getNamespace() + " Bucket: " + objectBucket.getName() );
+		logger.info("MD Keys details: " + attributeListDetails.toString());
+		logger.info(" Using query string: `" + queryString.toString() + "`" );
+		
+		return queryRequest;
+	}
+	
 }

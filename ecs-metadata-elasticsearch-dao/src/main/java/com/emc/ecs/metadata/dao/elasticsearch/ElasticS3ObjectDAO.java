@@ -153,11 +153,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 	    int items = bulkResponse.getItems().length;
 	    
-		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch " + "index: " + 
 					 S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE ); 
     
 		if( bulkResponse.hasFailures() ) {
-			LOGGER.error( "Failure(s) occured while items in " + "index: " + 
+			LOGGER.error( "Failure(s) occured while items in Elasticsearch " + "index: " + 
 							S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE );
 		}
 	}
@@ -191,11 +191,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		
 		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 	    int items = bulkResponse.getItems().length;
-		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch " + "index: " + 
 				 S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE ); 
 
 		if( bulkResponse.hasFailures() ) {
-			LOGGER.error( "Failure(s) occured while items in " + "index: " + 
+			LOGGER.error( "Failure(s) occured while items in Elasticsearch " + "index: " + 
 						S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE );
 		}
 	}
@@ -240,11 +240,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 	    int items = bulkResponse.getItems().length;
 	    
-		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch " + "index: " + 
 					 S3_OBJECT_VERSION_INDEX_NAME + " index type: " +  S3_OBJECT_VERSION_INDEX_TYPE ); 
 
 		if( bulkResponse.hasFailures() ) {
-			LOGGER.error( "Failure(s) occured while items in " + "index: " + 
+			LOGGER.error( "Failure(s) occured while items in Elasticsearch " + "index: " + 
 						  S3_OBJECT_VERSION_INDEX_NAME + " index type: " +  S3_OBJECT_VERSION_INDEX_TYPE );
 		}
 	}
@@ -376,8 +376,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 
 			if (putMappingResponse.isAcknowledged()) {
 				LOGGER.info("Index Created: " + S3_OBJECT_INDEX_NAME);
-				// configure dynamic fields behavior
-				//configS3ObjectDynamicFields();
+				
 			} else {
 				LOGGER.error("Index {} did not exist. " + 
 						"While attempting to create the index from stored ElasticSearch " +
@@ -512,8 +511,6 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 
 			if (putMappingResponse.isAcknowledged()) {
 				LOGGER.info("Index Created: " + S3_OBJECT_INDEX_NAME);
-				// configure dynamic fields behavior
-				//configS3ObjectDynamicFields();
 			} else {
 				LOGGER.error("Index {} did not exist. " + 
 						"While attempting to create the index from stored ElasticSearch " +
@@ -653,10 +650,10 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		searchRequestBuilder.setQuery(boolQuery);
 		// just need the id
 		searchRequestBuilder.setNoFields();
-		// limit the query to 50000 entries
-		searchRequestBuilder.setSize(50000);
-		// limit search time to 10 seconds
-		searchRequestBuilder.setScroll(new TimeValue(10000));
+		// limit the query to 25000 entries
+		searchRequestBuilder.setSize(25000);
+		// limit search time to 15 seconds
+		searchRequestBuilder.setScroll(new TimeValue(15000));
 		
 		SearchResponse searchResponse;
 		
@@ -681,7 +678,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			}
 
 			if (requestBuilder.numberOfActions() > 0 ) {
-				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to delete in index: " + 
+				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to delete in Elasticsearch index: " + 
 				        indexName + " due to collection_time < " + thresholdDateString);
 			} else {
 				// nothing was found no need 
@@ -692,13 +689,13 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 			int items = bulkResponse.getItems().length;
 
-			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to delete [" + items + "] items in " + "index: " + 
+			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to delete [" + items + "] items in Elasticsearch " + "index: " + 
 					     indexName + " index type: " +  indexType ); 
 
 			deletedDocs += items;
 			
 			if( bulkResponse.hasFailures() ) {
-				LOGGER.error( "Failure(s) occured while items in " + "index: " + 
+				LOGGER.error( "Failure(s) occured while items in Elasticsearch" + "index: " + 
 						      indexName + " index type: " +  indexType );
 
 			}

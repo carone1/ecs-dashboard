@@ -55,6 +55,7 @@ public class KibanaEmailer {
 	
 	private static final String CHROME_DRIVER_CONFIG = "chrome.driver";
 	private static final String CHROME_BROWSER_CONFIG = "chrome.browser";
+	private static final String SCREEN_CAPTURE_DELAY = "screen.capture.delay";
 	
 	private static final String DESTINATION_PATH_CONFIG = "destination.path";
 	
@@ -88,10 +89,11 @@ public class KibanaEmailer {
 	private static final String            DATA_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 	private static final SimpleDateFormat  DATA_DATE_FORMAT = new  SimpleDateFormat(DATA_DATE_PATTERN);
 		
-	private static String chromeDriverPath = "";
-	private static String chromeBrowserPath = "";
-	private static String kibanaConfigFile = "../config/kibana-emailer.yml";
-	private static String destinationPath = ".";
+	private static String  chromeDriverPath = "";
+	private static String  chromeBrowserPath = "";
+	private static Integer screenCaptureDelay = 20; 
+	private static String  kibanaConfigFile = "../config/kibana-emailer.yml";
+	private static String  destinationPath = ".";
 
 	private static ArrayList<Map<String, String>> kibanaUrls = new ArrayList<Map<String, String>>();
 	
@@ -185,6 +187,8 @@ public class KibanaEmailer {
 			
 			// chromebrowser
 			chromeBrowserPath = (String)map.get(CHROME_BROWSER_CONFIG);
+			
+			screenCaptureDelay = Integer.valueOf((String)map.get(SCREEN_CAPTURE_DELAY));
 			
 			Object urls = map.get(KIBANA_URLS_CONFIG);
 			
@@ -293,8 +297,9 @@ public class KibanaEmailer {
 				 driver.manage().window().maximize();
 				 driver.get(dashboardUrl);
 
-				 // let kibana load for 20 seconds before taking the snapshot
-				 Thread.sleep(20000);
+				 // let kibana load for x seconds before taking the snapshot
+				 Integer delay = (screenCaptureDelay != null) ? (screenCaptureDelay * 1000) : (20000); 
+				 Thread.sleep(delay);
 				 // take screenshot
 				 File scrnshot= ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
 				 

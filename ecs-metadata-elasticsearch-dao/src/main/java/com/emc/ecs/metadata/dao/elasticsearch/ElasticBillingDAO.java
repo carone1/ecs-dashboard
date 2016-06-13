@@ -144,11 +144,11 @@ public class ElasticBillingDAO implements BillingDAO {
 
 		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 		int items = bulkResponse.getItems().length;
-		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch" + "index: " + 
 				BILLING_NAMESPACE_INDEX_NAME + " index type: " +  BILLING_NAMESPACE_INDEX_TYPE ); 
 
 		if( bulkResponse.hasFailures() ) {
-			LOGGER.error( "Failures occured while items in " + "index: " + 
+			LOGGER.error( "Failures occured while items in Elasticsearch " + "index: " + 
 					BILLING_NAMESPACE_INDEX_NAME + " index type: " +  BILLING_NAMESPACE_INDEX_TYPE );
 		}
 		
@@ -185,11 +185,11 @@ public class ElasticBillingDAO implements BillingDAO {
 		
 		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 	    int items = bulkResponse.getItems().length;
-		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " in ms to index [" + items + "] items in " + "index: " + 
+		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in ElasticSearch" + "index: " + 
 				    OBJECT_BUCKET_INDEX_NAME + " index type: " +  OBJECT_BUCKET_INDEX_TYPE ); 
 	    
 		if( bulkResponse.hasFailures() ) {
-			LOGGER.error( "Failures occured while items in " + "index: " + 
+			LOGGER.error( "Failures occured while items in ElasticSearch " + "index: " + 
 							OBJECT_BUCKET_INDEX_NAME + " index type: " +  OBJECT_BUCKET_INDEX_TYPE );
 		}
 	}
@@ -278,8 +278,8 @@ public class ElasticBillingDAO implements BillingDAO {
 			if (putMappingResponse.isAcknowledged()) {
 	            LOGGER.info("Index Created: " + BILLING_NAMESPACE_INDEX_NAME);
 	        } else {
-	            LOGGER.error("Index {} did not exist. " + 
-	                         "While attempting to create the index from stored ElasticSearch " +
+	            LOGGER.error("Index {" + BILLING_NAMESPACE_INDEX_NAME + "} did not exist. " + 
+	                         "While attempting to create the index in ElasticSearch " +
 	            		     "Templates we were unable to get an acknowledgement.", BILLING_NAMESPACE_INDEX_NAME);
 	            LOGGER.error("Error Message: {}", putMappingResponse.toString());
 	            throw new RuntimeException("Unable to create index " + BILLING_NAMESPACE_INDEX_NAME);
@@ -314,8 +314,7 @@ public class ElasticBillingDAO implements BillingDAO {
 
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException(e.getLocalizedMessage());
 		}	
 
 		return builder;
@@ -703,8 +702,8 @@ public class ElasticBillingDAO implements BillingDAO {
 		searchRequestBuilder.setQuery(boolQuery);
 		// just need the id
 		searchRequestBuilder.setNoFields();
-		// limit the query to 50000 entries
-		searchRequestBuilder.setSize(50000);
+		// limit the query to 25000 entries
+		searchRequestBuilder.setSize(25000);
 		// limit search time to 10 seconds
 		searchRequestBuilder.setScroll(new TimeValue(10000));
 		
@@ -731,7 +730,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			}
 
 			if (requestBuilder.numberOfActions() > 0 ) {
-				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to delete in index: " + 
+				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to delete in Elasticsearch index: " + 
 						indexName + " as their collection_time < " + thresholdDateString);
 			} else {
 				// nothing was found so no need 
@@ -742,7 +741,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 			int items = bulkResponse.getItems().length;
 
-			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to delete [" + items + "] items in " + "index: " + 
+			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to delete [" + items + "] items in Elasticsearch " + "index: " + 
 					indexName + " index type: " +  indexType ); 
 
 			deletedDocs += items;

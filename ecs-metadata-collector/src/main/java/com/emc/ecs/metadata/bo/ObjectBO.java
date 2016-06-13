@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -73,6 +72,12 @@ public class ObjectBO {
 	
 	public void collectObjectData(Date collectionTime) {
 
+		collectObjectData(collectionTime, null);
+	}
+	
+	
+	public void collectObjectData(Date collectionTime, String queryCriteria) {
+		
 		// collect S3 user Id and credentials
 		List<ObjectUserDetails> objectUserDetailsList = billingBO.getObjectUserSecretKeys();
 		
@@ -110,7 +115,8 @@ public class ObjectBO {
 																						 collectionTime,
 																						 objectCount,
 																						 threadPoolExecutor,
-																						 futures);
+																						 futures, 
+																						 queryCriteria );
 					
 					NamespaceObjectCollection namespaceObjectCollection = 
 							new NamespaceObjectCollection( collectionConfig );
@@ -141,8 +147,8 @@ public class ObjectBO {
 				}
 			}
 		}
+		
 	}
-	
 	
 	public void collectObjectVersionData(Date collectionTime) {
 
@@ -183,7 +189,9 @@ public class ObjectBO {
 																						  collectionTime,
 																						  objectCount,
 																						  threadPoolExecutor,
-																						  futures      );
+																						  futures, 
+																						  null // no criteria required here
+																						  );
 					
 					NamespaceObjectVersionCollection namespaceObjectVersionCollection = 
 							new NamespaceObjectVersionCollection( collectionConfig );
@@ -234,7 +242,7 @@ public class ObjectBO {
 
 			// Create object client user
 			Vdc vdc = new Vdc((String [])this.ecsObjectHosts.toArray());	
-			S3Config s3config = new S3Config(Protocol.HTTPS, vdc);			
+			S3Config s3config = new S3Config(Protocol.HTTP, vdc);			
 
 			// in all cases, you need to provide your credentials
 			s3config.withIdentity(objectUserDetails.getObjectUser().getUserId().toString())
@@ -260,5 +268,7 @@ public class ObjectBO {
 	public void shutdown() {
 		billingBO.shutdown();
 	}
+
+
 	
 }

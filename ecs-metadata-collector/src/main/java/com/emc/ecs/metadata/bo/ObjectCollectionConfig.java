@@ -24,8 +24,11 @@ public class ObjectCollectionConfig {
 	private Map<NamespaceBucketKey, ObjectBucket> bucketMap;
 	private ThreadPoolExecutor 					  threadPoolExecutor;
 	private Queue<Future<?>>     				  futures;
+	private String 								  queryCriteria;
 	
 	
+
+
 
 
 	public ObjectCollectionConfig( S3JerseyClient                        s3JerseyClient, 
@@ -35,7 +38,8 @@ public class ObjectCollectionConfig {
 								   Date                                  collectionTime,
 								   AtomicLong                            objectCount,
 								   ThreadPoolExecutor 					 threadPoolExecutor,
-								   Queue<Future<?>>     				 futures	         ) {
+								   Queue<Future<?>>     				 futures,	        
+								   String                                queryCriteria ) {
 
 		this.s3JerseyClient     = s3JerseyClient;
 		this.namespace          = namespace;
@@ -45,6 +49,7 @@ public class ObjectCollectionConfig {
 		this.objectCount        = objectCount;
 		this.threadPoolExecutor = threadPoolExecutor;
 		this.futures            = futures;
+		this.queryCriteria      = queryCriteria;
 	}
 	
 	//=======================
@@ -123,5 +128,11 @@ public class ObjectCollectionConfig {
 		this.objectCount = objectCount;
 	}
 
-	
+	public String getQueryCriteria() {
+		return queryCriteria;
+	}
+
+	public void setQueryCriteria(String queryCriteria) {
+		this.queryCriteria = queryCriteria;
+	}
 }

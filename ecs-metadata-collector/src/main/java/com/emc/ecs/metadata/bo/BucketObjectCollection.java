@@ -49,20 +49,28 @@ public class BucketObjectCollection implements Callable<String> {
 
 		ObjectBucket objectBucket = getObjectBucket();
 		
-		// check whether bucket has search keys configured
-		if(   objectBucket != null && 
-			  objectBucket.getSearchMetadata() != null &&
-			! objectBucket.getSearchMetadata().isEmpty()  ) {
-			
-			// Bucket has search MD keys configured
-			// need to query those objects for that bucket
-			if( !queryObjects(objectBucket) ) {
-				// Something went wonky during the query operation
-				// revert to list object call
-				listObjects(objectBucket);
-			}		
+		// Check if a search criteria was specified
+		if(collectionConfig.getQueryCriteria() != null) {
+			queryObjects( objectBucket ); 
 		} else {
-			listObjects(objectBucket);
+			// normal case where we list object or query them if they
+			// have any MD keys configured against them
+			
+			// check whether bucket has search keys configured
+			if(   objectBucket != null && 
+					objectBucket.getSearchMetadata() != null &&
+					! objectBucket.getSearchMetadata().isEmpty()  ) {
+
+				// Bucket has search MD keys configured
+				// need to query those objects for that bucket
+				if( !queryObjects(objectBucket) ) {
+					// Something went wonky during the query operation
+					// revert to list object call
+					listObjects(objectBucket);
+				}		
+			} else {
+				listObjects(objectBucket);
+			}
 		}
 	}
 

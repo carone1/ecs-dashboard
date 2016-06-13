@@ -1,6 +1,7 @@
 package com.emc.ecs.metadata.client;
 
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -41,30 +42,43 @@ public class MetadataCollectorClient {
 	private static final String  ECS_COLLECT_OBJECT_VERSION_DATA = "object-version";
 	private static final String  ECS_COLLECT_ALL_DATA = "all";
 	
-	private static final String ECS_HOSTS_CONFIG_ARGUMENT         = "--ecs-hosts";
-	private static final String ECS_ACCESS_KEY_CONFIG_ARGUMENT    = "--ecs-access-key";
-	private static final String ECS_SECRET_KEY_CONFIG_ARGUMENT    = "--ecs-secret-key";
-	private static final String ECS_OBJECT_HOSTS_CONFIG_ARGUMENT  = "--ecs-object-hosts";
-	private static final String ECS_MGMT_PORT_CONFIG_ARGUMENT     = "--ecs-mgmt-port";
-	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT  = "--collect-data";
-	private static final String ELASTIC_HOSTS_CONFIG_ARGUMENT     = "--elastic-hosts";
-	private static final String ELASTIC_PORT_CONFIG_ARGUMENT      = "--elastic-port";
-	private static final String ELASTIC_CLUSTER_CONFIG_ARGUMENT   = "--elastic-cluster";
+	private static final String ECS_HOSTS_CONFIG_ARGUMENT                    = "--ecs-hosts";
+	private static final String ECS_ACCESS_KEY_CONFIG_ARGUMENT               = "--ecs-access-key";
+	private static final String ECS_SECRET_KEY_CONFIG_ARGUMENT               = "--ecs-secret-key";
+	private static final String ECS_OBJECT_HOSTS_CONFIG_ARGUMENT             = "--ecs-object-hosts";
+	private static final String ECS_MGMT_PORT_CONFIG_ARGUMENT                = "--ecs-mgmt-port";
+	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT             = "--collect-data";
+	private static final String ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT  = "--collect-only-modified-objects";
+	
+	private static final String ELASTIC_HOSTS_CONFIG_ARGUMENT                = "--elastic-hosts";
+	private static final String ELASTIC_PORT_CONFIG_ARGUMENT                 = "--elastic-port";
+	private static final String ELASTIC_CLUSTER_CONFIG_ARGUMENT              = "--elastic-cluster"; 
+	
+	private static final String ECS_OBJECT_LAST_MODIFIED_MD_KEY  = "LastModified";
 	
 	// secret argument to test various collection time
 	// specific x number of days before current day
 	private static final String ECS_COLLECTION_DAY_SHIFT_ARGUMENT = "--collection-day-shift"; 
 		
-	private static String  ecsHosts         = "";
-	private static String  ecsMgmtAccessKey = "";
-	private static String  ecsMgmtSecretKey = "";
-	private static String  elasticHosts     = "";
-	private static Integer elasticPort      = 9300;
-	private static String  elasticCluster   = "ecs-analytics";
-	private static String  ecsObjectHosts   = "";
-	private static Integer ecsMgmtPort      = DEFAULT_ECS_MGMT_PORT;
-	private static String  collectData      = ECS_COLLECT_ALL_DATA;
-	private static Integer relativeDayShift = 0;
+	
+	private static final String            DATA_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+	private static final SimpleDateFormat  DATA_DATE_FORMAT = new  SimpleDateFormat(DATA_DATE_PATTERN);
+	
+	//1970-01-01T00:00:00Z
+	
+	private static String  ecsHosts                          = "";
+	private static String  ecsMgmtAccessKey                  = "";
+	private static String  ecsMgmtSecretKey                  = "";
+	private static String  elasticHosts                      = "";
+	private static Integer elasticPort                       = 9300;
+	private static String  elasticCluster                    = "ecs-analytics";
+	private static String  ecsObjectHosts                    = "";
+	private static Integer ecsMgmtPort                       = DEFAULT_ECS_MGMT_PORT;
+	private static String  collectData                       = ECS_COLLECT_ALL_DATA;
+	private static Integer relativeDayShift                  = 0;
+	private static Integer objectModifiedSinceNoOfDays       = 0;
+	private static boolean relativeObjectModifiedSinceOption = false;
+	
 	
 	private final static Logger       logger             = LoggerFactory.getLogger(MetadataCollectorClient.class);
 	
@@ -82,7 +96,8 @@ public class MetadataCollectorClient {
 													"[" + ELASTIC_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
 													"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port>]" +
 													"[" + ELASTIC_CLUSTER_CONFIG_ARGUMENT + "<elastic-cluster>]" +
-				                                    "[" + ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <" + 
+													"[" + ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT + "<number of days>" + " | " +
+				                                        ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <" + 
 															ECS_COLLECT_BILLING_DATA + "|" + 
 															ECS_COLLECT_BUCKET_DATA + "|" +
 															ECS_COLLECT_OBJECT_DATA + "|" +
@@ -137,7 +152,16 @@ public class MetadataCollectorClient {
 						System.err.println(ECS_MGMT_PORT_CONFIG_ARGUMENT + " requires a mgmt port value");
 						System.exit(0);
 					}
+				} else if (arg.equals(ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						relativeObjectModifiedSinceOption = true;
+						objectModifiedSinceNoOfDays       = Integer.valueOf(args[i++]);
+					} else {
+						System.err.println(ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT + " requires a specified number of days value");
+						System.exit(0);
+					}
 				} else if (arg.equals(ECS_COLLECT_DATA_CONFIG_ARGUMENT)) {
+					
 					if (i < args.length) {
 						collectData = args[i++];
 					} else {
@@ -183,6 +207,7 @@ public class MetadataCollectorClient {
 		if(ecsHosts.isEmpty()) {	
 			System.err.println("Missing ECS hostname use " + ECS_HOSTS_CONFIG_ARGUMENT + 
 					           "<host1, host2> to specify a value" );
+			return;
 		}
 		
 		// access/user key
@@ -193,72 +218,91 @@ public class MetadataCollectorClient {
 		}
 
 		// access/user key
-		if(ecsMgmtAccessKey.isEmpty()) {
-			System.err.println("Missing access key use " + ECS_ACCESS_KEY_CONFIG_ARGUMENT +
+		if(ecsMgmtSecretKey.isEmpty()) {
+			System.err.println("Missing secret key use " + ECS_SECRET_KEY_CONFIG_ARGUMENT +
 								"<admin-password> to specify a value" );
 			return;
 		}
+		
+		//relativeObjectModifiedSinceOption
+		
 		
 		// grab current to timestamp in order
 		// to label collected data with time
 		Date collectionTime = new Date(System.currentTimeMillis());
 		
-		// check if secret day shifting testing option was specified
-		if( relativeDayShift != 0 ) {
-			Long epochTime = collectionTime.getTime();
-			Long daysShift = TimeUnit.DAYS.toMillis(relativeDayShift);
-			collectionTime = new Date(epochTime - daysShift);
-		}	
-		
-		if(collectData.equals(ECS_COLLECT_BILLING_DATA) ){
-			// collect billing data
-			collectBillingData(collectionTime);
-		} else if (collectData.equals(ECS_COLLECT_BUCKET_DATA)) {
-			// collect object bucket info
-			collectObjectBucketData(collectionTime);
-		} else if(collectData.equals(ECS_COLLECT_OBJECT_DATA)) {
-			
+		if(relativeObjectModifiedSinceOption) {
 			// object hosts
 			if(ecsObjectHosts.isEmpty()) {
 				System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
-									"<host1,host2> to specify a value" );
+						"<host1,host2> to specify a value" );
 			}
-			
-			// collect object data
-			collectObjectData(collectionTime);
-		} else if(collectData.equals(ECS_COLLECT_OBJECT_VERSION_DATA)) {
-			
-			// object hosts
-			if(ecsObjectHosts.isEmpty()) {
-				System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
-									"<host1,host2> to specify a value" );
-			}
-			
-			// collect object data
-			collectObjectVersionData(collectionTime);
-		} else if(collectData.equals(ECS_COLLECT_ALL_DATA)) {
-			
-			// object hosts
-			if(ecsObjectHosts.isEmpty()) {
-				System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
-									"<host1,host2> to specify a value" );
-			}
-			
-			// collect object bucket info
-			collectObjectBucketData(collectionTime);
-			
-			// collect billing data 
-			collectBillingData(collectionTime);
 
 			// collect object data
-			collectObjectData(collectionTime);
-			
-			// collect object version data
-			collectObjectVersionData(collectionTime);
-		} else {		
-			System.err.println("Unsupported data collection action: " + collectData );
-			System.err.println(menuString);
-			System.exit(0);
+			collectObjectDataModifiedSinceDate(collectionTime, objectModifiedSinceNoOfDays);
+		} else {
+
+
+			// check if secret day shifting testing option was specified
+			if( relativeDayShift != 0 ) {
+				Long epochTime = collectionTime.getTime();
+				Long daysShift = TimeUnit.DAYS.toMillis(relativeDayShift);
+				collectionTime = new Date(epochTime - daysShift);
+			}	
+			if(collectData.equals(ECS_COLLECT_BILLING_DATA) ){
+				// collect billing data
+				collectBillingData(collectionTime);
+			} else if (collectData.equals(ECS_COLLECT_BUCKET_DATA)) {
+				// collect object bucket info
+				collectObjectBucketData(collectionTime);
+			} else if(collectData.equals(ECS_COLLECT_OBJECT_DATA) ) {
+
+				// only collection all object if the modified since option has been specified
+				if(!relativeObjectModifiedSinceOption){
+					// object hosts
+					if(ecsObjectHosts.isEmpty()) {
+						System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
+								"<host1,host2> to specify a value" );
+					}
+
+					// collect object data
+					collectObjectData(collectionTime);
+				}
+			} else if(collectData.equals(ECS_COLLECT_OBJECT_VERSION_DATA)) {
+
+				// object hosts
+				if(ecsObjectHosts.isEmpty()) {
+					System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
+							"<host1,host2> to specify a value" );
+				}
+
+				// collect object data
+				collectObjectVersionData(collectionTime);
+			} else if(collectData.equals(ECS_COLLECT_ALL_DATA)) {
+
+				// collect object bucket info
+				collectObjectBucketData(collectionTime);
+
+				// collect billing data 
+				collectBillingData(collectionTime);
+
+				// only collection all object if the modified since option has not been specified
+				if(!relativeObjectModifiedSinceOption) {
+					// object hosts
+					if(ecsObjectHosts.isEmpty()) {
+						System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
+								"<host1,host2> to specify a value" );
+					}
+					
+					// collect object data
+					collectObjectData(collectionTime);
+				}
+
+			} else {		
+				System.err.println("Unsupported data collection action: " + collectData );
+				System.err.println(menuString);
+				System.exit(0);
+			}
 		}
 		
 		
@@ -392,6 +436,50 @@ public class MetadataCollectorClient {
 		
 		// Start collection
 		objectBO.collectObjectData(collectionTime);
+		
+		objectBO.shutdown();
+	}
+	
+	
+	private static void collectObjectDataModifiedSinceDate(Date collectionTime, Integer numberOfDays) {
+		
+		List<String> hosts = Arrays.asList(ecsHosts.split(","));
+		List<String> objectHosts = Arrays.asList(ecsObjectHosts.split(","));
+		
+		// instantiate billing BO
+		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
+											 ecsMgmtSecretKey,
+											 hosts,
+											 ecsMgmtPort,
+											 null );  // dao is not required in this case
+		
+		// Instantiate DAO
+		ObjectDAO objectDAO = null;
+		if(!elasticHosts.isEmpty()) {
+			
+			// Instantiate ElasticSearch DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
+			objectDAO = new ElasticS3ObjectDAO(daoConfig);
+		} else {
+			// Instantiate file DAO
+			objectDAO = new FileObjectDAO();
+		}
+		
+		
+		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO, threadPoolExecutor, futures, objectCount );
+		
+		// query criteria should look like ( LastModified >= 'since date' )
+		
+		Date sinceDate = new Date( (collectionTime.getTime() - (TimeUnit.MILLISECONDS.convert(numberOfDays, TimeUnit.DAYS)) ));
+		
+		String yesterdayDateTime = DATA_DATE_FORMAT.format( sinceDate );
+		String queryCriteria = "( " + ECS_OBJECT_LAST_MODIFIED_MD_KEY + " >= '" + yesterdayDateTime + "' )";
+		
+		// Start collection
+		objectBO.collectObjectData(collectionTime, queryCriteria);
 		
 		objectBO.shutdown();
 	}
