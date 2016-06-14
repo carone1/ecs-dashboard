@@ -2,16 +2,17 @@
 
 
 # kibana.urls:
-# - url: "http://kibana_username:kibana_password@url_to_kibana_dashboard"
+# - name: "Top 100 Dashboard"
+#   url: "http://kibana_username:kibana_password@url_to_kibana_dashboard"
 
 # chrome driver location
-chrome.driver: "/Users/carone1/Documents/chromedriver"
+chrome.driver: "<chromedriver-path>/chromedriver"
 # chrome browser location
 #chrome.browser: "some location"
 # delay before taking screen capture in seconds
 #screen.capture.delay: 20
 
-
+# path where Kibana screen captures are saved
 #destination.path: ""
 
 # email section 
@@ -28,7 +29,7 @@ chrome.driver: "/Users/carone1/Documents/chromedriver"
 
 # e-mail address
 #source.address: "from-email@gmail.com"
-#destination.address: "destination-mail@gmail.com"
+
 
 #destination.addresses:
 # - "destination1@gmail.com"

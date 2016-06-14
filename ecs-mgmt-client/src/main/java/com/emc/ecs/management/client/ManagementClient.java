@@ -396,6 +396,9 @@ public class ManagementClient {
 	    hostListProvider.withVdcs(new Vdc(ips));
 
 	    smartConfig.setHostListProvider(hostListProvider);
+	    
+	    // healthcheck disabled as there is to be an issue with the smart cleint and ping messages
+	    smartConfig.setHealthCheckEnabled(false);
 
 	    return SmartClientFactory.createSmartClient(smartConfig);
 	}
