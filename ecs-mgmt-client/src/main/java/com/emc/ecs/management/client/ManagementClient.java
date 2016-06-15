@@ -58,7 +58,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 public class ManagementClient {
 
-	private static final Integer HOST_LIST_PROVIDER_PORT                = 4442;
+	private static final Integer HOST_LIST_PROVIDER_PORT                = 4440;
 	
 	private static final String X_SDS_AUTH_TOKEN     					= "X-SDS-AUTH-TOKEN";
 	private static final String REST_LOGIN           					= "/login";
