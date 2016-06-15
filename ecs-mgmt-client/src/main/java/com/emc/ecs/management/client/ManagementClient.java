@@ -55,8 +55,10 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 
 
+
 public class ManagementClient {
 
+	private static final Integer HOST_LIST_PROVIDER_PORT                = 4442;
 	
 	private static final String X_SDS_AUTH_TOKEN     					= "X-SDS-AUTH-TOKEN";
 	private static final String REST_LOGIN           					= "/login";
@@ -93,7 +95,6 @@ public class ManagementClient {
 		}
 		this.mgmtClient = createMgmtClient( this.mgmtConfig.getUsername(), 
 										    this.mgmtConfig.getSecretKey(), 
-										    this.mgmtConfig.getPort(),
 										    this.mgmtConfig.getHostList());
 	}
 	
@@ -376,7 +377,7 @@ public class ManagementClient {
 	 * @param ipAddresses
 	 * @return Client
 	 */
-	private static Client createMgmtClient(String userName, String secretKey, int port, List<String> ipAddresses ) {
+	private static Client createMgmtClient(String userName, String secretKey, List<String> ipAddresses ) {
 		
 		String[] ips = (String[])ipAddresses.toArray();
 	    SmartConfig smartConfig = new SmartConfig(ips);
@@ -391,14 +392,15 @@ public class ManagementClient {
 	    EcsHostListProvider hostListProvider = new EcsHostListProvider(pollClient, loadBalancer,
 	            userName, secretKey);
 
-	    hostListProvider.setProtocol("https");
-	    hostListProvider.setPort(port);
+	    hostListProvider.setProtocol("http");
+	    hostListProvider.setPort(HOST_LIST_PROVIDER_PORT);
 	    hostListProvider.withVdcs(new Vdc(ips));
 
 	    smartConfig.setHostListProvider(hostListProvider);
 	    
-	    // healthcheck disabled as there is to be an issue with the smart cleint and ping messages
-	    smartConfig.setHealthCheckEnabled(false);
+	    // health check disabled as there seems to be an issue with the smart client and ping messages
+	    smartConfig.setHealthCheckEnabled(true);
+	    smartConfig.setHostUpdateEnabled(true);
 
 	    return SmartClientFactory.createSmartClient(smartConfig);
 	}

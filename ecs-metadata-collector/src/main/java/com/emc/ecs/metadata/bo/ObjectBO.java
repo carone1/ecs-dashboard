@@ -50,12 +50,12 @@ public class ObjectBO {
 					 Queue<Future<?>>   futures,
 					 AtomicLong         objectCount ) {
 				
-		this.billingBO = billingBO;
-		this.ecsObjectHosts = ecsObjectHosts;
+		this.billingBO          = billingBO;
+		this.ecsObjectHosts     = ecsObjectHosts;
 		this.threadPoolExecutor = threadPoolExecutor;
-		this.futures = futures;
-		this.objectDAO = objectDAO;
-		this.objectCount = objectCount;
+		this.futures            = futures;
+		this.objectDAO          = objectDAO;
+		this.objectCount        = objectCount;
 	}
 	
 	//================================

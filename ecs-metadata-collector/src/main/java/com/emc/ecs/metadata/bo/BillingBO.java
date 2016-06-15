@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +36,19 @@ public class BillingBO {
 	//================================
 	private ManagementClient client;
 	private BillingDAO       billingDAO;
+	private AtomicLong       objectCount;
+	
 	private final static Logger         logger = LoggerFactory.getLogger(BillingBO.class);
 	
 	//================================
 	// Constructor
 	//================================
-	public BillingBO( String accessKey, 
-					  String secretKey, 
+	public BillingBO( String       accessKey, 
+					  String       secretKey, 
 					  List<String> hosts, 
-					  Integer    port, 
-					  BillingDAO billingDAO ) {
+					  Integer      port, 
+					  BillingDAO   billingDAO,
+					  AtomicLong   objectCount ) {
 		
 		// client config
 		ManagementClientConfig clientConfig = new ManagementClientConfig( accessKey, 
@@ -57,6 +61,8 @@ public class BillingBO {
 		
 		// DAO
 		this.billingDAO = billingDAO;
+		
+		this.objectCount = objectCount;
 		
 	}
 	
@@ -129,6 +135,8 @@ public class BillingBO {
 		
 		// At this point we should have all namespaces in the ECS system
 		
+		long objCounter = 0;
+		
 		for( Namespace namespace : namespaceList ) {
 			
 			//===============================================
@@ -142,7 +150,7 @@ public class BillingBO {
 			if(namespaceBillingResponse == null) {
 				continue;
 			}
-			
+				
 			// add object bucket attributes
 			for(BucketBillingInfo bucketBillingInfo : namespaceBillingResponse.getBucketBillingInfo()) {
 				
@@ -156,6 +164,7 @@ public class BillingBO {
 					// set namespace
 					bucketBillingInfo.setNamespace(namespace.getName());
 				}
+				objCounter++;
 			}
 			
 			// Push collected info into datastore
@@ -178,7 +187,10 @@ public class BillingBO {
 						if(objectBucket != null) {
 							// set api type
 							bucketBillingInfo.setApiType(objectBucket.getApiType());
+							// set namespace
+							bucketBillingInfo.setNamespace(namespace.getName());
 						}
+						objCounter++;
 					}
 					
 					// Push collected info into datastore
@@ -190,7 +202,11 @@ public class BillingBO {
 					namespaceRequest.setNextMarker(null);
 				}
 			}			
-		}		
+		}	
+		
+		// peg global counter
+		this.objectCount.getAndAdd(objCounter);
+		
 	}
 
 	/**
@@ -231,6 +247,8 @@ public class BillingBO {
 		
 		// At this point we should have all the namespace supported by the ECS system
 		
+		long objCounter = 0;
+		
 		for( Namespace namespace : namespaceList ) {
 			
 			//===============================================
@@ -246,6 +264,8 @@ public class BillingBO {
 			}
 			
 			logger.info("Collect Billing Data for namespace: " + namespace.getName());
+			
+			objCounter += (objectBucketsResponse.getObjectBucket() != null) ? objectBucketsResponse.getObjectBucket().size() : 0;
 			
 			// Push collected info into datastore
 			if( billDAO != null ) {
@@ -269,6 +289,9 @@ public class BillingBO {
 				objectBucketsResponse = client.getNamespaceBucketInfo(namespaceRequest);
 				
 				if( objectBucketsResponse != null ) {
+					
+					objCounter += (objectBucketsResponse.getObjectBucket() != null) ? objectBucketsResponse.getObjectBucket().size() : 0;
+					
 					namespaceRequest.setNextMarker(objectBucketsResponse.getNextMarker());
 					
 					// Push collected info into datastore
@@ -295,6 +318,8 @@ public class BillingBO {
 			}			
 		}
 		
+		// peg global counter
+		this.objectCount.getAndAdd(objCounter);
 	}
 	
 	

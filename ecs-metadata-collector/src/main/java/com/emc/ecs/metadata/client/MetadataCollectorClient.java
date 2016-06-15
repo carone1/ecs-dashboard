@@ -91,10 +91,10 @@ public class MetadataCollectorClient {
 		String menuString = "Usage: MetadataCollector [" + ECS_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " + 
 													"[" + ECS_ACCESS_KEY_CONFIG_ARGUMENT + " <admin-username>]" +
 				                                    "[" + ECS_SECRET_KEY_CONFIG_ARGUMENT + "<admin-password>]" +
-				                                    "[" + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
-													"[" + ECS_MGMT_PORT_CONFIG_ARGUMENT + "<mgmt-port>]" +
+													"[" + ECS_MGMT_PORT_CONFIG_ARGUMENT + "<mgmt-port {default: 4443}>]" +
+													"[" + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
 													"[" + ELASTIC_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
-													"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port>]" +
+													"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port {default: 9300}>]" +
 													"[" + ELASTIC_CLUSTER_CONFIG_ARGUMENT + "<elastic-cluster>]" +
 													"[" + ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT + "<number of days>" + " | " +
 				                                        ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <" + 
@@ -223,8 +223,6 @@ public class MetadataCollectorClient {
 								"<admin-password> to specify a value" );
 			return;
 		}
-		
-		//relativeObjectModifiedSinceOption
 		
 		
 		// grab current to timestamp in order
@@ -364,7 +362,8 @@ public class MetadataCollectorClient {
 											 ecsMgmtSecretKey,
 											 Arrays.asList(ecsHosts.split(",")),
 											 ecsMgmtPort,
-											 billingDAO );
+											 billingDAO,
+											 objectCount );
 		
 		// Start collection
 		billingBO.collectBillingData(collectionTime);
@@ -394,7 +393,8 @@ public class MetadataCollectorClient {
 											 ecsMgmtSecretKey,
 											 Arrays.asList(ecsHosts.split(",")),
 											 ecsMgmtPort,
-											 billingDAO );
+											 billingDAO,
+											 objectCount );
 		
 		
 		
@@ -414,7 +414,8 @@ public class MetadataCollectorClient {
 											 ecsMgmtSecretKey,
 											 hosts,
 											 ecsMgmtPort,
-											 null );  // dao is not required in this case
+											 null,        // dao is not required in this case
+											 objectCount );  
 		
 		// Instantiate DAO
 		ObjectDAO objectDAO = null;
@@ -451,7 +452,8 @@ public class MetadataCollectorClient {
 											 ecsMgmtSecretKey,
 											 hosts,
 											 ecsMgmtPort,
-											 null );  // dao is not required in this case
+											 null,         // dao is not required in this case
+											 objectCount );  
 		
 		// Instantiate DAO
 		ObjectDAO objectDAO = null;
@@ -495,7 +497,8 @@ public class MetadataCollectorClient {
 											 ecsMgmtSecretKey,
 											 hosts,
 											 ecsMgmtPort,
-											 null );  // dao is not required in this case
+											 null,         // dao is not required in this case
+											 objectCount );
 		
 		// Instantiate DAO
 		ObjectDAO objectDAO = null;
