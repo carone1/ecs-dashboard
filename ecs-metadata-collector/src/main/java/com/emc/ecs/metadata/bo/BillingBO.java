@@ -43,16 +43,16 @@ public class BillingBO {
 	//================================
 	// Constructor
 	//================================
-	public BillingBO( String       accessKey, 
-					  String       secretKey, 
+	public BillingBO( String       mgmtAccessKey, 
+					  String       mgmtSecretKey, 
 					  List<String> hosts, 
 					  Integer      port, 
 					  BillingDAO   billingDAO,
 					  AtomicLong   objectCount ) {
 		
 		// client config
-		ManagementClientConfig clientConfig = new ManagementClientConfig( accessKey, 
-																		  secretKey,
+		ManagementClientConfig clientConfig = new ManagementClientConfig( mgmtAccessKey, 
+																		  mgmtSecretKey,
 																		  port,
 																		  hosts       );
 

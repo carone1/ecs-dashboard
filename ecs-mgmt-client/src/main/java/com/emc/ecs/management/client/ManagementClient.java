@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, EMC Corporation.
+ * Copyright (c) 2016, EMC Corporation.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
@@ -45,7 +45,6 @@ import com.emc.rest.smart.LoadBalancer;
 import com.emc.rest.smart.SmartClientFactory;
 import com.emc.rest.smart.SmartConfig;
 import com.emc.rest.smart.ecs.EcsHostListProvider;
-import com.emc.rest.smart.ecs.Vdc;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
@@ -58,7 +57,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 public class ManagementClient {
 
-	private static final Integer HOST_LIST_PROVIDER_PORT                = 4440;
+	private static final Integer HOST_LIST_PROVIDER_PORT                = 9020;
 	
 	private static final String X_SDS_AUTH_TOKEN     					= "X-SDS-AUTH-TOKEN";
 	private static final String REST_LOGIN           					= "/login";
@@ -80,6 +79,7 @@ public class ManagementClient {
 	private ManagementClientConfig  mgmtConfig;
 	private String 					mgmtAuthToken;
 	private Client					mgmtClient;
+	
 	private URI						uri;
 	
 	//================================
@@ -88,14 +88,14 @@ public class ManagementClient {
 	public ManagementClient(ManagementClientConfig mgmtConfig){
 		this.mgmtConfig = mgmtConfig;
 		try {
-			this.uri = new URI("https://" + this.mgmtConfig.getHostList().get(0) + ":" + this.mgmtConfig.getPort());
+			//this.uri = new URI("https://" + this.mgmtConfig.getHostList().get(0) + ":" + this.mgmtConfig.getPort());
+			this.uri = new URI("https://" + "somehost.com" + ":" + this.mgmtConfig.getPort());
 		} catch (URISyntaxException e) {
 			// TODO add error log
 			e.printStackTrace();
-		}
-		this.mgmtClient = createMgmtClient( this.mgmtConfig.getUsername(), 
-										    this.mgmtConfig.getSecretKey(), 
-										    this.mgmtConfig.getHostList());
+		}		
+		
+		mgmtClient = createMgmtClient( this.mgmtConfig.getHostList()  );
 	}
 	
 	//================================
@@ -138,6 +138,7 @@ public class ManagementClient {
 		NamespaceBillingInfo namespaceBillingResponse = null;
 						
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
+		
 
 		// Call using ?include_bucket_detail=true parameter
 		StringBuilder restStr = new StringBuilder();
@@ -254,7 +255,7 @@ public class ManagementClient {
 	
 	/**
 	 * Retrieve S3 uid and secret keys
-	 * @param uid 
+	 * @param uid
 	 * @param namespace
 	 * @return ObjectUserSecretKeysResponse
 	 */
@@ -285,6 +286,42 @@ public class ManagementClient {
 		return userSecretKeys;		
 	}
 	
+	
+	/**
+	 * Retrieve S3 uid and secret keys
+	 * @param uid
+	 * @param namespace
+	 * @return ObjectUserSecretKeysResponse
+	 */
+	public ObjectUserSecretKeys getHostsInVDC(String uid, String namespace) {
+				
+		String authToken = getAuthToken();
+						
+		WebResource mgmtResource = this.mgmtClient.resource(uri);
+
+		String restPath = REST_GET_KEYS_FOR_USERS + uid + "/" + namespace;
+		// get keys for user
+		WebResource getUserSecretKeysResource = mgmtResource.path(restPath);
+		
+		ObjectUserSecretKeys userSecretKeys = null;
+		
+		try {
+			userSecretKeys = getUserSecretKeysResource.header(X_SDS_AUTH_TOKEN, authToken)
+																					.get(ObjectUserSecretKeys.class);
+		} catch (UniformInterfaceException ex) {
+			// ECS returns http 404 error if 
+			// a user doesn't have a S3 password configured 			
+			// The workaround is just to generate an empty reponse
+			if( ex.getResponse().getStatusInfo().getStatusCode() == Response.Status.NOT_FOUND.getStatusCode() ) {
+				userSecretKeys = new ObjectUserSecretKeys();
+			}
+		}
+								
+		return userSecretKeys;		
+	}
+	
+	
+	
 	/**
 	 * Shutdown the management client
 	 */
@@ -311,7 +348,7 @@ public class ManagementClient {
 	/**
 	 * Login using admin username and secretKey 
 	 * returned authentication token is stored internally
-	 * @throws URISyntaxException 
+	 * @throws RuntimeException 
 	 */
 	protected void login() {
 		
@@ -319,7 +356,7 @@ public class ManagementClient {
 		
 		// login
 		WebResource loginResource = mgmtResource.path(REST_LOGIN);
-		loginResource.addFilter(new HTTPBasicAuthFilter(this.mgmtConfig.getUsername(), this.mgmtConfig.getSecretKey()));
+		loginResource.addFilter(new HTTPBasicAuthFilter(this.mgmtConfig.getMgmtUsername(), this.mgmtConfig.getMgmtSecretKey()));
 		ClientResponse loginResponse = loginResource.get(ClientResponse.class);
                      
         // Check for sucsess
@@ -369,6 +406,8 @@ public class ManagementClient {
 	}
 	
 	
+	
+	
 	/**
 	 * Factory method to create smart rest ECS client
 	 * @param userName
@@ -377,30 +416,31 @@ public class ManagementClient {
 	 * @param ipAddresses
 	 * @return Client
 	 */
-	private static Client createMgmtClient(String userName, String secretKey, List<String> ipAddresses ) {
+	private Client createMgmtClient( List<String> ipAddresses ) {
 		
 		String[] ips = (String[])ipAddresses.toArray();
 	    SmartConfig smartConfig = new SmartConfig(ips);
 	    
 	    
-	    LoadBalancer loadBalancer = smartConfig.getLoadBalancer();
-
 	    // creates a standard (non-load-balancing) jersey client
 	    Client pollClient = SmartClientFactory.createStandardClient(smartConfig);
-
+	    
+	    	    
+	    LoadBalancer loadBalancer = smartConfig.getLoadBalancer();
+	    
 	    // create a host list provider based on the endpoint call (will use the standard client we just made)
-	    EcsHostListProvider hostListProvider = new EcsHostListProvider(pollClient, loadBalancer,
-	            userName, secretKey);
+	    EcsHostListProvider hostListProvider = new EcsHostListProvider( pollClient, loadBalancer,
+	    		                                                        "", "");
 
 	    hostListProvider.setProtocol("http");
 	    hostListProvider.setPort(HOST_LIST_PROVIDER_PORT);
-	    hostListProvider.withVdcs(new Vdc(ips));
+	    //hostListProvider.withVdcs(new Vdc(ips));
 
 	    smartConfig.setHostListProvider(hostListProvider);
 	    
 	    // health check disabled as there seems to be an issue with the smart client and ping messages
 	    smartConfig.setHealthCheckEnabled(true);
-	    smartConfig.setHostUpdateEnabled(true);
+	    smartConfig.setHostUpdateEnabled(false);
 
 	    return SmartClientFactory.createSmartClient(smartConfig);
 	}

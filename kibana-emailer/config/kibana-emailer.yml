@@ -4,11 +4,16 @@
 # kibana.urls:
 # - name: "Top 100 Dashboard"
 #   url: "http://kibana_username:kibana_password@url_to_kibana_dashboard"
+# - name: "Top 10 Dashboard"
+#   url: "http://kibana_username:kibana_password@url_to_kibana_dashboard_2"
+
 
 # chrome driver location
-chrome.driver: "<chromedriver-path>/chromedriver"
+#chrome.driver: "<chromedriver-path>/chromedriver"
+
 # chrome browser location
 #chrome.browser: "some location"
+
 # delay before taking screen capture in seconds
 #screen.capture.delay: 20
 
@@ -17,10 +22,13 @@ chrome.driver: "<chromedriver-path>/chromedriver"
 
 # email section 
 # smtp
+
 #smtp.host: "localhost"
 #smtp.port: 587
+
 #smtp.username: "user"
 #smtp.password: "password"
+
 # Specify tls or ssl. Default to tls
 #smtp.security: "tls"
 
@@ -30,12 +38,13 @@ chrome.driver: "<chromedriver-path>/chromedriver"
 # e-mail address
 #source.address: "from-email@gmail.com"
 
-
 #destination.addresses:
 # - "destination1@gmail.com"
 # - "destination2@gmail.com"
 
-
 # e-mail content
+# mail.title
 #mail.title: "Kibana Reports"
+
+# mail.body
 #mail.body: "Kibana Body"

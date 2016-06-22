@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2016, EMC Corporation.
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     + Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *     + Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     + The name of EMC Corporation may not be used to endorse or promote
+ *       products derived from this software without specific prior written
+ *       permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
 package com.emc.kibana.emailer;
 
 
@@ -44,11 +72,14 @@ import com.esotericsoftware.yamlbeans.YamlReader;
 
 
 /**
- * Utility to grab web sites' content and email them.
- * Created by Eric Caron
+ * Utility to grab Kibana web sites' content and email them.
  */
 public class KibanaEmailer {
 
+	//================================
+	// Final members
+	//================================
+	
 	private static final String CONFIG_FILE_CONFIG_ARGUMENT  = "--config-file";
 	
 	private static final String KIBANA_URLS_CONFIG = "kibana.urls";
@@ -87,6 +118,12 @@ public class KibanaEmailer {
 	
 	
 	private static final String            DATA_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+	
+	
+	//================================
+	// Private Members
+	//================================
+	
 	private static final SimpleDateFormat  DATA_DATE_FORMAT = new  SimpleDateFormat(DATA_DATE_PATTERN);
 		
 	private static String  chromeDriverPath = "";
@@ -110,11 +147,13 @@ public class KibanaEmailer {
 	private static String       mailTitle = "Title";
 	private static String       mailBody = "Body"; 
 	
-	
-	
+
 	private final static Logger       logger      = LoggerFactory.getLogger(KibanaEmailer.class);
 	
 	
+	//================================
+	// Public Methods
+	//================================
 	public static void main(String[] args) throws Exception {
 
 		logger.info("Kibana reports generated at : " + new Date(System.currentTimeMillis()).toString()  ); 
@@ -133,7 +172,12 @@ public class KibanaEmailer {
 		} 
 	}
 
-	
+	//================================
+	// Private Methods
+	//================================
+	/*
+	 * utility method to handle program arguments
+	 */
 	private static void handleArguments( String[] args ) {
 		
 		String menuString = "Usage: KibanaEmailer " +
@@ -167,6 +211,9 @@ public class KibanaEmailer {
 		}
 	}
 	
+	/*
+	 * Utility method to load and parse emailer's configuration data
+	 */
 	@SuppressWarnings("unchecked")
 	private static void loadConfig() {
 		try {
@@ -190,38 +237,39 @@ public class KibanaEmailer {
 			
 			screenCaptureDelay = Integer.valueOf((String)map.get(SCREEN_CAPTURE_DELAY));
 			
+			// Kibana Urls
 			Object urls = map.get(KIBANA_URLS_CONFIG);
 			
 			if(urls instanceof ArrayList<?>) {
 				kibanaUrls =  (ArrayList<Map<String, String>>)urls;
 			}
 				
-			// file destination path
+			// destination path to save screen captures
 			destinationPath = (String)map.get(DESTINATION_PATH_CONFIG);
 			
+			// == smtp config ==
 			
-			// smtp config 
 			// smtp.host
 			smtpHost = (String)map.get(SMTP_HOST_CONFIG);
-			// smtp.port: 587
+			// smtp.port
 			smtpPort = (String)map.get(SMTP_PORT_CONFIG);
-			// smtp.username: "user"
+			// smtp.username
 			smtpUsername = (String)map.get(SMTP_USERNAME_CONFIG);
-			// smtp.password: "password"
+			// smtp.password
 			smtpPassword = (String)map.get(SMTP_PASSWORD_CONFIG);
 			
-			// smtp.security: "tls|ssl"
+			// smtp.security "tls|ssl"
 			smtpSecurity = (String)map.get(SMTP_SECURITY_CONFIG);
 
 			// source.host
 			sourceHost = (String)map.get(SOURCE_HOST_CONFIG);
 				
 
-			// e-mail addresses config
+			// e-mail addresses configuration
 			// source.mail
 			sourceAddress = (String)map.get(SOURCE_ADDRESS_CONFIG);
 			
-			// destination.mail
+			// destination.addresses
 			Object destinations = map.get(DESTINATION_ADDRESS_CONFIG);
 			
 			if(destinations instanceof ArrayList<?>) {
@@ -250,12 +298,13 @@ public class KibanaEmailer {
 						MAIL_TITLE_CONFIG + ": `" + mailTitle + "`, " +
 						MAIL_BODY_CONFIG + ": `" + mailBody
 				    );
-		logger.info("Loaded config details: " + 
-				KIBANA_URLS_CONFIG + ": " + kibanaUrls.toString()
-		    );
+		logger.info("Loaded config details: " + KIBANA_URLS_CONFIG + ": " + kibanaUrls.toString());
 	}
 	
-	
+	/*
+	 * Utility method that uses ChromeDriver to programmatically control
+	 * the Chrome Browser to take dashboard screen captures 
+	 */
 	private static void generatePdfReports() {
 		
 		try {
@@ -326,7 +375,10 @@ public class KibanaEmailer {
 		}
 	}
 	
-	
+	/*
+	 * Utility method that grabs png files and send them
+	 * to a list of email addresses
+	 */
 	private static void sendFileEmail(String security)
 	{
 

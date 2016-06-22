@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, EMC Corporation.
+ * Copyright (c) 2016, EMC Corporation.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
@@ -38,24 +38,29 @@ public class ManagementClientConfig {
 	//===================================
 	private List<String> hostList;
 	private int port;
-	private String username;
-
-
-	private String secretKey;
+	private String mgmtUsername;
+	private String mgmtSecretKey;
 	
 	//===================================
 	// Constructor
 	//===================================
-	public ManagementClientConfig(String username, String secretKey, int port, List<String> hosts) {
-		this.username = username;
-		this.secretKey = secretKey;
+	public ManagementClientConfig( String mgmtUsername, 
+								   String mgmtSecretKey,
+								   int          port, 
+								   List<String> hosts      ) {
+		
+		this.mgmtUsername = mgmtUsername;
+		this.mgmtSecretKey = mgmtSecretKey;
 		this.port = port;
 		this.hostList = hosts;
 	}
 	
-	public ManagementClientConfig(String username, String secretKey, List<String> hosts) {
-		this.username = username;
-		this.secretKey = secretKey;
+	public ManagementClientConfig( String mgmtUsername, 
+								   String mgmtSecretKey,
+								   List<String> hosts     ) {
+		
+		this.mgmtUsername = mgmtUsername;
+		this.mgmtSecretKey = mgmtSecretKey;
 		this.port = DEFAULT_PORT;
 		this.hostList = hosts;
 	}
@@ -79,19 +84,22 @@ public class ManagementClientConfig {
 		this.port = port;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getMgmtUsername() {
+		return mgmtUsername;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public void setMgmtUsername(String username) {
+		this.mgmtUsername = username;
 	}
 
-	public String getSecretKey() {
-		return secretKey;
+	public String getMgmtSecretKey() {
+		return mgmtSecretKey;
 	}
 
-	public void setSecretKey(String secretKey) {
-		this.secretKey = secretKey;
+	public void setMgmtSecretKey(String secretKey) {
+		this.mgmtSecretKey = secretKey;
 	}
+	
+
+	
 }

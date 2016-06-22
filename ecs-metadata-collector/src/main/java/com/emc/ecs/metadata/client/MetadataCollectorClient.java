@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2016, EMC Corporation.
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     + Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *     + Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     + The name of EMC Corporation may not be used to endorse or promote
+ *       products derived from this software without specific prior written
+ *       permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
 package com.emc.ecs.metadata.client;
 
 
@@ -43,9 +71,8 @@ public class MetadataCollectorClient {
 	private static final String  ECS_COLLECT_ALL_DATA = "all";
 	
 	private static final String ECS_HOSTS_CONFIG_ARGUMENT                    = "--ecs-hosts";
-	private static final String ECS_ACCESS_KEY_CONFIG_ARGUMENT               = "--ecs-access-key";
-	private static final String ECS_SECRET_KEY_CONFIG_ARGUMENT               = "--ecs-secret-key";
-	private static final String ECS_OBJECT_HOSTS_CONFIG_ARGUMENT             = "--ecs-object-hosts";
+	private static final String ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT          = "--ecs-mgmt-access-key";
+	private static final String ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT          = "--ecs-mgmt-secret-key";
 	private static final String ECS_MGMT_PORT_CONFIG_ARGUMENT                = "--ecs-mgmt-port";
 	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT             = "--collect-data";
 	private static final String ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT  = "--collect-only-modified-objects";
@@ -64,7 +91,7 @@ public class MetadataCollectorClient {
 	private static final String            DATA_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	private static final SimpleDateFormat  DATA_DATE_FORMAT = new  SimpleDateFormat(DATA_DATE_PATTERN);
 	
-	//1970-01-01T00:00:00Z
+	
 	
 	private static String  ecsHosts                          = "";
 	private static String  ecsMgmtAccessKey                  = "";
@@ -72,7 +99,6 @@ public class MetadataCollectorClient {
 	private static String  elasticHosts                      = "";
 	private static Integer elasticPort                       = 9300;
 	private static String  elasticCluster                    = "ecs-analytics";
-	private static String  ecsObjectHosts                    = "";
 	private static Integer ecsMgmtPort                       = DEFAULT_ECS_MGMT_PORT;
 	private static String  collectData                       = ECS_COLLECT_ALL_DATA;
 	private static Integer relativeDayShift                  = 0;
@@ -89,10 +115,9 @@ public class MetadataCollectorClient {
 	public static void main(String[] args) throws Exception {
 
 		String menuString = "Usage: MetadataCollector [" + ECS_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " + 
-													"[" + ECS_ACCESS_KEY_CONFIG_ARGUMENT + " <admin-username>]" +
-				                                    "[" + ECS_SECRET_KEY_CONFIG_ARGUMENT + "<admin-password>]" +
+													"[" + ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT + " <admin-username>]" +
+				                                    "[" + ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT + "<admin-password>]" +
 													"[" + ECS_MGMT_PORT_CONFIG_ARGUMENT + "<mgmt-port {default: 4443}>]" +
-													"[" + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
 													"[" + ELASTIC_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
 													"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port {default: 9300}>]" +
 													"[" + ELASTIC_CLUSTER_CONFIG_ARGUMENT + "<elastic-cluster>]" +
@@ -124,25 +149,18 @@ public class MetadataCollectorClient {
 						System.err.println(ECS_HOSTS_CONFIG_ARGUMENT + " requires hosts value(s)");
 						System.exit(0);
 					}
-				} else if (arg.contains(ECS_ACCESS_KEY_CONFIG_ARGUMENT)) {
+				} else if (arg.contains(ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT)) {
 					if (i < args.length) {
 						ecsMgmtAccessKey = args[i++];
 					} else {
-						System.err.println(ECS_ACCESS_KEY_CONFIG_ARGUMENT + " requires an access-key value");
+						System.err.println(ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT + " requires an access-key value");
 						System.exit(0);
 					}
-				}  else if (arg.equals(ECS_SECRET_KEY_CONFIG_ARGUMENT)) {
+				}  else if (arg.equals(ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT)) {
 					if (i < args.length) {
 						ecsMgmtSecretKey = args[i++];
 					} else {
-						System.err.println(ECS_SECRET_KEY_CONFIG_ARGUMENT + " requires a secret-key value");
-						System.exit(0);
-					}
-				} else if (arg.contains(ECS_OBJECT_HOSTS_CONFIG_ARGUMENT)) {
-					if (i < args.length) {
-						ecsObjectHosts = args[i++];
-					} else {
-						System.err.println(ECS_OBJECT_HOSTS_CONFIG_ARGUMENT + " requires hosts value(s)");
+						System.err.println(ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT + " requires a secret-key value");
 						System.exit(0);
 					}
 				} else if (arg.equals(ECS_MGMT_PORT_CONFIG_ARGUMENT)) {
@@ -210,16 +228,16 @@ public class MetadataCollectorClient {
 			return;
 		}
 		
-		// access/user key
+		// management access/user key
 		if(ecsMgmtAccessKey.isEmpty()) {
-			System.err.println("Missing managment access key use" + ECS_ACCESS_KEY_CONFIG_ARGUMENT +
-								"<username> to specify a value" );
+			System.err.println("Missing managment access key use" + ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT +
+								"<admin-username> to specify a value" );
 			return;
 		}
 
-		// access/user key
+		// management access/user key
 		if(ecsMgmtSecretKey.isEmpty()) {
-			System.err.println("Missing secret key use " + ECS_SECRET_KEY_CONFIG_ARGUMENT +
+			System.err.println("Missing management secret key use " + ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT +
 								"<admin-password> to specify a value" );
 			return;
 		}
@@ -230,17 +248,9 @@ public class MetadataCollectorClient {
 		Date collectionTime = new Date(System.currentTimeMillis());
 		
 		if(relativeObjectModifiedSinceOption) {
-			// object hosts
-			if(ecsObjectHosts.isEmpty()) {
-				System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
-						"<host1,host2> to specify a value" );
-			}
-
 			// collect object data
 			collectObjectDataModifiedSinceDate(collectionTime, objectModifiedSinceNoOfDays);
 		} else {
-
-
 			// check if secret day shifting testing option was specified
 			if( relativeDayShift != 0 ) {
 				Long epochTime = collectionTime.getTime();
@@ -257,22 +267,10 @@ public class MetadataCollectorClient {
 
 				// only collection all object if the modified since option has been specified
 				if(!relativeObjectModifiedSinceOption){
-					// object hosts
-					if(ecsObjectHosts.isEmpty()) {
-						System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
-								"<host1,host2> to specify a value" );
-					}
-
 					// collect object data
 					collectObjectData(collectionTime);
 				}
 			} else if(collectData.equals(ECS_COLLECT_OBJECT_VERSION_DATA)) {
-
-				// object hosts
-				if(ecsObjectHosts.isEmpty()) {
-					System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
-							"<host1,host2> to specify a value" );
-				}
 
 				// collect object data
 				collectObjectVersionData(collectionTime);
@@ -286,12 +284,6 @@ public class MetadataCollectorClient {
 
 				// only collection all object if the modified since option has not been specified
 				if(!relativeObjectModifiedSinceOption) {
-					// object hosts
-					if(ecsObjectHosts.isEmpty()) {
-						System.err.println("Missing object hosts use " + ECS_OBJECT_HOSTS_CONFIG_ARGUMENT +
-								"<host1,host2> to specify a value" );
-					}
-					
 					// collect object data
 					collectObjectData(collectionTime);
 				}
@@ -391,6 +383,7 @@ public class MetadataCollectorClient {
 		// instantiate billing BO
 		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
 											 ecsMgmtSecretKey,
+											
 											 Arrays.asList(ecsHosts.split(",")),
 											 ecsMgmtPort,
 											 billingDAO,
@@ -407,7 +400,7 @@ public class MetadataCollectorClient {
 	private static void collectObjectData(Date collectionTime) {
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
-		List<String> objectHosts = Arrays.asList(ecsObjectHosts.split(","));
+		
 		
 		// instantiate billing BO
 		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
@@ -433,7 +426,7 @@ public class MetadataCollectorClient {
 		}
 		
 		
-		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO, threadPoolExecutor, futures, objectCount );
+		ObjectBO objectBO = new ObjectBO(billingBO, hosts, objectDAO, threadPoolExecutor, futures, objectCount );
 		
 		// Start collection
 		objectBO.collectObjectData(collectionTime);
@@ -445,7 +438,7 @@ public class MetadataCollectorClient {
 	private static void collectObjectDataModifiedSinceDate(Date collectionTime, Integer numberOfDays) {
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
-		List<String> objectHosts = Arrays.asList(ecsObjectHosts.split(","));
+		
 		
 		// instantiate billing BO
 		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
@@ -471,7 +464,7 @@ public class MetadataCollectorClient {
 		}
 		
 		
-		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO, threadPoolExecutor, futures, objectCount );
+		ObjectBO objectBO = new ObjectBO(billingBO, hosts, objectDAO, threadPoolExecutor, futures, objectCount );
 		
 		// query criteria should look like ( LastModified >= 'since date' )
 		
@@ -490,7 +483,7 @@ public class MetadataCollectorClient {
 	private static void collectObjectVersionData(Date collectionTime) {
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
-		List<String> objectHosts = Arrays.asList(ecsObjectHosts.split(","));
+		
 		
 		// instantiate billing BO
 		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
@@ -516,7 +509,7 @@ public class MetadataCollectorClient {
 		}
 		
 		
-		ObjectBO objectBO = new ObjectBO(billingBO, objectHosts, objectDAO, threadPoolExecutor, futures, objectCount );
+		ObjectBO objectBO = new ObjectBO(billingBO, hosts, objectDAO, threadPoolExecutor, futures, objectCount );
 		
 		// Start collection
 		objectBO.collectObjectVersionData(collectionTime);
