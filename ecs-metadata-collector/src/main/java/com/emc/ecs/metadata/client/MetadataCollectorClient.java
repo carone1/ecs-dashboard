@@ -58,7 +58,7 @@ import com.emc.ecs.metadata.dao.file.FileObjectDAO;
 
 /**
  * ECS S3 client to collect Metadata from various ECS systems 
- * Created by Eric Caron
+ * 
  */
 public class MetadataCollectorClient {
 	
@@ -91,7 +91,20 @@ public class MetadataCollectorClient {
 	private static final String            DATA_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	private static final SimpleDateFormat  DATA_DATE_FORMAT = new  SimpleDateFormat(DATA_DATE_PATTERN);
 	
-	
+	private static final String menuString = "Usage: MetadataCollector [" + ECS_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " + 
+			"[" + ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT + " <admin-username>]" +
+			"[" + ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT + "<admin-password>]" +
+			"[" + ECS_MGMT_PORT_CONFIG_ARGUMENT + "<mgmt-port {default: 4443}>]" +
+			"[" + ELASTIC_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
+			"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port {default: 9300}>]" +
+			"[" + ELASTIC_CLUSTER_CONFIG_ARGUMENT + "<elastic-cluster>]" +
+			"[" + ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT + "<number of days>" + " | " +
+			ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <" + 
+			ECS_COLLECT_BILLING_DATA + "|" + 
+			ECS_COLLECT_BUCKET_DATA + "|" +
+			ECS_COLLECT_OBJECT_DATA + "|" +
+			ECS_COLLECT_OBJECT_VERSION_DATA + "|" +
+			ECS_COLLECT_ALL_DATA +">] "; 
 	
 	private static String  ecsHosts                          = "";
 	private static String  ecsMgmtAccessKey                  = "";
@@ -114,134 +127,8 @@ public class MetadataCollectorClient {
 	
 	public static void main(String[] args) throws Exception {
 
-		String menuString = "Usage: MetadataCollector [" + ECS_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " + 
-													"[" + ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT + " <admin-username>]" +
-				                                    "[" + ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT + "<admin-password>]" +
-													"[" + ECS_MGMT_PORT_CONFIG_ARGUMENT + "<mgmt-port {default: 4443}>]" +
-													"[" + ELASTIC_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
-													"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port {default: 9300}>]" +
-													"[" + ELASTIC_CLUSTER_CONFIG_ARGUMENT + "<elastic-cluster>]" +
-													"[" + ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT + "<number of days>" + " | " +
-				                                        ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <" + 
-															ECS_COLLECT_BILLING_DATA + "|" + 
-															ECS_COLLECT_BUCKET_DATA + "|" +
-															ECS_COLLECT_OBJECT_DATA + "|" +
-															ECS_COLLECT_OBJECT_VERSION_DATA + "|" +
-															ECS_COLLECT_ALL_DATA +">] "; 
-
-		
-		if ( args.length > 0 && args[0].contains("--help")) {
-			System.err.println (menuString);
-			System.err.println("Example queue name are: *");
-			System.exit(0);
-		} else {
-
-			int i = 0;
-			String arg;
-	
-			while (i < args.length && args[i].startsWith("--")) {
-				arg = args[i++];
-
-				if (arg.contains(ECS_HOSTS_CONFIG_ARGUMENT)) {
-					if (i < args.length) {
-						ecsHosts = args[i++];
-					} else {
-						System.err.println(ECS_HOSTS_CONFIG_ARGUMENT + " requires hosts value(s)");
-						System.exit(0);
-					}
-				} else if (arg.contains(ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT)) {
-					if (i < args.length) {
-						ecsMgmtAccessKey = args[i++];
-					} else {
-						System.err.println(ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT + " requires an access-key value");
-						System.exit(0);
-					}
-				}  else if (arg.equals(ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT)) {
-					if (i < args.length) {
-						ecsMgmtSecretKey = args[i++];
-					} else {
-						System.err.println(ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT + " requires a secret-key value");
-						System.exit(0);
-					}
-				} else if (arg.equals(ECS_MGMT_PORT_CONFIG_ARGUMENT)) {
-					if (i < args.length) {
-						ecsMgmtPort = Integer.valueOf(args[i++]);
-					} else {
-						System.err.println(ECS_MGMT_PORT_CONFIG_ARGUMENT + " requires a mgmt port value");
-						System.exit(0);
-					}
-				} else if (arg.equals(ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT)) {
-					if (i < args.length) {
-						relativeObjectModifiedSinceOption = true;
-						objectModifiedSinceNoOfDays       = Integer.valueOf(args[i++]);
-					} else {
-						System.err.println(ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT + " requires a specified number of days value");
-						System.exit(0);
-					}
-				} else if (arg.equals(ECS_COLLECT_DATA_CONFIG_ARGUMENT)) {
-					
-					if (i < args.length) {
-						collectData = args[i++];
-					} else {
-						System.err.println(ECS_COLLECT_DATA_CONFIG_ARGUMENT + " requires a collect data value");
-						System.exit(0);
-					}
-				} else if (arg.contains(ELASTIC_HOSTS_CONFIG_ARGUMENT)) {
-					if (i < args.length) {
-						elasticHosts = args[i++];
-					} else {
-						System.err.println(ELASTIC_HOSTS_CONFIG_ARGUMENT + " requires hosts value(s)");
-						System.exit(0);
-					}
-				} else if (arg.equals(ELASTIC_PORT_CONFIG_ARGUMENT)) {
-					if (i < args.length) {
-						elasticPort = Integer.valueOf(args[i++]);
-					} else {
-						System.err.println(ELASTIC_PORT_CONFIG_ARGUMENT + " requires a port value");
-						System.exit(0);
-					}
-				} else if (arg.equals(ELASTIC_CLUSTER_CONFIG_ARGUMENT)) {
-					if (i < args.length) {
-						elasticCluster = args[i++];
-					} else {
-						System.err.println( ELASTIC_CLUSTER_CONFIG_ARGUMENT + " requires a cluster value");
-						System.exit(0);
-					}
-				} else if (arg.equals(ECS_COLLECTION_DAY_SHIFT_ARGUMENT)) {
-					if (i < args.length) {
-						relativeDayShift = Integer.valueOf(args[i++]);
-					} else {
-						System.err.println(ECS_COLLECTION_DAY_SHIFT_ARGUMENT + " requires a day shift value port value");
-						System.exit(0);
-					}
-				} else {
-					System.err.println(menuString);
-					System.exit(0);
-				} 
-			}                
-		}
-		
-		// Check hosts
-		if(ecsHosts.isEmpty()) {	
-			System.err.println("Missing ECS hostname use " + ECS_HOSTS_CONFIG_ARGUMENT + 
-					           "<host1, host2> to specify a value" );
-			return;
-		}
-		
-		// management access/user key
-		if(ecsMgmtAccessKey.isEmpty()) {
-			System.err.println("Missing managment access key use" + ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT +
-								"<admin-username> to specify a value" );
-			return;
-		}
-
-		// management access/user key
-		if(ecsMgmtSecretKey.isEmpty()) {
-			System.err.println("Missing management secret key use " + ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT +
-								"<admin-password> to specify a value" );
-			return;
-		}
-		
+		// handle passed in arguments
+		handleArguments(args);
 		
 		// grab current to timestamp in order
 		// to label collected data with time
@@ -332,6 +219,130 @@ public class MetadataCollectorClient {
 		
 	}
 
+	/**
+	 * Handles passed in arguments
+	 * @param args
+	 */
+	private static void handleArguments(String[] args) {
+		
+		if ( args.length > 0 && args[0].contains("--help")) {
+			System.err.println (menuString);
+			System.err.println("Example queue name are: *");
+			System.exit(0);
+		} else {
+
+			int i = 0;
+			String arg;
+
+			while (i < args.length && args[i].startsWith("--")) {
+				arg = args[i++];
+
+				if (arg.contains(ECS_HOSTS_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						ecsHosts = args[i++];
+					} else {
+						System.err.println(ECS_HOSTS_CONFIG_ARGUMENT + " requires hosts value(s)");
+						System.exit(0);
+					}
+				} else if (arg.contains(ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						ecsMgmtAccessKey = args[i++];
+					} else {
+						System.err.println(ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT + " requires an access-key value");
+						System.exit(0);
+					}
+				}  else if (arg.equals(ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						ecsMgmtSecretKey = args[i++];
+					} else {
+						System.err.println(ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT + " requires a secret-key value");
+						System.exit(0);
+					}
+				} else if (arg.equals(ECS_MGMT_PORT_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						ecsMgmtPort = Integer.valueOf(args[i++]);
+					} else {
+						System.err.println(ECS_MGMT_PORT_CONFIG_ARGUMENT + " requires a mgmt port value");
+						System.exit(0);
+					}
+				} else if (arg.equals(ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						relativeObjectModifiedSinceOption = true;
+						objectModifiedSinceNoOfDays       = Integer.valueOf(args[i++]);
+					} else {
+						System.err.println(ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT + " requires a specified number of days value");
+						System.exit(0);
+					}
+				} else if (arg.equals(ECS_COLLECT_DATA_CONFIG_ARGUMENT)) {
+
+					if (i < args.length) {
+						collectData = args[i++];
+					} else {
+						System.err.println(ECS_COLLECT_DATA_CONFIG_ARGUMENT + " requires a collect data value");
+						System.exit(0);
+					}
+				} else if (arg.contains(ELASTIC_HOSTS_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						elasticHosts = args[i++];
+					} else {
+						System.err.println(ELASTIC_HOSTS_CONFIG_ARGUMENT + " requires hosts value(s)");
+						System.exit(0);
+					}
+				} else if (arg.equals(ELASTIC_PORT_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						elasticPort = Integer.valueOf(args[i++]);
+					} else {
+						System.err.println(ELASTIC_PORT_CONFIG_ARGUMENT + " requires a port value");
+						System.exit(0);
+					}
+				} else if (arg.equals(ELASTIC_CLUSTER_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						elasticCluster = args[i++];
+					} else {
+						System.err.println( ELASTIC_CLUSTER_CONFIG_ARGUMENT + " requires a cluster value");
+						System.exit(0);
+					}
+				} else if (arg.equals(ECS_COLLECTION_DAY_SHIFT_ARGUMENT)) {
+					if (i < args.length) {
+						relativeDayShift = Integer.valueOf(args[i++]);
+					} else {
+						System.err.println(ECS_COLLECTION_DAY_SHIFT_ARGUMENT + " requires a day shift value port value");
+						System.exit(0);
+					}
+				} else {
+					System.err.println(menuString);
+					System.exit(0);
+				} 
+			}                
+		}
+
+		// Check hosts
+		if(ecsHosts.isEmpty()) {	
+			System.err.println("Missing ECS hostname use " + ECS_HOSTS_CONFIG_ARGUMENT + 
+					"<host1, host2> to specify a value" );
+			return;
+		}
+
+		// management access/user key
+		if(ecsMgmtAccessKey.isEmpty()) {
+			System.err.println("Missing managment access key use" + ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT +
+					"<admin-username> to specify a value" );
+			return;
+		}
+
+		// management access/user key
+		if(ecsMgmtSecretKey.isEmpty()) {
+			System.err.println("Missing management secret key use " + ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT +
+					"<admin-password> to specify a value" );
+			return;
+		}
+	}
+	
+	/**
+	 * Collects Billing data
+	 * 
+	 * @param collectionTime
+	 */
 	private static void collectBillingData(Date collectionTime) {
 		
 		BillingDAO billingDAO = null;
@@ -363,6 +374,11 @@ public class MetadataCollectorClient {
 		billingBO.shutdown();
 	}
 	
+	/**
+	 * Collects bucket data
+	 * 
+	 * @param collectionTime
+	 */
 	private static void collectObjectBucketData(Date collectionTime) {
 		
 		BillingDAO billingDAO = null;
@@ -397,6 +413,11 @@ public class MetadataCollectorClient {
 		billingBO.shutdown();
 	}
 	
+	/**
+	 * Collects object data
+	 * 
+	 * @param collectionTime
+	 */
 	private static void collectObjectData(Date collectionTime) {
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
@@ -434,7 +455,12 @@ public class MetadataCollectorClient {
 		objectBO.shutdown();
 	}
 	
-	
+	/**
+	 * Collect only objects modified since a certain date
+	 * 
+	 * @param collectionTime
+	 * @param numberOfDays
+	 */
 	private static void collectObjectDataModifiedSinceDate(Date collectionTime, Integer numberOfDays) {
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
@@ -479,7 +505,11 @@ public class MetadataCollectorClient {
 		objectBO.shutdown();
 	}
 	
-	
+	/**
+	 * Collects object version data
+	 * 
+	 * @param collectionTime
+	 */
 	private static void collectObjectVersionData(Date collectionTime) {
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));

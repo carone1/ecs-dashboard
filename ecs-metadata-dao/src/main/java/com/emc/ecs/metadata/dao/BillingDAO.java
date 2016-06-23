@@ -35,8 +35,6 @@ import com.emc.ecs.management.entity.ObjectBuckets;
 
 
 
-
-
 public interface BillingDAO {
 
 	public enum ManagementDataType {
@@ -46,13 +44,25 @@ public interface BillingDAO {
 	};
 	
 	/**
-	 * 
+	 * Inserts billing namespace info into datastore 
+	 * @param billingData
+	 * @param collectionTime
 	 */
 	public void insert(NamespaceBillingInfo billingData, Date collectionTime);
 	
 	
+	
+	/**
+	 * Inserts bucket info into datastore 
+	 * @param bucketReponse
+	 * @param collectionTime
+	 */
 	public void insert(ObjectBuckets bucketResponse, Date collectionTime);
 	
-	
+	/**
+	 * Purge date collected before a certain date
+	 * @param type
+	 * @param collectionTime
+	 */
 	public Long purgeOldData( ManagementDataType type, Date collectionTime);
 }

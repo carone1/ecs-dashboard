@@ -66,7 +66,7 @@ public class ManagementClientConfig {
 	}
 
 	//===================================
-	// Constructor
+	// Public Methods
 	//===================================
 	public List<String> getHostList() {
 		return hostList;

@@ -42,16 +42,44 @@ public interface ObjectDAO {
 		object_versions
 	};
 	
-	
+	/**
+	 * Inserts list object data into datastore
+	 * @param listObjectsResult
+	 * @param namespace
+	 * @param bucketName
+	 * @param collectionTime
+	 */
 	public void insert( ListObjectsResult listObjectsResult, String namespace,
 						String bucketName, Date collectionTime );
 	
+	/**
+	 * Inserts query object data into datastore
+	 * @param listObjectsResult
+	 * @param namespace
+	 * @param bucketName
+	 * @param collectionTime
+	 */
 	public void insert( QueryObjectsResult queryObjectsResult, String namespace,
 						String bucketName, Date collectionTime );
 
+	/**
+	 * Inserts object versions data into datastore
+	 * @param listVersionResult
+	 * @param namespace
+	 * @param name
+	 * @param collectionTime
+	 */
 	public void insert( ListVersionsResult listVersionsResult, String namespace,
 						String name, Date collectionTime);
 	
+	
+	/**
+	 * Purges object data collected before a certain date
+	 * 
+	 * @param type
+	 * @param collectionTime
+	 * @return Long
+	 */
 	public Long purgeOldData( ObjectDataType type, Date collectionTime);
 	
 	

@@ -57,6 +57,9 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 public class ManagementClient {
 
+	//================================
+	// Final Members
+	//================================
 	private static final Integer HOST_LIST_PROVIDER_PORT                = 9020;
 	
 	private static final String X_SDS_AUTH_TOKEN     					= "X-SDS-AUTH-TOKEN";
@@ -88,11 +91,11 @@ public class ManagementClient {
 	public ManagementClient(ManagementClientConfig mgmtConfig){
 		this.mgmtConfig = mgmtConfig;
 		try {
-			//this.uri = new URI("https://" + this.mgmtConfig.getHostList().get(0) + ":" + this.mgmtConfig.getPort());
+			// using a bogus host as the smart client will replace with a verified healthy host
+			// from the configured list
 			this.uri = new URI("https://" + "somehost.com" + ":" + this.mgmtConfig.getPort());
 		} catch (URISyntaxException e) {
-			// TODO add error log
-			e.printStackTrace();
+			throw new RuntimeException(e.getLocalizedMessage());
 		}		
 		
 		mgmtClient = createMgmtClient( this.mgmtConfig.getHostList()  );
@@ -102,7 +105,8 @@ public class ManagementClient {
 	// Public Methods
 	//================================
 	/**
-	 * 
+	 * lists namespaces 
+	 * @param namespaceRequest
 	 * @return ListNamespacesResult
 	 */
 	public ListNamespacesResult listNamespaces(ListNamespaceRequest namespaceRequest) {
@@ -127,7 +131,7 @@ public class ManagementClient {
 	}
 	
 	/**
-	 * 
+	 * Returns Billing Namespace info 
 	 * @param namespaceRequest
 	 * @return NamespaceBillingInfoResponse
 	 */
@@ -188,7 +192,7 @@ public class ManagementClient {
 	}
 	
 	/**
-	 * 
+	 * Returns billing bucket specific info
 	 * @param namespaceRequest
 	 * @return ObjectBucketsResponse
 	 */

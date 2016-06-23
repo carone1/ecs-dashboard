@@ -137,9 +137,7 @@ public class ElasticBillingDAO implements BillingDAO {
 	// Public methods
 	//========================
 	/**
-	 * Inserts namespace billing info into Elasticsearch
-	 * @param NamespaceBillingInfo
-	 * @param Date
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void insert( NamespaceBillingInfo billingData, Date collectionTime ) {
@@ -181,9 +179,7 @@ public class ElasticBillingDAO implements BillingDAO {
 	}
 
 	/**
-	 * Inserts Bucket related information into Elasticsearch
-	 * @param ObjectBuckets
-	 * @param Date
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void insert( ObjectBuckets objectBuckets, Date collectionTime ) {
@@ -220,7 +216,9 @@ public class ElasticBillingDAO implements BillingDAO {
 		}
 	}
 	
-	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Long purgeOldData(ManagementDataType type, Date thresholdDate) {
 

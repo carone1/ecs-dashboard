@@ -36,10 +36,16 @@ import com.emc.object.s3.bean.ListVersionsResult;
 import com.emc.object.s3.bean.QueryObjectsResult;
 
 
-
+/**
+ * Class responsible to implement data store operations defined in ObjectDOA
+ * @author carone1
+ *
+ */
 public class FileObjectDAO implements ObjectDAO {
 	
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void insert( ListObjectsResult listObjectsResult, 
 			 			String namespace,
@@ -60,6 +66,9 @@ public class FileObjectDAO implements ObjectDAO {
 		
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void insert( QueryObjectsResult queryObjectsResult, String namespace,
 						String bucketName, Date collectionTime ) {
@@ -72,6 +81,9 @@ public class FileObjectDAO implements ObjectDAO {
 		return;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void insert( ListVersionsResult listVersionsResult, String namespace,
 						String bucketName, Date collectionTime) {
@@ -91,6 +103,9 @@ public class FileObjectDAO implements ObjectDAO {
 		return;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Long purgeOldData(ObjectDataType type, Date collectionTime) {
 		// doing nothing

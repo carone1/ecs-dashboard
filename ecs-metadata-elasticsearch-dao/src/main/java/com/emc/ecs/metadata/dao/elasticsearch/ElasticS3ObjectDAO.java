@@ -150,7 +150,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		}				
 	}
 
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void insert(ListObjectsResult listObjectsResult, String namespace, String bucket, Date collectionTime) {
 		
@@ -187,7 +189,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		}
 	}
 	
-	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void insert( QueryObjectsResult queryObjectsResult, String namespace,
 						String bucketName, Date collectionTime ) {
@@ -225,7 +229,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		}
 	}
 	
-	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void insert(ListVersionsResult listVersionsResult, String namespace,
 			           String bucketName, Date collectionTime) {
@@ -274,6 +280,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		}
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Long purgeOldData(ObjectDataType type, Date thresholdDate) {
 			
@@ -289,23 +298,58 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		}
 	}
 	
+	/**
+	 * Converts Object data in JSON format for Elasticsearch
+	 * 
+	 * @param s3Object
+	 * @param namespace
+	 * @param bucket
+	 * @param collectionTime
+	 * @return
+	 */
 	public static XContentBuilder toJsonFormat( S3Object s3Object, String namespace, String bucket, Date collectionTime ) {						
 		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
 	}
 	
-	
+	/**
+	 * Converts Object data in JSON format for Elasticsearch
+	 * 
+	 * @param version
+	 * @param namespace
+	 * @param bucketName
+	 * @param collectionTime
+	 * @return
+	 */
 	public XContentBuilder toJsonFormat(Version version,
 			String namespace, String bucketName, Date collectionTime) {
 		
 		return toJsonFormat( version, namespace, bucketName, collectionTime, null);
 	}
 	
+	/**
+	 * Converts Object data in JSON format for Elasticsearch
+	 * 
+	 * @param deleteMarker
+	 * @param namespace
+	 * @param bucketName
+	 * @param collectionTime
+	 * @return
+	 */
 	public XContentBuilder toJsonFormat(DeleteMarker deleteMarker,
 			String namespace, String bucketName, Date collectionTime) {
 		
 		return toJsonFormat( deleteMarker, namespace, bucketName, collectionTime, null);
 	}
 	
+	/**
+	 * Converts Object data in JSON format for Elasticsearch
+	 * 
+	 * @param s3Object
+	 * @param namespace
+	 * @param bucket
+	 * @param collectionTime
+	 * @return
+	 */
 	public static XContentBuilder toJsonFormat( QueryObject s3Object, String namespace, String bucket, Date collectionTime ) {						
 		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
 	}
@@ -315,7 +359,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	// Private methods
 	//=======================
 
-	
+	/**
+	 * Init Object index
+	 */
 	private void initS3ObjectIndex() {
 
 		if (elasticClient
@@ -418,7 +464,16 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	}
 	
 
-	
+	/**
+	 * Converts Object data into JSON format
+	 * 
+	 * @param s3Object
+	 * @param namespace
+	 * @param bucket
+	 * @param collectionTime
+	 * @param builder
+	 * @return
+	 */
 	private static XContentBuilder toJsonFormat( S3Object s3Object, 
 			String namespace, 
 			String bucket,
@@ -453,7 +508,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		return builder;
 	}
 
-
+	/**
+	 * Init Object version index
+	 */
 	private void initS3ObjectVersionIndex() {
 
 		if (elasticClient
@@ -551,7 +608,16 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		}
 	}
 	
-	
+	/**
+	 * Converts object version data to json 
+	 * 
+	 * @param version
+	 * @param namespace
+	 * @param bucket
+	 * @param collectionTime
+	 * @param builder
+	 * @return
+	 */
 	private static XContentBuilder toJsonFormat( Version version, 
 												 String   namespace, 
 												 String   bucket,
@@ -588,6 +654,16 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		return builder;
 	}
 	
+	/**
+	 * Converts
+	 * 
+	 * @param deleteMarker
+	 * @param namespace
+	 * @param bucket
+	 * @param collectionTime
+	 * @param builder
+	 * @return
+	 */
 	private static XContentBuilder toJsonFormat( DeleteMarker deleteMarker, 
 			String   namespace, 
 			String   bucket,
@@ -622,7 +698,16 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		return builder;
 	}
 	
-	
+	/**
+	 * Converts Query Object data into JSON
+	 * 
+	 * @param queryObject
+	 * @param namespace
+	 * @param bucket
+	 * @param collectionTime
+	 * @param builder
+	 * @return
+	 */
 	private static XContentBuilder toJsonFormat( QueryObject queryObject, 
 			String namespace, 
 			String bucket,
@@ -660,7 +745,14 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	}
 
 
-
+	/**
+	 * Purges documents based on collection dates
+	 * 
+	 * @param thresholdDate
+	 * @param indexName
+	 * @param indexType
+	 * @return
+	 */
 	private Long purgeIndex(Date thresholdDate, String indexName, String indexType) {
 		
 		Long deletedDocs = 0L;

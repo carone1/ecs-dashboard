@@ -30,6 +30,12 @@ package com.emc.ecs.metadata.dao.elasticsearch;
 
 import java.util.List;
 
+/**
+ * Configuration class holding config parameters
+ * for interacting with ElasticSearch
+ * @author carone1
+ *
+ */
 public class ElasticDAOConfig {
 	
 	//==========================

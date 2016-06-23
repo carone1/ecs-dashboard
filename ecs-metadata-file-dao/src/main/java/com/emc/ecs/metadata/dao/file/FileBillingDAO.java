@@ -40,6 +40,11 @@ import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.metadata.dao.BillingDAO;
 
+/**
+ * Class responsible to implement data store operations defined in BillingDOA
+ * @author carone1
+ *
+ */
 public class FileBillingDAO implements BillingDAO {
 	
 	private String destinationPath;	
@@ -48,7 +53,9 @@ public class FileBillingDAO implements BillingDAO {
 		this.destinationPath = outputPath;
 	}
 	
-	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void insert(NamespaceBillingInfo billingData, Date collectionTime) {
 				
@@ -72,7 +79,9 @@ public class FileBillingDAO implements BillingDAO {
 
 	}
 			
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void insert(ObjectBuckets bucketResponse, Date collectionTime) {
 
@@ -96,7 +105,9 @@ public class FileBillingDAO implements BillingDAO {
 
 	}
 
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Long purgeOldData(ManagementDataType type, Date collectionTime) {
 		// 
