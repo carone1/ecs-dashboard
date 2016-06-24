@@ -54,7 +54,8 @@ public interface ObjectDAO {
 	
 	/**
 	 * Inserts query object data into datastore
-	 * @param listObjectsResult
+	 * 
+	 * @param queryObjectsResult
 	 * @param namespace
 	 * @param bucketName
 	 * @param collectionTime
@@ -64,7 +65,7 @@ public interface ObjectDAO {
 
 	/**
 	 * Inserts object versions data into datastore
-	 * @param listVersionResult
+	 * @param listVersionsResult
 	 * @param namespace
 	 * @param name
 	 * @param collectionTime

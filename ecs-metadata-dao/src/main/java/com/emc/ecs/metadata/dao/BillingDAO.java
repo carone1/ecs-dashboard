@@ -54,7 +54,7 @@ public interface BillingDAO {
 	
 	/**
 	 * Inserts bucket info into datastore 
-	 * @param bucketReponse
+	 * @param bucketResponse
 	 * @param collectionTime
 	 */
 	public void insert(ObjectBuckets bucketResponse, Date collectionTime);

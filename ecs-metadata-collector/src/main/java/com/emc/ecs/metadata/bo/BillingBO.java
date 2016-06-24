@@ -120,7 +120,7 @@ public class BillingBO {
 	
 	/**
 	 * Collects Billing metadata for all namespace defined on a cluster
-	 * @param Date
+	 * @param collectionTime
 	 */
 	public void collectBillingData( Date collectionTime ) {
 										
@@ -211,7 +211,7 @@ public class BillingBO {
 
 	/**
 	 * Collects Bucket metadata for all namespace defined on a cluster
-	 * @param Date
+	 * @param objectBucketMap
 	 */
 	public void getObjectBukcetData( Map<NamespaceBucketKey, ObjectBucket> objectBucketMap) {
 		
@@ -224,7 +224,7 @@ public class BillingBO {
 	
 	/**
 	 * Collects Bucket metadata for all namespace defined on a cluster
-	 * @param Date
+	 * @param collectionTime
 	 */
 	public void collectObjectBukcetData( Date collectionTime ) {
 		
@@ -236,7 +236,9 @@ public class BillingBO {
 	
 	/**
 	 * Collects Bucket metadata for all namespace defined on a cluster
-	 * @param Date
+	 * @param objectBucketMap
+	 * @param collectionTime
+	 * @param billDAO
 	 */
 	private  void collectObjectBukcetData( Map<NamespaceBucketKey, ObjectBucket> objectBucketMap,
 										   Date collectionTime, BillingDAO billDAO    ) {

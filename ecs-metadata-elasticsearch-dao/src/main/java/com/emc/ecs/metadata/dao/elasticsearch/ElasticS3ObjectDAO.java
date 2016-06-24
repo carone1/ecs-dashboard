@@ -305,7 +305,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * @param namespace
 	 * @param bucket
 	 * @param collectionTime
-	 * @return
+	 * @return XContentBuilder
 	 */
 	public static XContentBuilder toJsonFormat( S3Object s3Object, String namespace, String bucket, Date collectionTime ) {						
 		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
@@ -318,7 +318,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * @param namespace
 	 * @param bucketName
 	 * @param collectionTime
-	 * @return
+	 * @return XContentBuilder
 	 */
 	public XContentBuilder toJsonFormat(Version version,
 			String namespace, String bucketName, Date collectionTime) {
@@ -333,7 +333,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * @param namespace
 	 * @param bucketName
 	 * @param collectionTime
-	 * @return
+	 * @return XContentBuilder
 	 */
 	public XContentBuilder toJsonFormat(DeleteMarker deleteMarker,
 			String namespace, String bucketName, Date collectionTime) {
@@ -348,7 +348,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * @param namespace
 	 * @param bucket
 	 * @param collectionTime
-	 * @return
+	 * @return XContentBuilder
 	 */
 	public static XContentBuilder toJsonFormat( QueryObject s3Object, String namespace, String bucket, Date collectionTime ) {						
 		return toJsonFormat(s3Object, namespace, bucket,collectionTime, null);
@@ -472,7 +472,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * @param bucket
 	 * @param collectionTime
 	 * @param builder
-	 * @return
+	 * @return XContentBuilder
 	 */
 	private static XContentBuilder toJsonFormat( S3Object s3Object, 
 			String namespace, 
@@ -616,7 +616,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * @param bucket
 	 * @param collectionTime
 	 * @param builder
-	 * @return
+	 * @return XContentBuilder
 	 */
 	private static XContentBuilder toJsonFormat( Version version, 
 												 String   namespace, 
@@ -662,7 +662,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * @param bucket
 	 * @param collectionTime
 	 * @param builder
-	 * @return
+	 * @return XContentBuilder
 	 */
 	private static XContentBuilder toJsonFormat( DeleteMarker deleteMarker, 
 			String   namespace, 
@@ -706,7 +706,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * @param bucket
 	 * @param collectionTime
 	 * @param builder
-	 * @return
+	 * @return XContentBuilder
 	 */
 	private static XContentBuilder toJsonFormat( QueryObject queryObject, 
 			String namespace, 
@@ -751,7 +751,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * @param thresholdDate
 	 * @param indexName
 	 * @param indexType
-	 * @return
+	 * @return Long
 	 */
 	private Long purgeIndex(Date thresholdDate, String indexName, String indexType) {
 		
@@ -822,8 +822,5 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		
 		return deletedDocs;
 	}
-
-
-
 
 }
