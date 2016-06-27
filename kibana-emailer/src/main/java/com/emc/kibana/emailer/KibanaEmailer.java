@@ -227,60 +227,175 @@ public class KibanaEmailer {
 			
 			Object object = reader.read();
 			
+			if(object == null) {
+				logger.info( "Can't load config data from: " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't load config data from: " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
+			
 			Map<?,?> map = (Map<?,?>)object;
 			
+			if(map == null) {
+				logger.info( "Can't load config data from: " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't load config data from: " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
+			
 		    // chromedriver
-			chromeDriverPath = (String)map.get(CHROME_DRIVER_CONFIG);
+			Object driverPathObj = map.get(CHROME_DRIVER_CONFIG);
+			if(driverPathObj != null && driverPathObj instanceof String ) {
+				chromeDriverPath = (String)driverPathObj;
+			} else {
+				logger.info("Can't find: " + CHROME_DRIVER_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + CHROME_DRIVER_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
 			
 			// chromebrowser
-			chromeBrowserPath = (String)map.get(CHROME_BROWSER_CONFIG);
+			Object browserPathObj = map.get(CHROME_BROWSER_CONFIG);
+			if(browserPathObj != null && browserPathObj instanceof String ) {
+				chromeBrowserPath = (String)browserPathObj;
+			} else {
+				logger.info("Can't find: " + CHROME_BROWSER_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + CHROME_BROWSER_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
 			
-			screenCaptureDelay = Integer.valueOf((String)map.get(SCREEN_CAPTURE_DELAY));
+			Object captureDelayObj = map.get(SCREEN_CAPTURE_DELAY);
+			if(captureDelayObj != null && captureDelayObj instanceof String ) {
+				screenCaptureDelay = Integer.valueOf((String)captureDelayObj);
+			} else {
+				logger.info("Can't find: " + SCREEN_CAPTURE_DELAY + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + SCREEN_CAPTURE_DELAY + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
 			
 			// Kibana Urls
 			Object urls = map.get(KIBANA_URLS_CONFIG);
 			
-			if(urls instanceof ArrayList<?>) {
+			if(urls != null && urls instanceof ArrayList<?>) {
 				kibanaUrls =  (ArrayList<Map<String, String>>)urls;
+			} else {
+				logger.info("Can't find: " + KIBANA_URLS_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + KIBANA_URLS_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
 			}
 				
 			// destination path to save screen captures
-			destinationPath = (String)map.get(DESTINATION_PATH_CONFIG);
+			Object destinationObj = map.get(DESTINATION_PATH_CONFIG);
+			if( destinationObj != null && destinationObj instanceof String ) {
+				destinationPath = (String)destinationObj;
+			} else {
+				logger.info("Can't find: " + DESTINATION_PATH_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + DESTINATION_PATH_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
 			
 			// == smtp config ==
 			
 			// smtp.host
-			smtpHost = (String)map.get(SMTP_HOST_CONFIG);
+			Object smtpHostObj = map.get(SMTP_HOST_CONFIG);
+			if(smtpHostObj != null && smtpHostObj instanceof String) {
+				smtpHost = (String)smtpHostObj;
+			} else {
+				logger.info("Can't find: " + SMTP_HOST_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + SMTP_HOST_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
+			
 			// smtp.port
-			smtpPort = (String)map.get(SMTP_PORT_CONFIG);
+			Object smtpPortObj = map.get(SMTP_PORT_CONFIG);
+			if(smtpPortObj != null && smtpPortObj instanceof String) {
+				smtpPort = (String)smtpHostObj;
+			} else {
+				logger.info("Can't find: " + SMTP_PORT_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + SMTP_PORT_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
+			
 			// smtp.username
-			smtpUsername = (String)map.get(SMTP_USERNAME_CONFIG);
+			Object smtpUsernameObj = map.get(SMTP_USERNAME_CONFIG);
+			if(smtpUsernameObj != null && smtpUsernameObj instanceof String) {
+				smtpUsername = (String)smtpUsernameObj;
+			} else {
+				logger.info("Can't find: " + SMTP_USERNAME_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + SMTP_USERNAME_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
+			
 			// smtp.password
-			smtpPassword = (String)map.get(SMTP_PASSWORD_CONFIG);
+			Object smtpPasswordObj = map.get(SMTP_PASSWORD_CONFIG);
+			if(smtpPasswordObj != null && smtpPasswordObj instanceof String) {
+				smtpPassword = (String)smtpPasswordObj;
+			} else {
+				logger.info("Can't find: " + SMTP_PASSWORD_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + SMTP_PASSWORD_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
 			
 			// smtp.security "tls|ssl"
-			smtpSecurity = (String)map.get(SMTP_SECURITY_CONFIG);
+			Object smtpSecurityObj = map.get(SMTP_SECURITY_CONFIG);
+			if(smtpSecurityObj != null && smtpSecurityObj instanceof String) {
+				smtpSecurity = (String)smtpSecurityObj;
+			} else {
+				logger.info("Can't find: " + SMTP_SECURITY_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + SMTP_SECURITY_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
 
 			// source.host
-			sourceHost = (String)map.get(SOURCE_HOST_CONFIG);
-				
+			Object sourceHostObj = map.get(SOURCE_HOST_CONFIG);
+			if(sourceHostObj != null && sourceHostObj instanceof String) {
+				sourceHost = (String)sourceHostObj;
+			} else {
+				logger.info("Can't find: " + SOURCE_HOST_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + SOURCE_HOST_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}	
 
 			// e-mail addresses configuration
 			// source.mail
-			sourceAddress = (String)map.get(SOURCE_ADDRESS_CONFIG);
+			Object sourceAddressObj = map.get(SOURCE_ADDRESS_CONFIG);
+			if(sourceAddressObj != null && sourceAddressObj instanceof String) {
+				sourceAddress = (String)sourceAddressObj;
+			} else {
+				logger.info("Can't find: " + SOURCE_ADDRESS_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + SOURCE_ADDRESS_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}	
 			
 			// destination.addresses
 			Object destinations = map.get(DESTINATION_ADDRESS_CONFIG);
 			
-			if(destinations instanceof ArrayList<?>) {
+			if(destinations != null && destinations instanceof ArrayList<?>) {
 				destinationAddressList =  (ArrayList<String>)destinations;
+			} else {
+				logger.info("Can't find: " + DESTINATION_ADDRESS_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + DESTINATION_ADDRESS_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
 			}
 			
 			// e-mail content
 			// mail.title
-			mailTitle = (String)map.get(MAIL_TITLE_CONFIG);
+			Object mailTitleObj = map.get(MAIL_TITLE_CONFIG);
+			if(mailTitleObj != null && mailTitleObj instanceof String) {
+				mailTitle = (String)mailTitleObj;
+			} else {
+				logger.info("Can't find: " + MAIL_TITLE_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + MAIL_TITLE_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
+			
 			// mail.body
-			mailBody = (String)map.get(MAIL_BODY_CONFIG);
+			Object mailBodyObj = map.get(MAIL_BODY_CONFIG);
+			if(mailBodyObj != null && mailBodyObj instanceof String) {
+				mailBody = (String)mailBodyObj;
+			} else {
+				logger.info("Can't find: " + MAIL_BODY_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.out.println("Can't find: " + MAIL_BODY_CONFIG + " in " + kibanaConfigFile + " exiting...");
+				System.exit(0);
+			}
+			
 			
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
