@@ -55,7 +55,7 @@ dependencies {
     compile "org.eclipse.persistence:org.eclipse.persistence.moxy:2.5.0"
     compile project(':ecs-mgmt-client')
     compile project(':ecs-metadata-dao')
-    compile project(':ecs-metadata-file-dao')
+    compile project(':ecs-metadata-stdout-dao')
     compile project(':ecs-metadata-elasticsearch-dao')
     compile "com.emc.ecs:object-client:2.2.0"
           
