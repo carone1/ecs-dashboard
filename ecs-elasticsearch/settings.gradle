@@ -1,6 +1,0 @@
-
-include 'ecs-mgmt-client'
-project(":ecs-mgmt-client").projectDir = file("../ecs-mgmt-client")
-
-include 'ecs-metadata-dao'
-project(":ecs-metadata-dao").projectDir = file("../ecs-metadata-dao")

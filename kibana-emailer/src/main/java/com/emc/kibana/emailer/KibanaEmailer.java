@@ -306,7 +306,7 @@ public class KibanaEmailer {
 			// smtp.port
 			Object smtpPortObj = map.get(SMTP_PORT_CONFIG);
 			if(smtpPortObj != null && smtpPortObj instanceof String) {
-				smtpPort = (String)smtpPortObj;
+				smtpPort = (String)smtpHostObj;
 			} else {
 				logger.info("Can't find: " + SMTP_PORT_CONFIG + " in " + kibanaConfigFile + " exiting...");
 				System.out.println("Can't find: " + SMTP_PORT_CONFIG + " in " + kibanaConfigFile + " exiting...");
