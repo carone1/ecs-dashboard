@@ -1,8 +1,10 @@
-ECS-Dashbaord
+ECS-Dashboard
 ======================
 
 
 ##Target Deployment
+
+![Target Deployment](https://github.com/carone1/ecs-dashboard/blob/master/doc/images/ECSAnalyticsDeployment.png)
 
 ###Assumptions:
 
@@ -13,7 +15,6 @@ ECS-Dashbaord
 5. 10 GigE network between hosts
 6. Enough storage to hold daily metadata. 2B objects scenario should require 550Gb per day per ElasticSearch node.
 
-![Target Deployment][doc/images/ECSAnalyticsDeployment.png]
 
 
 It is highly recommended to read ElasticSearch Node documentation to better understand the different roles an ElasticSearch Host can support.
@@ -192,13 +193,13 @@ The kibana configuration changes should applied only after the ECS Metadata Coll
 
 Using Chrome Sense plugin verify that ecs-bucket, ecs-s3-object, ecs-billing-bucket, ecs-billing-namespace indexes are present and have entries in the docs.count column.  (Rest command: get _cat/indices?v)
 
-[ElasticSearch Index Presence](doc/images/elasticSearchIndexPresence.png)
+![ElasticSearch Index Presence](https://github.com/carone1/ecs-dashboard/blob/master/doc/images/elasticSearchIndexPresence.png)
 
 	Access Kibanna: http://<kibana-ip>:<kibana-port>/app/kibana#
 
 ### Configure Index Patterns
 
-[Kibana index Pattern] (doc/images/kibanaindexPattern.png)
+![Kibana Index Pattern] (https://github.com/carone1/ecs-dashboard/blob/master/doc/images/kibanaIndexPattern.png)
 
 Under Settings / Indexes
 

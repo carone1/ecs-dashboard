@@ -1,4 +1,4 @@
-ECS-Dashbaord
+ECS-Dashboard
 ======================
 This project provides Custom Kibana Dashboards for EMC's Elastic Cloud Storage (ECS).
 
