@@ -47,9 +47,14 @@ As indicated in the Elasticsearch documentation see link, we recommend to instal
 2. ECS cleaner program should be installed on all hosts. It is expected that only one host is scheduled to clean data from the ElasticSearch cluster
 3. Kibana emailer works better on Ubuntu.  Issues were encountered tyring to use Centos6.   To be verified on Centos 7.
 
+
+# Compilation
+
+[Compilation Guide] (doc/compilation.md)
+
 # Installation
 
-[Installatio Guide] (installation.md)
+[Installation Guide] (doc/installation.md)
 
 
 
