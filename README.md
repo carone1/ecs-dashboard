@@ -37,7 +37,7 @@ Supported Kibana Reports
 
 ## Usage Instructions
 
-[User Guide] (userguide.md)
+[User Guide] (user-guide.md)
 
 
 ## Future
