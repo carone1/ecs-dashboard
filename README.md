@@ -24,7 +24,7 @@ Supported Kibana Reports
 4. Report 4 - Multi Version File / Object Report
 5. Report 5 - Filename / ObjectName Report (Search report) 
 
-[Dashboard Screenshots] (doc/dashboard-secreenshots.md)
+[Dashboard Screenshots] (doc/dashboard-screenshots.md)
 
 # Compilation
 
