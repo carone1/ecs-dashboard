@@ -38,6 +38,67 @@ As indicated in the Elasticsearch documentation see link, we recommend to instal
 
 # Installations
 
+## Install Java
+
+Java should already be installed as part of the ElasticSearch Guide if not install it.
+
+        wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-linux-x64.rpm"
+
+        sudo yum -y localinstall jdk-8u121-linux-x64.rpm
+
+### Configure Java
+
+        sudo update-alternatives --config java
+
+        There are 3 programs which provide 'java'.
+
+        Selection Command
+        -----------------------------------------------
+        1 /usr/lib/jvm/java-1.7.0-openjdk-1.7.0.91-2.6.2.3.el7.x86_64/jre/bin/java
+      * 2 /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.65-3.b17.el7.x86_64/jre/bin/java
+        3 /usr/java/jdk1.8.0_73/jre/bin/java
+      + 4 /usr/java/jdk1.8.0_121/jer/bin/java
+
+      Enter to keep the current selection[+], or type selection number:
+
+      Ensure the + sign is beside jdk version you just installed.
+
+      sudo vi /etc/environment
+
+      JAVA_HOME=/usr/java/jdk1.8.0_121/jre/
+      export JAVA_HOME
+
+      (Adjust path where the jdk/jre is installed)
+
+      source /etc/environment
+
+Setting JAVA_HOME is really important because the metadata collector relies on the `JAVA_HOME` variable to grab certificates.
+
+## ECS Management Certificates
+
+The ECS Metadata Collector requires SSL certificates in order to communicate with ECS VMs.
+
+### Download Management SSL Certificate From Existing ECS
+
+        echo -n | openssl s_client -connect <ecs-node-ip>:4443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/ecs-mgmt.crt
+
+### Management Certificate
+Assuming management certificate is called /tmp/ecs-mgmt.crt
+
+        As root: keytool -importcert -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit -file /tmp/ecs-mgmt.crt -alias ecs-mgmt
+
+### Update Hosts File
+
+Depending on how certificates are setup some hosts might need to be configured in local host file.
+
+#### Fictive Example
+
+        Update /etc/hosts:
+        <ip-address-1> ecs-host-vm-1
+        <ip-address-2> ecs-host-vm-2
+        <ip-address-3> ecs-host-vm-3
+        <ip-address-4> ecs-host-vm-4
+
 
 
 ## ElasticSearch
@@ -89,19 +150,6 @@ Download and Install: [Sense Chrome Plugin] (https://chrome.google.com/webstore/
 	3. update path so logs will go to a proper location
 		`<property name="DEV_HOME" value="update-to-your-location/ecs-collector-logs" />`
 
-## Install Java
-
-Java should already be installed as part of the ElasticSearch Guide if not install it.
-
-	sudo yum install java-<version>
-	
-### Configure Java
-
-	export JAVA_HOME=/usr/java/<version>/jre 
-	(Adjust path where the jdk/jre is installed) 
-	Consider adding export to user's bashrc file running collector.
-
-Setting JAVA_HOME is important because the metadata collector relies on `JAVA_HOME` variable to grab certificates.
 
 ## ECS Management Certificates
 
@@ -114,7 +162,7 @@ The ECS Metadata Collector requires SSL certificates in order to communicate wit
 ### Management Certificate
 Assuming management certificate is called /tmp/ecs-mgmt.crt
 
-	As root: keytool -importcert -keystore /usr/java/jre/lib/security/cacerts -storepass changeit -file /tmp/ecs-mgmt.crt -alias ecs-mgmt
+	As root: keytool -importcert -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit -file /tmp/ecs-mgmt.crt -alias ecs-mgmt
 
 ### Update Hosts File
 
@@ -125,6 +173,8 @@ Depending on how certificates are setup some hosts might need to be configured i
 	Update /etc/hosts:
 	<ip-address-1> ecs-host-vm-1   
 	<ip-address-2> ecs-host-vm-2
+        <ip-address-3> ecs-host-vm-3
+        <ip-address-4> ecs-host-vm-4
 
 ## Run ECS Metadata Collector
 
