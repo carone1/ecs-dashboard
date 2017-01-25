@@ -40,9 +40,9 @@ As indicated in the Elasticsearch documentation see link, we recommend to instal
 
 ## Manual Installations
 
-[Manual Installation] (manual-installation.md)
+[Manual Installation] (./manual-installation.md)
 
 ## Ansible Installations
 
-[Ansible Installation ] (ansible-installation.md)
+[Ansible Installation ] (./ansible-installation.md)
 
