@@ -111,11 +111,11 @@ to deploy Elasticsearch on our hosts.
         ansible_user: labadmin
         es_instance_name: "es1"
         es_heap_size: "4g"
-         
+      ```   
         
         
 
-      Note: Most values can be modified to fit your preferences like es_instance_name, 
+Note: Most values can be modified to fit your preferences like es_instance_name, 
       node.name, cluster.name. Change the value eno33557248 to match your hosts nic.
       
 8. run elasticsearch playbook on ansible01
@@ -140,7 +140,7 @@ Should be getting an output like this.
      },
      "tagline" : "You Know, for Search"
      }
-     
+     ```
 
 ## Chrome Sense Plugin For Elasticsearch
 
