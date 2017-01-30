@@ -33,13 +33,6 @@ The workload is handled by nodes called: node01, node02, node03
           
           become_method=sudo
 6. Ensure user account to run ansible playbook has sudo privileges on node01, node02 and node03.
-7. Might have to open port for Elasticsearch Communications. 
-   Assuming default ElasticSearch ports (9200, 9300) are used for the installation. 
-   Repeat steps below for node01, node02 and node03. 
-   
-           sudo firewall-cmd --zone=public --add-port=9200/tcp --permanent
-           sudo firewall-cmd --zone=public --add-port=9300/tcp --permanent
-           sudo firewall-cmd --reload
       
 
 
@@ -55,7 +48,7 @@ to deploy Elasticsearch on our hosts.
 	
 2. Clone Elasticsearch playbook
 
-	    git clone https://github.com/elastic/ansible-elasticsearch.git
+	    git clone https://github.com/carone1/ansible-elasticsearch.git
 	
 3. Create /my/playbooks/roles
 
@@ -71,15 +64,17 @@ to deploy Elasticsearch on our hosts.
 	
 6. create hosts file indicating where master and data nodes are running
 
-	    [master_nodes]
+	    [elasticsearch_master_nodes]
 
-	    [master_data_nodes]
+	    [elasticsearch_master_data_nodes]
 	    node01
 	    node02
 	    node03
 
-	    [data_nodes]
-7. Create install-elasticsearch.yml
+	    [elasticsearch_data_nodes]
+7. Create install-elasticsearch.yml or 
+   copy /my/gitrepos/ansible-elasticsearch/install-elasticsearch.yml.sample into /my/playbooks/elasticsearch
+   and modify parameters that might require modifications 
 
       ```
       
@@ -96,27 +91,26 @@ to deploy Elasticsearch on our hosts.
             node.name: "node1",
             cluster.name: "custom-cluster",
             discovery.zen.ping.unicast.hosts: "node01, node02, node03",
-            network.host: "_eno33557248_, , _local_",
+            network.host: "_eth0_, , _local_",
             http.port: 9200,
             transport.tcp.port: 9300,
             node.data: true,
             node.master: true,
             bootstrap.memory_lock: true,
+            http.port: "{{es_api_port}}",
+            transport.tcp.port:  "{{es_transport_port}}",
             }
         }
         vars:
-        es_scripts: false
-        es_templates: false
-        es_version_lock: false
+
         ansible_user: labadmin
         es_instance_name: "es1"
-        es_heap_size: "4g"
       ```   
         
         
 
 Note: Most values can be modified to fit your preferences like es_instance_name, 
-      node.name, cluster.name. Change the value eno33557248 to match your hosts nic.
+      node.name, cluster.name. Change the value eth0 to match your hosts nic.
       
 8. run elasticsearch playbook on ansible01
 
