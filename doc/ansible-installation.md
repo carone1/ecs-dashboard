@@ -136,13 +136,83 @@ Should be getting an output like this.
      }
      ```
 
-## Chrome Sense Plugin For Elasticsearch
 
-To invoke Elasticsearch API's - The Chrome Sense plugin is very useful.
+## Ansible Kibana
 
-Download and Install: [Sense Chrome Plugin] (https://chrome.google.com/webstore/detail/sense-beta/lhjgkmllcaadmopgmanpapmpjgmfcfig?hl=en)
+The collected metadata from ECS is stored in ElasticSearch and displayed using Kibana. 
+An ansible playbook is used to deploy Kibana on our hosts. 
 
 
+1. Create /my/gitrepos directory
+
+	    mkdir /my/gitrepos ; /my/gitrepos
+	
+2. Clone Elasticsearch playbook
+
+	    git clone https://github.com/carone1/ansible-role-kibana.git
+	
+3. Create /my/playbooks/roles
+
+	    mkdir -p /my/playbooks/roles
+	
+4. Link ES playbook under roles
+
+        ln -s /my/gitrepos/ansible-role-kibana /my/playbooks/kibana
+    
+5. cd to playbook
+
+	    cd /my/playbooks/kibana
+	
+6. create hosts file indicating where master and data nodes are running
+
+	    [kibana]
+	    node01
+	    node02
+	    node03
+
+	    
+7.  copy /my/gitrepos/ansible-role-kibana/install-kibana.yml.sample into /my/playbooks/kibana
+    should look like this
+    
+
+      ```      
+     - hosts: kibana
+     roles:
+       - kibana
+
+      ```   
+        
+8. Adjust few parameters in /my/playbooks/kibana/defaults/main.yml if required.     
+
+      ```
+      ---
+      major_kibana_version: "5.x"
+
+      kibana_server_port: 5601
+
+      # specify if playbook should open firewall port
+      kibana_listen_external: true
+
+      # interface where kibana will respond to external request
+      kibana_interface: "eno16777984"
+
+      kibana_elasticsearch_url: "http://localhost:9200"
+
+      kibana_elasticsearch_requestTimeout: 30000
+
+      
+      kibana_logging_dest: /var/log/kibana/kibana.log
+      ```
+      
+8. run kibana playbook on ansible01
+
+	    ansible-playbook -i host install-kibana.yml --ask-become
+    
+9. Point a browser to *node01:9601* or *node02:9601* or *node03:9601*
+
+Kibana interface should be coming.
+
+    
 
 
 
