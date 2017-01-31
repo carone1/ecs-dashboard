@@ -72,9 +72,9 @@ to deploy Elasticsearch on our hosts.
 	    node03
 
 	    [elasticsearch_data_nodes]
-7. Create install-elasticsearch.yml or 
-   copy /my/gitrepos/ansible-elasticsearch/install-elasticsearch.yml.sample into /my/playbooks/elasticsearch
-   and modify parameters that might require modifications 
+	    
+7. copy /my/gitrepos/ansible-elasticsearch/install-elasticsearch.yml.sample into 
+   /my/playbooks/elasticsearch and modify parameters that might require modifications 
 
       ```
       
@@ -92,8 +92,6 @@ to deploy Elasticsearch on our hosts.
             cluster.name: "custom-cluster",
             discovery.zen.ping.unicast.hosts: "node01, node02, node03",
             network.host: "_eth0_, , _local_",
-            http.port: 9200,
-            transport.tcp.port: 9300,
             node.data: true,
             node.master: true,
             bootstrap.memory_lock: true,
@@ -101,10 +99,7 @@ to deploy Elasticsearch on our hosts.
             transport.tcp.port:  "{{es_transport_port}}",
             }
         }
-        vars:
-
-        ansible_user: labadmin
-        es_instance_name: "es1"
+        
       ```   
         
         
@@ -163,7 +158,7 @@ An ansible playbook is used to deploy Kibana on our hosts.
 
 	    cd /my/playbooks/kibana
 	
-6. create hosts file indicating where master and data nodes are running
+6. create hosts file indicating where kibana nodes are running
 
 	    [kibana]
 	    node01
@@ -176,8 +171,8 @@ An ansible playbook is used to deploy Kibana on our hosts.
     
 
       ```      
-     - hosts: kibana
-     roles:
+      - hosts: kibana
+      roles:
        - kibana
 
       ```   
@@ -194,7 +189,7 @@ An ansible playbook is used to deploy Kibana on our hosts.
       kibana_listen_external: true
 
       # interface where kibana will respond to external request
-      kibana_interface: "eno16777984"
+      kibana_interface: "eth0"
 
       kibana_elasticsearch_url: "http://localhost:9200"
 
