@@ -105,7 +105,7 @@ public class ManagementClient {
 	//================================
 	/**
 	 * lists namespaces 
-	 * @param namespaceRequest
+	 * @param namespaceRequest - namespace request 
 	 * @return ListNamespacesResult
 	 */
 	public ListNamespacesResult listNamespaces(ListNamespaceRequest namespaceRequest) {
@@ -131,7 +131,7 @@ public class ManagementClient {
 	
 	/**
 	 * Returns Billing Namespace info 
-	 * @param namespaceRequest
+	 * @param namespaceRequest - namespace request
 	 * @return NamespaceBillingInfoResponse
 	 */
 	public NamespaceBillingInfo getNamespaceBillingInfo(NamespaceRequest namespaceRequest) {
@@ -148,10 +148,20 @@ public class ManagementClient {
 		restStr.append(REST_BILLING_NAMESPACES_FIRST)
 				.append(namespaceRequest.getName())
 				.append(REST_BILLING_NAMESPACES_SECOND);
-													
+		
+		System.out.println("getNamespaceBillingInfo rest request: " + restStr.toString());
+		
+		WebResource getNamespaceBillingResource;
+		
 		// get billing namespace Billing ressource
-		WebResource getNamespaceBillingResource = mgmtResource.path(restStr.toString())
-													.queryParam(REST_BILLING_NAMESAPCES_BUCKET_INCLUDED, "true");
+		if(namespaceRequest.getIncludeBuckets()) {
+			// include bucket data
+			getNamespaceBillingResource = mgmtResource.path(restStr.toString())
+											.queryParam(REST_BILLING_NAMESAPCES_BUCKET_INCLUDED, "true");
+		} else {
+			// just namespace data without bucket details
+			getNamespaceBillingResource = mgmtResource.path(restStr.toString());
+		}
 		
 		// add marker
 		if(namespaceRequest.getNextMarker() != null) {
@@ -171,7 +181,7 @@ public class ManagementClient {
 			// The workaround is to make the same call but without the parameter
 			if( ex.getResponse().getStatusInfo().getStatusCode() == Response.Status.BAD_REQUEST.getStatusCode() ) {				
 												
-				//System.out.println("getNamespaceBillingResource: " + restStr.toString());
+				System.out.println("getNamespaceBillingResource: " + restStr.toString());
 				
 				// get billing namespace Billing ressource
 				getNamespaceBillingResource = mgmtResource.path(restStr.toString());
@@ -192,7 +202,7 @@ public class ManagementClient {
 	
 	/**
 	 * Returns billing bucket specific info
-	 * @param namespaceRequest
+	 * @param namespaceRequest - namespace request
 	 * @return ObjectBucketsResponse
 	 */
 	public ObjectBuckets getNamespaceBucketInfo(NamespaceRequest namespaceRequest) {
@@ -224,7 +234,7 @@ public class ManagementClient {
 	
 	/**
 	 * Retrieve Object user's uid 
-	 * @param objectUsersRequest 
+	 * @param objectUsersRequest - object users request
 	 * @return ObjectUsers
 	 */
 	public ObjectUsers getObjectUsersUid(ObjectUsersRequest objectUsersRequest) {
@@ -258,8 +268,8 @@ public class ManagementClient {
 	
 	/**
 	 * Retrieve S3 uid and secret keys
-	 * @param uid
-	 * @param namespace
+	 * @param uid - user id
+	 * @param namespace - namespace 
 	 * @return ObjectUserSecretKeysResponse
 	 */
 	public ObjectUserSecretKeys getObjectUserSecretKeys(String uid, String namespace) {
@@ -292,8 +302,8 @@ public class ManagementClient {
 	
 	/**
 	 * Retrieve S3 uid and secret keys
-	 * @param uid
-	 * @param namespace
+	 * @param uid - user id
+	 * @param namespace - namespace
 	 * @return ObjectUserSecretKeysResponse
 	 */
 	public ObjectUserSecretKeys getHostsInVDC(String uid, String namespace) {
@@ -351,7 +361,7 @@ public class ManagementClient {
 	/**
 	 * Login using admin username and secretKey 
 	 * returned authentication token is stored internally
-	 * @throws RuntimeException 
+	 * @throws RuntimeException - run time exception
 	 */
 	protected void login() {
 		
@@ -383,7 +393,6 @@ public class ManagementClient {
 	/**
 	 * Login using admin username and secretKey 
 	 * returned authentication token is stored internally
-	 * @throws URISyntaxException 
 	 */
 	protected void logout() {
 		
@@ -413,10 +422,10 @@ public class ManagementClient {
 	
 	/**
 	 * Factory method to create smart rest ECS client
-	 * @param userName
-	 * @param secretKey
-	 * @param port
-	 * @param ipAddresses
+	 * @param userName - username 
+	 * @param secretKey- secret key
+	 * @param port - port
+	 * @param ipAddresses - ip addresses
 	 * @return Client
 	 */
 	private Client createMgmtClient( List<String> ipAddresses ) {

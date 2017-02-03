@@ -30,13 +30,10 @@ description = 'ECS Elastic Search DAO '
 apply plugin: 'java'
 
 
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 version = '1.0'
 
-
-def slf4jVersion='1.7.8'
-def logbackVersion='1.1.2'
 
 repositories {
     mavenLocal()
@@ -45,12 +42,21 @@ repositories {
 
 dependencies {
     
-    compile "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+   
+    //compile group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.22'
+	//compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.9'
+    
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.6.2'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.6.2'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.6.2'
+    
    
     compile project(':ecs-mgmt-client')
     compile project(':ecs-metadata-dao')
-    compile "com.emc.ecs:object-client:2.2.0"
-    compile "org.elasticsearch:elasticsearch:2.3.1"
+    compile "com.emc.ecs:object-client:3.0.0"
+    compile "org.elasticsearch:elasticsearch:5.1.2"
+    compile group: 'org.elasticsearch.client', name: 'transport', version: '5.1.2'
           
     
 }

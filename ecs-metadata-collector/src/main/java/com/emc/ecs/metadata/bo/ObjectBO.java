@@ -110,7 +110,7 @@ public class ObjectBO {
 		
 		// Collect bucket details
 		Map<NamespaceBucketKey, ObjectBucket> objectBucketMap = new HashMap<>();
-		billingBO.getObjectBukcetData(objectBucketMap);
+		billingBO.getObjectBucketData(objectBucketMap);
 
 		Map<String, S3JerseyClient> s3ObjectClientMap = null;
 		
@@ -184,7 +184,7 @@ public class ObjectBO {
 		
 		// Collect bucket details
 		Map<NamespaceBucketKey, ObjectBucket> objectBucketMap = new HashMap<>();
-		billingBO.getObjectBukcetData(objectBucketMap);
+		billingBO.getObjectBucketData(objectBucketMap);
 
 		Map<String, S3JerseyClient> s3ObjectClientMap = null;
 		

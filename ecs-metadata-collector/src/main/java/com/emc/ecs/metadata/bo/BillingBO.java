@@ -30,8 +30,10 @@ package com.emc.ecs.metadata.bo;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
@@ -146,7 +148,7 @@ public class BillingBO {
 	
 	/**
 	 * Collects Billing metadata for all namespace defined on a cluster
-	 * @param collectionTime
+	 * @param collectionTime - Collection Time
 	 */
 	public void collectBillingData( Date collectionTime ) {
 										
@@ -154,11 +156,16 @@ public class BillingBO {
 		// Collect the object bucket data first in order to use some of
 		// the fields from object bucket
 		Map<NamespaceBucketKey, ObjectBucket> objectBuckets = new HashMap<NamespaceBucketKey, ObjectBucket>();
-		getObjectBukcetData(objectBuckets);
+		Map<String, Set<ObjectBucket>> objectBucketsPerNamespace = new HashMap<String, Set<ObjectBucket>>();
+		
+		// Collect bucket data and write to datastore 
+		// secondly returns classified data per namespace 
+		// and also per namespace+bucketname
+		collectObjectBucketData(objectBucketsPerNamespace, objectBuckets, collectionTime, billingDAO);
 		
 		// Start collecting billing data from ECS systems
 		List<Namespace> namespaceList = getNamespaces();
-		
+			
 		// At this point we should have all namespaces in the ECS system
 		
 		long objCounter = 0;
@@ -171,6 +178,12 @@ public class BillingBO {
 			
 			NamespaceRequest namespaceRequest = new NamespaceRequest();
 			namespaceRequest.setName(namespace.getName());
+			if( objectBucketsPerNamespace.get(namespace.getName()) != null &&
+				!objectBucketsPerNamespace.get(namespace.getName()).isEmpty()	) {
+				// There are buckets in that namespace 
+				// indicate to client to include bucket data
+				namespaceRequest.setIncludeBuckets(true);
+			}
 			NamespaceBillingInfo namespaceBillingResponse = client.getNamespaceBillingInfo(namespaceRequest);
 			
 			if(namespaceBillingResponse == null) {
@@ -187,6 +200,11 @@ public class BillingBO {
 				if(objectBucket != null) {
 					// set api type
 					bucketBillingInfo.setApiType(objectBucket.getApiType());
+					// set namespace
+					bucketBillingInfo.setNamespace(namespace.getName());
+				} else {
+					// set api type
+					bucketBillingInfo.setApiType("unknown");
 					// set namespace
 					bucketBillingInfo.setNamespace(namespace.getName());
 				}
@@ -234,39 +252,30 @@ public class BillingBO {
 		this.objectCount.getAndAdd(objCounter);
 		
 	}
-
+		
 	/**
 	 * Collects Bucket metadata for all namespace defined on a cluster
-	 * @param objectBucketMap
+	 * @param objectBucketMap - Object Bucket Map
 	 */
-	public void getObjectBukcetData( Map<NamespaceBucketKey, ObjectBucket> objectBucketMap) {
+	public void getObjectBucketData( Map<NamespaceBucketKey, ObjectBucket> objectBucketMap) {
 		
-		collectObjectBukcetData( objectBucketMap,
+		collectObjectBucketData( null,            // no namespace map required 
+				                 objectBucketMap,
 								 null,            // no collection time required
 								 null             // no DAO required 
 								       );
 		
 	}
 	
-	/**
-	 * Collects Bucket metadata for all namespace defined on a cluster
-	 * @param collectionTime
-	 */
-	public void collectObjectBukcetData( Date collectionTime ) {
-		
-		collectObjectBukcetData( null,  // no map required
-				 				 collectionTime,    
-				 				 this.billingDAO
-				       							 );						
-	}
 	
 	/**
 	 * Collects Bucket metadata for all namespace defined on a cluster
-	 * @param objectBucketMap
-	 * @param collectionTime
-	 * @param billDAO
+	 * @param objectBucketMap - Object Bucket Map
+	 * @param collectionTime - Collection Time
+	 * @param billDAO - Billing DAO Object
 	 */
-	private  void collectObjectBukcetData( Map<NamespaceBucketKey, ObjectBucket> objectBucketMap,
+	private  void collectObjectBucketData( Map<String, Set<ObjectBucket>> objectPerNamespaceMap,
+										   Map<NamespaceBucketKey, ObjectBucket> objectBucketMap,
 										   Date collectionTime, BillingDAO billDAO    ) {
 										
 		
@@ -301,7 +310,7 @@ public class BillingBO {
 				billDAO.insert(objectBucketsResponse, collectionTime);
 			}
 			
-			// Add to return map
+			// Add to return map per namespace and bucket key
 			if( objectBucketsResponse.getObjectBucket() != null && 
 				objectBucketMap	!= null                            ) {
 				
@@ -311,6 +320,27 @@ public class BillingBO {
 				}
 				
 			}
+			
+			// Add to return map per namespace key
+			if( objectBucketsResponse.getObjectBucket() != null && 
+				objectPerNamespaceMap	!= null                            ) {
+				
+				Set<ObjectBucket> objectSet = objectPerNamespaceMap.get(namespace.getName());
+				
+				if(objectSet == null) {
+					// there isn;t already a set present for that namespace
+					// create one
+					objectSet = new HashSet<ObjectBucket>();
+					// add reference of set to map
+					objectPerNamespaceMap.put(namespace.getName(), objectSet);
+				}
+				
+				for ( ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
+					// add all object to set
+					objectSet.add(objectBucket);
+				}	
+			}
+			
 			
 			// collect n subsequent pages
 			while(namespaceRequest.getNextMarker() != null) {
@@ -336,7 +366,26 @@ public class BillingBO {
 							NamespaceBucketKey key = new NamespaceBucketKey(namespace.getName(), objectBucket.getName());
 							objectBucketMap.put(key, objectBucket);
 						}
+					}
+					
+					// Add to return map per namespace key
+					if( objectBucketsResponse.getObjectBucket() != null && 
+						objectPerNamespaceMap	!= null                            ) {
 						
+						Set<ObjectBucket> objectSet = objectPerNamespaceMap.get(namespace.getName());
+						
+						if(objectSet == null) {
+							// there isn;t already a set present for that namespace
+							// create one
+							objectSet = new HashSet<ObjectBucket>();
+							// add reference of set to map
+							objectPerNamespaceMap.put(namespace.getName(), objectSet);
+						}
+						
+						for ( ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
+							// add all object to set
+							objectSet.add(objectBucket);
+						}	
 					}
 					
 				} else {
@@ -360,7 +409,7 @@ public class BillingBO {
 	
 	/**
 	 *  Gathers all namespaces present on a cluster
-	 * @return List<Namespace>
+	 * @return List - List of namespace
 	 */
 	public List<Namespace> getNamespaces() {
 

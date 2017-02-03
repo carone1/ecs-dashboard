@@ -42,9 +42,9 @@
 
 	<root level="info">
 		<appender-ref ref="FILE-ROLLING" />
-		<!-- Uncomment if you want to see logs on std out
+		<!-- Uncomment if you want to see logs on std out -->
 		<appender-ref ref="STDOUT" />
-		-->
+		
 	</root>
 
 </configuration>

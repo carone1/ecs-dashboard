@@ -30,6 +30,7 @@ package com.emc.ecs.management.entity;
 public class NamespaceRequest {
 	private String nextMarker;	
     private String name;
+    private boolean includeBuckets = false;
                
     public String getNextMarker() {
         return nextMarker;
@@ -45,6 +46,14 @@ public class NamespaceRequest {
 
     public void setName(String name) {
         this.name = name;
+    }
+   
+    public boolean getIncludeBuckets() {
+        return includeBuckets;
+    }
+
+    public void setIncludeBuckets(boolean includeBuckets) {
+        this.includeBuckets = includeBuckets;
     }
    
 }

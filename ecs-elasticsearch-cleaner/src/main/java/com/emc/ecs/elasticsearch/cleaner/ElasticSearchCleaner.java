@@ -51,7 +51,6 @@ public class ElasticSearchCleaner {
 	
 	
 	private static final String  ECS_CLEAN_BILLING_DATA        = "billing";
-	private static final String  ECS_CLEAN_BUCKET_DATA         = "bucket";
 	private static final String  ECS_CLEAN_OBJECT_DATA         = "object";
 	private static final String  ECS_CLEAN_OBJECT_VERSION_DATA = "object-version";
 	private static final String  ECS_CLEAN_ALL_DATA            = "all";
@@ -79,12 +78,11 @@ public class ElasticSearchCleaner {
 								"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port>] - Specify a non default ElasticSearch port {Default: 9300} \n" +
 								"[" + ELASTIC_CLUSTER_CONFIG_ARGUMENT + "<elastic-cluster>] = Specify a specific ElasticSearch cluster name {Default: ecs-analytics}" +
 				                "[" + ECS_CLEAN_DATA_CONFIG_ARGUMENT + " <" + 
-										ECS_CLEAN_BILLING_DATA + "|" + 
-										ECS_CLEAN_BUCKET_DATA + "| \n" +
+										ECS_CLEAN_BILLING_DATA + "|" +
 										ECS_CLEAN_OBJECT_DATA + "|" +
 										ECS_CLEAN_OBJECT_VERSION_DATA + "| \n" +
 										ECS_CLEAN_ALL_DATA +">] - Specify which ElasticSearch index to clean \n" +
-								"[" + ES_COLLECTION_DAYS_TO_KEEP_ARGUMENT + "<number0of-days-to-keep-in-es> - " + 
+								"[" + ES_COLLECTION_DAYS_TO_KEEP_ARGUMENT + "<number-of-days-to-keep-in-es> - " + 
 										"Specify how many days of data to keep in ElasticSearch {Default: 7 (days)}"; 
 
 		
@@ -160,11 +158,6 @@ public class ElasticSearchCleaner {
 			// collect billing data
 			docsCount += cleanBillingData(thresholdDate);
 			
-		} else if (cleanData.equals(ECS_CLEAN_BUCKET_DATA)) {
-			
-			// collect object bucket info
-			docsCount += cleanObjectBucketData(thresholdDate);
-			
 		} else if(cleanData.equals(ECS_CLEAN_OBJECT_DATA)) {
 			
 			// collect object data
@@ -176,9 +169,6 @@ public class ElasticSearchCleaner {
 			docsCount += cleanObjectVersionData(thresholdDate);
 			
 		} else if(cleanData.equals(ECS_CLEAN_ALL_DATA)) {
-			
-			// collect object bucket info
-			docsCount += cleanObjectBucketData(thresholdDate);
 			
 			// collect billing data 
 			docsCount += cleanBillingData(thresholdDate);
@@ -215,26 +205,11 @@ public class ElasticSearchCleaner {
 
 		deletedDocs += billingDAO.purgeOldData(ManagementDataType.billing_namespace, thresholdDate);
 		deletedDocs += billingDAO.purgeOldData(ManagementDataType.billing_bucket, thresholdDate);
+		deletedDocs += billingDAO.purgeOldData(ManagementDataType.object_bucket, thresholdDate);
 		
 		return deletedDocs;
 	}
 	
-	private static Long cleanObjectBucketData(Date thresholdDate) {
-		
-		Long deletedDocs = 0L;
-		
-		// Instantiate file DAO
-		ElasticDAOConfig daoConfig = new ElasticDAOConfig();
-		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
-		daoConfig.setPort(elasticPort);
-		daoConfig.setClusterName(elasticCluster);
-		BillingDAO billingDAO = new ElasticBillingDAO(daoConfig);
-		
-		deletedDocs += billingDAO.purgeOldData(ManagementDataType.object_bucket, thresholdDate);
-		
-		return deletedDocs;
-
-	}
 	
 	private static Long cleanObjectData(Date thresholdDate) {
 		

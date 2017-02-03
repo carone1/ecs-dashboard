@@ -26,7 +26,11 @@ SOFTWARE.
 
 package com.emc.ecs.metadata.dao.elasticsearch;
 
+import java.util.Date;
 import java.util.List;
+
+import com.emc.ecs.metadata.dao.EcsCollectionType;
+
 
 /**
  * Configuration class holding config parameters
@@ -39,9 +43,12 @@ public class ElasticDAOConfig {
 	//==========================
 	// Private members
 	//==========================
-	List<String> hosts;
-	Integer      port;
-	String       clusterName;
+	List<String>      hosts;
+	Integer           port;
+	String            clusterName;
+	Date              collectionTime;
+	EcsCollectionType collectionType;
+	
 	
 	//==========================
 	// Public Methods
@@ -65,5 +72,20 @@ public class ElasticDAOConfig {
 	}
 	public void setClusterName(String clusterName) {
 		this.clusterName = clusterName;
+	}
+	
+	public Date getCollectionTime() {
+		return collectionTime;
+	}
+	public void setCollectionTime(Date collectionTime) {
+		this.collectionTime = collectionTime;
+	}
+	
+	public EcsCollectionType getCollectionType() {
+		return this.collectionType;
+	}
+	
+	public void setCollectionType(EcsCollectionType collectionType) {
+		this.collectionType = collectionType;
 	}
 }

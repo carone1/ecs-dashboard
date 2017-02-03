@@ -41,11 +41,17 @@ public interface ObjectDAO {
 	};
 	
 	/**
+	 * Init indexes
+	 * @param collectionTime - collection time
+	 */
+	public void initIndexes(Date collectionTime);
+	
+	/**
 	 * Inserts list object data into datastore
-	 * @param listObjectsResult
-	 * @param namespace
-	 * @param bucketName
-	 * @param collectionTime
+	 * @param listObjectsResult - list object result
+	 * @param namespace - namespace
+	 * @param bucketName - bucket name
+	 * @param collectionTime - collection time
 	 */
 	public void insert( ListObjectsResult listObjectsResult, String namespace,
 						String bucketName, Date collectionTime );
@@ -53,20 +59,20 @@ public interface ObjectDAO {
 	/**
 	 * Inserts query object data into datastore
 	 * 
-	 * @param queryObjectsResult
-	 * @param namespace
-	 * @param bucketName
-	 * @param collectionTime
+	 * @param queryObjectsResult - query object result
+	 * @param namespace - namespace
+	 * @param bucketName - bucket name
+	 * @param collectionTime - collection time
 	 */
 	public void insert( QueryObjectsResult queryObjectsResult, String namespace,
 						String bucketName, Date collectionTime );
 
 	/**
 	 * Inserts object versions data into datastore
-	 * @param listVersionsResult
-	 * @param namespace
-	 * @param name
-	 * @param collectionTime
+	 * @param listVersionsResult - list version result
+	 * @param namespace - namespace
+	 * @param name - name
+	 * @param collectionTime - collection time
 	 */
 	public void insert( ListVersionsResult listVersionsResult, String namespace,
 						String name, Date collectionTime);
@@ -75,8 +81,8 @@ public interface ObjectDAO {
 	/**
 	 * Purges object data collected before a certain date
 	 * 
-	 * @param type
-	 * @param collectionTime
+	 * @param type - object data type
+	 * @param collectionTime - collection time
 	 * @return Long
 	 */
 	public Long purgeOldData( ObjectDataType type, Date collectionTime);

@@ -43,9 +43,15 @@ public interface BillingDAO {
 	};
 	
 	/**
+	 * Init indexes
+	 * @param collectionTime - collection time
+	 */
+	public void initIndexes(Date collectionTime);
+	
+	/**
 	 * Inserts billing namespace info into datastore 
-	 * @param billingData
-	 * @param collectionTime
+	 * @param billingData - billing data
+	 * @param collectionTime - collection time
 	 */
 	public void insert(NamespaceBillingInfo billingData, Date collectionTime);
 	
@@ -53,15 +59,16 @@ public interface BillingDAO {
 	
 	/**
 	 * Inserts bucket info into datastore 
-	 * @param bucketResponse
-	 * @param collectionTime
+	 * @param bucketResponse - bucket response
+	 * @param collectionTime - collection time
 	 */
 	public void insert(ObjectBuckets bucketResponse, Date collectionTime);
 	
 	/**
 	 * Purge date collected before a certain date
-	 * @param type
-	 * @param collectionTime
+	 * @param type - management data type
+	 * @param collectionTime - collection time
+	 * @return Long
 	 */
 	public Long purgeOldData( ManagementDataType type, Date collectionTime);
 }

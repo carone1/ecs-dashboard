@@ -32,33 +32,32 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
+
 import java.util.Map.Entry;
 
+import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequest;
+
 import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.unit.TimeValue;
+
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
+
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.emc.ecs.metadata.dao.EcsCollectionType;
 import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.object.s3.bean.AbstractVersion;
 import com.emc.object.s3.bean.DeleteMarker;
@@ -107,8 +106,13 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	private TransportClient elasticClient;
 	private static Logger LOGGER = LoggerFactory.getLogger(ElasticS3ObjectDAO.class);
 	
-	private static final String            OLD_DATA_DATE_PATTERN = "yyyy-MM-dd";
-	private static final SimpleDateFormat  OLD_DATA_DATE_FORMAT = new  SimpleDateFormat(OLD_DATA_DATE_PATTERN);
+	private static final String            DATA_DATE_PATTERN = "yyyy-MM-dd";
+	private static final SimpleDateFormat  DATA_DATE_FORMAT = new  SimpleDateFormat(DATA_DATE_PATTERN);
+	
+	private static String s3ObjectVersionIndexDayName;
+	private static String s3ObjectIndexDayName;
+	
+	private ElasticDAOConfig config;
 	
 	//=========================
 	// Public methods
@@ -116,8 +120,10 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	public ElasticS3ObjectDAO( ElasticDAOConfig config ) {
 		
 		try {
+			this.config = config;
 			
-			Builder builder = Settings.settingsBuilder();
+			
+			Builder builder = Settings.builder();
 			
 			// Check for new hosts within the cluster
 			builder.put(CLIENT_SNIFFING_CONFIG, true);
@@ -130,18 +136,13 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			Settings settings = builder.build();
 			
 			// create client
-			elasticClient = TransportClient.builder().settings(settings).build();
+			elasticClient = new PreBuiltTransportClient(settings);
+			
 			
 			// add hosts
 			for( String elasticHost : config.getHosts()) {
 				elasticClient.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticHost), config.getPort()));				
 			}
-			
-			// init S3 Object Index
-			initS3ObjectIndex();
-			
-			// init S3 Object Version Index
-			initS3ObjectVersionIndex();
 			
 			
 		} catch (UnknownHostException e) {
@@ -149,6 +150,23 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		}				
 	}
 
+	/**
+	 * Init indexes
+	 * @param collectionTime - collection time
+	 */
+	public void initIndexes(Date collectionTime) {
+		// init S3 Object Index
+		if( config.getCollectionType().equals(EcsCollectionType.object) ) {
+			initS3ObjectIndex( collectionTime );
+		}
+		
+		// init S3 Object Version Index
+		if( config.getCollectionType().equals(EcsCollectionType.object_version) ) {
+			initS3ObjectVersionIndex( collectionTime );
+		}
+	}
+	
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -170,7 +188,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			XContentBuilder s3ObjectBuilder = toJsonFormat(s3Object, namespace, bucket, collectionTime);
 
 			IndexRequestBuilder request = elasticClient.prepareIndex()
-					.setIndex(S3_OBJECT_INDEX_NAME)
+					.setIndex(s3ObjectIndexDayName)
 					.setType(S3_OBJECT_INDEX_TYPE)
 					.setSource(s3ObjectBuilder);
 			requestBuilder.add(request);
@@ -180,11 +198,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	    int items = bulkResponse.getItems().length;
 	    
 		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch " + "index: " + 
-					 S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE ); 
+				     s3ObjectIndexDayName + " index type: " +  S3_OBJECT_INDEX_TYPE ); 
     
 		if( bulkResponse.hasFailures() ) {
 			LOGGER.error( "Failure(s) occured while items in Elasticsearch " + "index: " + 
-							S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE );
+					      s3ObjectIndexDayName + " index type: " +  S3_OBJECT_INDEX_TYPE );
 		}
 	}
 	
@@ -211,7 +229,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			XContentBuilder s3ObjectBuilder = toJsonFormat(queryObject, namespace, bucketName, collectionTime);
 
 			IndexRequestBuilder request = elasticClient.prepareIndex()
-					.setIndex(S3_OBJECT_INDEX_NAME)
+					.setIndex(s3ObjectIndexDayName)
 					.setType(S3_OBJECT_INDEX_TYPE)
 					.setSource(s3ObjectBuilder);
 			requestBuilder.add(request);
@@ -220,11 +238,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 	    int items = bulkResponse.getItems().length;
 		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch " + "index: " + 
-				 S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE ); 
+				      s3ObjectIndexDayName + " index type: " +  S3_OBJECT_INDEX_TYPE ); 
 
 		if( bulkResponse.hasFailures() ) {
 			LOGGER.error( "Failure(s) occured while items in Elasticsearch " + "index: " + 
-						S3_OBJECT_INDEX_NAME + " index type: " +  S3_OBJECT_INDEX_TYPE );
+					      s3ObjectIndexDayName + " index type: " +  S3_OBJECT_INDEX_TYPE );
 		}
 	}
 	
@@ -251,7 +269,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 				XContentBuilder s3ObjectVersionBuilder = toJsonFormat((Version)abstractVersion, namespace, bucketName, collectionTime);
 				
 				IndexRequestBuilder request = elasticClient.prepareIndex()
-			                .setIndex(S3_OBJECT_VERSION_INDEX_NAME)
+			                .setIndex(s3ObjectVersionIndexDayName)
 			                .setType(S3_OBJECT_VERSION_INDEX_TYPE)
 			                .setSource(s3ObjectVersionBuilder);
 			    requestBuilder.add(request);
@@ -260,7 +278,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 				XContentBuilder s3ObjectVersionBuilder = toJsonFormat((DeleteMarker)abstractVersion, namespace, bucketName, collectionTime);
 				
 				IndexRequestBuilder request = elasticClient.prepareIndex()
-		                .setIndex(S3_OBJECT_VERSION_INDEX_NAME)
+		                .setIndex(s3ObjectVersionIndexDayName)
 		                .setType(S3_OBJECT_VERSION_INDEX_TYPE)
 		                .setSource(s3ObjectVersionBuilder);
 		        requestBuilder.add(request);
@@ -271,11 +289,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	    int items = bulkResponse.getItems().length;
 	    
 		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch " + "index: " + 
-					 S3_OBJECT_VERSION_INDEX_NAME + " index type: " +  S3_OBJECT_VERSION_INDEX_TYPE ); 
+				     s3ObjectVersionIndexDayName + " index type: " +  S3_OBJECT_VERSION_INDEX_TYPE ); 
 
 		if( bulkResponse.hasFailures() ) {
 			LOGGER.error( "Failure(s) occured while items in Elasticsearch " + "index: " + 
-						  S3_OBJECT_VERSION_INDEX_NAME + " index type: " +  S3_OBJECT_VERSION_INDEX_TYPE );
+					      s3ObjectVersionIndexDayName + " index type: " +  S3_OBJECT_VERSION_INDEX_TYPE );
 		}
 	}
 	
@@ -288,10 +306,15 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		switch(type) {
 		  case object:
 			// Purge old S3 Objects 
-			return purgeIndex(thresholdDate, S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE);
+			ElasticIndexCleaner.truncateOldIndexes( elasticClient, thresholdDate,
+													S3_OBJECT_INDEX_NAME, S3_OBJECT_INDEX_TYPE);
+			return 0L;
 		  case object_versions:
 			// Purge old S3 Object Versions
-			return purgeIndex(thresholdDate, S3_OBJECT_VERSION_INDEX_NAME, S3_OBJECT_VERSION_INDEX_TYPE);
+			ElasticIndexCleaner.truncateOldIndexes( elasticClient, thresholdDate, 
+			    	                                  S3_OBJECT_VERSION_INDEX_NAME, 
+					                                  S3_OBJECT_VERSION_INDEX_TYPE );
+			  return 0L;
 		  default:
 			return 0L;
 		}
@@ -300,10 +323,10 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	/**
 	 * Converts Object data in JSON format for Elasticsearch
 	 * 
-	 * @param s3Object
-	 * @param namespace
-	 * @param bucket
-	 * @param collectionTime
+	 * @param s3Object - S3 Object
+	 * @param namespace - namespace
+	 * @param bucket - bucket name
+	 * @param collectionTime - collection time
 	 * @return XContentBuilder
 	 */
 	public static XContentBuilder toJsonFormat( S3Object s3Object, String namespace, String bucket, Date collectionTime ) {						
@@ -313,10 +336,10 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	/**
 	 * Converts Object data in JSON format for Elasticsearch
 	 * 
-	 * @param version
-	 * @param namespace
-	 * @param bucketName
-	 * @param collectionTime
+	 * @param version - version
+	 * @param namespace - namespace
+	 * @param bucketName - bucket name
+	 * @param collectionTime - collectionTime
 	 * @return XContentBuilder
 	 */
 	public XContentBuilder toJsonFormat(Version version,
@@ -328,11 +351,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	/**
 	 * Converts Object data in JSON format for Elasticsearch
 	 * 
-	 * @param deleteMarker
-	 * @param namespace
-	 * @param bucketName
-	 * @param collectionTime
-	 * @return XContentBuilder
+	 * @param deleteMarker - deleteMarker
+	 * @param namespace - namespace
+	 * @param bucketName - bucket name
+	 * @param collectionTime - collection time
+	 * @return XContentBuilders
 	 */
 	public XContentBuilder toJsonFormat(DeleteMarker deleteMarker,
 			String namespace, String bucketName, Date collectionTime) {
@@ -343,10 +366,10 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	/**
 	 * Converts Object data in JSON format for Elasticsearch
 	 * 
-	 * @param s3Object
-	 * @param namespace
-	 * @param bucket
-	 * @param collectionTime
+	 * @param s3Object - S3 Object
+	 * @param namespace - namespace
+	 * @param bucket - bucket
+	 * @param collectionTime - collection time
 	 * @return XContentBuilder
 	 */
 	public static XContentBuilder toJsonFormat( QueryObject s3Object, String namespace, String bucket, Date collectionTime ) {						
@@ -361,23 +384,38 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	/**
 	 * Init Object index
 	 */
-	private void initS3ObjectIndex() {
+	private void initS3ObjectIndex( Date collectionTime ) {
 
+		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
+		s3ObjectIndexDayName = S3_OBJECT_INDEX_NAME + "-" + collectionDayString;
+		
 		if (elasticClient
 				.admin()
 				.indices()
-				.exists(new IndicesExistsRequest(S3_OBJECT_INDEX_NAME))
+				.exists(new IndicesExistsRequest(s3ObjectIndexDayName))
 				.actionGet()
 				.isExists()) {
-			// Index already exists no need to re-create it
-			return;
+			
+			// Index already exists need to truncate it and recreate it
+			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(s3ObjectIndexDayName);
+			ActionFuture<DeleteIndexResponse> futureResult = elasticClient.admin().indices().delete(deleteIndexRequest);
+			
+			// Wait until deletion is done
+			while( !futureResult.isDone() ) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 
-		elasticClient.admin().indices().create(new CreateIndexRequest(S3_OBJECT_INDEX_NAME)).actionGet();	
+		elasticClient.admin().indices().create(new CreateIndexRequest(s3ObjectIndexDayName)).actionGet();	
 
 		try {
 			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
-					.preparePutMapping(S3_OBJECT_INDEX_NAME)
+					.preparePutMapping(s3ObjectIndexDayName)
 					.setType(S3_OBJECT_INDEX_TYPE)
 					.setSource(XContentFactory.jsonBuilder().prettyPrint()
 					  .startObject()
@@ -445,20 +483,19 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 				.execute().actionGet();
 
 			if (putMappingResponse.isAcknowledged()) {
-				LOGGER.info("Index Created: " + S3_OBJECT_INDEX_NAME);
+				LOGGER.info("Index Created: " + s3ObjectIndexDayName);
 				
 			} else {
 				LOGGER.error("Index {} did not exist. " + 
 						"While attempting to create the index from stored ElasticSearch " +
-						"Templates we were unable to get an acknowledgement.", S3_OBJECT_INDEX_NAME);
+						"Templates we were unable to get an acknowledgement.", s3ObjectIndexDayName);
 				LOGGER.error("Error Message: {}", putMappingResponse.toString());
-				throw new RuntimeException("Unable to create index " + S3_OBJECT_INDEX_NAME);
+				throw new RuntimeException("Unable to create index " + s3ObjectIndexDayName);
 			}			
 
 		} catch (IOException e) {
 			throw new RuntimeException( "Unable to create index " + 
-					S3_OBJECT_INDEX_NAME +
-					" " + e.getMessage()           );  
+					s3ObjectIndexDayName + " " + e.getMessage()  );  
 		}
 	}
 	
@@ -466,11 +503,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	/**
 	 * Converts Object data into JSON format
 	 * 
-	 * @param s3Object
-	 * @param namespace
-	 * @param bucket
-	 * @param collectionTime
-	 * @param builder
+	 * @param s3Object - S3 Object
+	 * @param namespace - namespace
+	 * @param bucket - bucket
+	 * @param collectionTime - collection time
+	 * @param builder - builder
 	 * @return XContentBuilder
 	 */
 	private static XContentBuilder toJsonFormat( S3Object s3Object, 
@@ -510,23 +547,38 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	/**
 	 * Init Object version index
 	 */
-	private void initS3ObjectVersionIndex() {
+	private void initS3ObjectVersionIndex( Date collectionTime ) {
 
+		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
+		s3ObjectVersionIndexDayName = S3_OBJECT_VERSION_INDEX_NAME + "-" + collectionDayString;
+		
 		if (elasticClient
 				.admin()
 				.indices()
 				.exists(new IndicesExistsRequest(S3_OBJECT_VERSION_INDEX_NAME))
 				.actionGet()
 				.isExists()) {
-			// Index already exists no need to re-create it
-			return;
+			
+			// Index already exists need to truncate it and recreate it
+			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(s3ObjectVersionIndexDayName);
+			ActionFuture<DeleteIndexResponse> futureResult = elasticClient.admin().indices().delete(deleteIndexRequest);
+			
+			// Wait until deletion is done
+			while( !futureResult.isDone() ) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 
-		elasticClient.admin().indices().create(new CreateIndexRequest(S3_OBJECT_VERSION_INDEX_NAME)).actionGet();	
+		elasticClient.admin().indices().create(new CreateIndexRequest(s3ObjectVersionIndexDayName)).actionGet();	
 
 		try {
 			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
-					.preparePutMapping(S3_OBJECT_VERSION_INDEX_NAME)
+					.preparePutMapping(s3ObjectVersionIndexDayName)
 					.setType(S3_OBJECT_VERSION_INDEX_TYPE)
 					.setSource(XContentFactory.jsonBuilder().prettyPrint()
 					  .startObject()
@@ -591,30 +643,30 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 				.execute().actionGet();
 
 			if (putMappingResponse.isAcknowledged()) {
-				LOGGER.info("Index Created: " + S3_OBJECT_INDEX_NAME);
+				LOGGER.info("Index Created: " + s3ObjectVersionIndexDayName);
 			} else {
 				LOGGER.error("Index {} did not exist. " + 
 						"While attempting to create the index from stored ElasticSearch " +
-						"Templates we were unable to get an acknowledgement.", S3_OBJECT_INDEX_NAME);
+						"Templates we were unable to get an acknowledgement.", s3ObjectVersionIndexDayName);
 				LOGGER.error("Error Message: {}", putMappingResponse.toString());
-				throw new RuntimeException("Unable to create index " + S3_OBJECT_INDEX_NAME);
+				throw new RuntimeException("Unable to create index " + s3ObjectVersionIndexDayName);
 			}			
 
 		} catch (IOException e) {
 			throw new RuntimeException( "Unable to create index " + 
-					S3_OBJECT_INDEX_NAME +
-					" " + e.getMessage()           );  
+					                    s3ObjectVersionIndexDayName +
+                                        " " + e.getMessage()           );  
 		}
 	}
 	
 	/**
 	 * Converts object version data to json 
 	 * 
-	 * @param version
-	 * @param namespace
-	 * @param bucket
-	 * @param collectionTime
-	 * @param builder
+	 * @param version - version
+	 * @param namespace - namespace
+	 * @param bucket - bucket
+	 * @param collectionTime - collection time
+	 * @param builder - builder
 	 * @return XContentBuilder
 	 */
 	private static XContentBuilder toJsonFormat( Version version, 
@@ -656,11 +708,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	/**
 	 * Converts
 	 * 
-	 * @param deleteMarker
-	 * @param namespace
-	 * @param bucket
-	 * @param collectionTime
-	 * @param builder
+	 * @param deleteMarker - delete marker
+	 * @param namespace - namespace
+	 * @param bucket - bucket
+	 * @param collectionTime - collection time
+	 * @param builder - builder
 	 * @return XContentBuilder
 	 */
 	private static XContentBuilder toJsonFormat( DeleteMarker deleteMarker, 
@@ -700,11 +752,11 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	/**
 	 * Converts Query Object data into JSON
 	 * 
-	 * @param queryObject
-	 * @param namespace
-	 * @param bucket
-	 * @param collectionTime
-	 * @param builder
+	 * @param queryObject - Query Object
+	 * @param namespace - Namespace
+	 * @param bucket - Bucket
+	 * @param collectionTime - Collection Time
+	 * @param builder - Builder
 	 * @return XContentBuilder
 	 */
 	private static XContentBuilder toJsonFormat( QueryObject queryObject, 
@@ -743,83 +795,5 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		return builder;
 	}
 
-
-	/**
-	 * Purges documents based on collection dates
-	 * 
-	 * @param thresholdDate
-	 * @param indexName
-	 * @param indexType
-	 * @return Long
-	 */
-	private Long purgeIndex(Date thresholdDate, String indexName, String indexType) {
-		
-		Long deletedDocs = 0L;
-		
-		String thresholdDateString = OLD_DATA_DATE_FORMAT.format(thresholdDate);
-		QueryBuilder qb = QueryBuilders.rangeQuery(COLLECTION_TIME).lt(thresholdDateString);
-		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(qb);
-		
-		// Purge 
-		SearchRequestBuilder searchRequestBuilder = elasticClient.prepareSearch(indexName);
-		searchRequestBuilder.setTypes(indexType);
-		searchRequestBuilder.setQuery(boolQuery);
-		// just need the id
-		searchRequestBuilder.setNoFields();
-		// limit the query to 25000 entries
-		searchRequestBuilder.setSize(25000);
-		// limit search time to 15 seconds
-		searchRequestBuilder.setScroll(new TimeValue(15000));
-		
-		SearchResponse searchResponse;
-		
-		do {
-			searchResponse = searchRequestBuilder.execute().actionGet();
-			SearchHits searchHits = searchResponse.getHits();
-			Iterator<SearchHit> itr = searchHits.iterator();	
-
-			BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
-
-			// loop all found entries and 
-			// add them to bulk delete request
-			while( itr.hasNext() ) { 
-				SearchHit searchHit = itr.next();	
-
-				DeleteRequest deleteRequest = new DeleteRequest()
-				.index(indexName)
-				.type(indexType)
-				.id(searchHit.getId());
-
-				requestBuilder.add(deleteRequest);
-			}
-
-			if (requestBuilder.numberOfActions() > 0 ) {
-				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to delete in Elasticsearch index: " + 
-				        indexName + " due to collection_time < " + thresholdDateString);
-			} else {
-				// nothing was found no need 
-				// to continue further
-				return deletedDocs;
-			}
-
-			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
-			int items = bulkResponse.getItems().length;
-
-			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to delete [" + items + "] items in Elasticsearch " + "index: " + 
-					     indexName + " index type: " +  indexType ); 
-
-			deletedDocs += items;
-			
-			if( bulkResponse.hasFailures() ) {
-				LOGGER.error( "Failure(s) occured while items in Elasticsearch" + "index: " + 
-						      indexName + " index type: " +  indexType );
-
-			}
-		} while ( (searchResponse != null) && 
-				(searchResponse.getHits() != null) && 
-				(searchResponse.getHits().getTotalHits() > 0) );
-		
-		return deletedDocs;
-	}
 
 }

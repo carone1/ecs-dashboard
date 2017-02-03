@@ -34,7 +34,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-
 import com.emc.ecs.management.entity.NamespaceBillingInfo;
 import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.metadata.dao.BillingDAO;
@@ -50,6 +49,14 @@ public class FileBillingDAO implements BillingDAO {
 	
 	public FileBillingDAO(String outputPath) {
 		this.destinationPath = outputPath;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void initIndexes(Date collectionTime) {
+		// init indexes - not applicable here
 	}
 	
 	/**

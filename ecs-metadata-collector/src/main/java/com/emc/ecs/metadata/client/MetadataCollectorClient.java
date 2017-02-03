@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import com.emc.ecs.metadata.bo.BillingBO;
 import com.emc.ecs.metadata.bo.ObjectBO;
 import com.emc.ecs.metadata.dao.BillingDAO;
+import com.emc.ecs.metadata.dao.EcsCollectionType;
 import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticBillingDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticDAOConfig;
@@ -67,7 +68,6 @@ public class MetadataCollectorClient {
 	
 	private static final Integer DEFAULT_ECS_MGMT_PORT = 4443;
 	private static final String  ECS_COLLECT_BILLING_DATA = "billing";
-	private static final String  ECS_COLLECT_BUCKET_DATA = "bucket";
 	private static final String  ECS_COLLECT_OBJECT_DATA = "object";
 	private static final String  ECS_COLLECT_OBJECT_VERSION_DATA = "object-version";
 	private static final String  ECS_COLLECT_ALL_DATA = "all";
@@ -102,8 +102,7 @@ public class MetadataCollectorClient {
 			"[" + ELASTIC_CLUSTER_CONFIG_ARGUMENT + "<elastic-cluster>]" +
 			"[" + ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT + "<number of days>" + " | " +
 			ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <" + 
-			ECS_COLLECT_BILLING_DATA + "|" + 
-			ECS_COLLECT_BUCKET_DATA + "|" +
+			ECS_COLLECT_BILLING_DATA + "|" +
 			ECS_COLLECT_OBJECT_DATA + "|" +
 			ECS_COLLECT_OBJECT_VERSION_DATA + "|" +
 			ECS_COLLECT_ALL_DATA +">] "; 
@@ -146,13 +145,12 @@ public class MetadataCollectorClient {
 				Long daysShift = TimeUnit.DAYS.toMillis(relativeDayShift);
 				collectionTime = new Date(epochTime - daysShift);
 			}	
+			
 			if(collectData.equals(ECS_COLLECT_BILLING_DATA) ){
 				// collect billing data
 				collectBillingData(collectionTime);
-			} else if (collectData.equals(ECS_COLLECT_BUCKET_DATA)) {
-				// collect object bucket info
-				collectObjectBucketData(collectionTime);
-			} else if(collectData.equals(ECS_COLLECT_OBJECT_DATA) ) {
+			} 
+			else if(collectData.equals(ECS_COLLECT_OBJECT_DATA) ) {
 
 				// only collection all object if the modified since option has been specified
 				if(!relativeObjectModifiedSinceOption){
@@ -164,9 +162,6 @@ public class MetadataCollectorClient {
 				// collect object data
 				collectObjectVersionData(collectionTime);
 			} else if(collectData.equals(ECS_COLLECT_ALL_DATA)) {
-
-				// collect object bucket info
-				collectObjectBucketData(collectionTime);
 
 				// collect billing data 
 				collectBillingData(collectionTime);
@@ -312,6 +307,7 @@ public class MetadataCollectorClient {
 						System.exit(0);
 					}
 				} else {
+					System.err.println("Unreconized option: " + arg); 
 					System.err.println(menuString);
 					System.exit(0);
 				} 
@@ -356,7 +352,11 @@ public class MetadataCollectorClient {
 			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
 			billingDAO = new ElasticBillingDAO(daoConfig);
+			
+			// init indexes
+			billingDAO.initIndexes(collectionTime);
 		} else {
 			// Instantiate file DAO
 			billingDAO = new FileBillingDAO(null);
@@ -376,44 +376,6 @@ public class MetadataCollectorClient {
 		billingBO.shutdown();
 	}
 	
-	/**
-	 * Collects bucket data
-	 * 
-	 * @param collectionTime
-	 */
-	private static void collectObjectBucketData(Date collectionTime) {
-		
-		BillingDAO billingDAO = null;
-		
-		if(!elasticHosts.isEmpty()) {
-			
-			// Instantiate file DAO
-			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
-			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
-			daoConfig.setPort(elasticPort);
-			daoConfig.setClusterName(elasticCluster);
-			billingDAO = new ElasticBillingDAO(daoConfig);
-		} else {
-			// Instantiate file DAO
-			billingDAO = new FileBillingDAO(null);
-		}
-		
-		// instantiate billing BO
-		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
-											 ecsMgmtSecretKey,
-											
-											 Arrays.asList(ecsHosts.split(",")),
-											 ecsMgmtPort,
-											 billingDAO,
-											 objectCount );
-		
-		
-		
-		// Start collection
-		billingBO.collectObjectBukcetData(collectionTime);
-		
-		billingBO.shutdown();
-	}
 	
 	/**
 	 * Collects object data
@@ -431,7 +393,7 @@ public class MetadataCollectorClient {
 											 hosts,
 											 ecsMgmtPort,
 											 null,        // dao is not required in this case
-											 objectCount );  
+											 objectCount ); 
 		
 		// Instantiate DAO
 		ObjectDAO objectDAO = null;
@@ -442,12 +404,17 @@ public class MetadataCollectorClient {
 			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			daoConfig.setCollectionType(EcsCollectionType.object);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
+			
+			// init indexes
+		    objectDAO.initIndexes(collectionTime);
+				
 		} else {
 			// Instantiate file DAO
 			objectDAO = new FileObjectDAO();
-		}
-		
+		}	
 		
 		ObjectBO objectBO = new ObjectBO(billingBO, hosts, objectDAO, threadPoolExecutor, futures, objectCount );
 		
@@ -485,6 +452,8 @@ public class MetadataCollectorClient {
 			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			daoConfig.setCollectionType(EcsCollectionType.object);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
 		} else {
 			// Instantiate file DAO
@@ -534,6 +503,8 @@ public class MetadataCollectorClient {
 			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			daoConfig.setCollectionType(EcsCollectionType.object_version);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
 		} else {
 			// Instantiate file DAO

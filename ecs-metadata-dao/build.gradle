@@ -31,8 +31,8 @@ apply plugin: 'java'
 //apply plugin: 'application'
 
 
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 version = '1.0'
 
 
@@ -46,14 +46,14 @@ repositories {
 
 dependencies {
     
-    compile "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+    //compile group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.22'
+	//compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.9'
    
     compile project(':ecs-mgmt-client')
-    compile "com.emc.ecs:object-client:2.2.0"
+    compile "com.emc.ecs:object-client:3.0.0"
           
     
 }
 
 
-//mainClassName="com.emc.ecs.metadata.client.MetadataCollectorClient"
 

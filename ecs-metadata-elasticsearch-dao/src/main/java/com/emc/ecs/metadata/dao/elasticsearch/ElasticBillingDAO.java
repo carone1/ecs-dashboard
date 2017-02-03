@@ -24,40 +24,35 @@ SOFTWARE.
 */
 
 
-
 package com.emc.ecs.metadata.dao.elasticsearch;
 
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
+
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import com.emc.ecs.management.entity.BucketBillingInfo;
 import com.emc.ecs.management.entity.Metadata;
@@ -89,8 +84,12 @@ public class ElasticBillingDAO implements BillingDAO {
 	private TransportClient elasticClient;
 	private static Logger LOGGER = LoggerFactory.getLogger(ElasticBillingDAO.class);
 	
-	private static final String            OLD_DATA_DATE_PATTERN = "yyyy-MM-dd";
-	private static final SimpleDateFormat  OLD_DATA_DATE_FORMAT = new  SimpleDateFormat(OLD_DATA_DATE_PATTERN);
+	private static final String            DATA_DATE_PATTERN = "yyyy-MM-dd";
+	private static final SimpleDateFormat  DATA_DATE_FORMAT = new  SimpleDateFormat(DATA_DATE_PATTERN);
+	
+	private static String billingNamespaceIndexDayName;
+	private static String billingBucketIndexDayName;
+	private static String objectBucketIndexDayName;
 	
 	//========================
 	// Constructor
@@ -99,7 +98,7 @@ public class ElasticBillingDAO implements BillingDAO {
 		
 		try {
 			
-			Builder builder = Settings.settingsBuilder();
+			Builder builder = Settings.builder();
 			
 			// Check for new hosts within the cluster
 			builder.put(CLIENT_SNIFFING_CONFIG, true);
@@ -112,21 +111,13 @@ public class ElasticBillingDAO implements BillingDAO {
 			Settings settings = builder.build();
 			
 			// create client
-			elasticClient = TransportClient.builder().settings(settings).build();
+			elasticClient = new PreBuiltTransportClient(settings);
 			
 			// add hosts
 			for( String elasticHost : config.getHosts()) {
 				elasticClient.addTransportAddress(
 						new InetSocketTransportAddress(InetAddress.getByName(elasticHost), config.getPort()));				
 			}
-			
-			// init indexes
-			
-			initBillingNamespaceIndex();
-			
-			initBillingBucketIndex();
-			
-			initObjectBucketIndex();
 			
 		} catch (UnknownHostException e) {
 			throw new RuntimeException("Unable to initialize Eleasticsearch client " + e.getLocalizedMessage() );
@@ -136,6 +127,18 @@ public class ElasticBillingDAO implements BillingDAO {
 	//========================
 	// Public methods
 	//========================
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void initIndexes(Date collectionTime) {
+		// init indexes
+		initBillingNamespaceIndex(collectionTime);
+		initBillingBucketIndex(collectionTime);
+		initObjectBucketIndex(collectionTime);
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -143,8 +146,10 @@ public class ElasticBillingDAO implements BillingDAO {
 	public void insert( NamespaceBillingInfo billingData, Date collectionTime ) {
 				
 		// Generate JSON for namespace billing info
-		XContentBuilder namespaceBuilder = toJsonFormat(billingData, collectionTime);				
-		elasticClient.prepareIndex(BILLING_NAMESPACE_INDEX_NAME, BILLING_NAMESPACE_INDEX_TYPE).setSource(namespaceBuilder).get();
+		XContentBuilder namespaceBuilder = toJsonFormat(billingData, collectionTime);
+		
+		elasticClient.prepareIndex( billingNamespaceIndexDayName, 
+				                    BILLING_NAMESPACE_INDEX_TYPE).setSource(namespaceBuilder).get();
 		
 		if( billingData.getBucketBillingInfo() == null ||
 			billingData.getBucketBillingInfo().isEmpty()   ) {
@@ -160,7 +165,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			XContentBuilder bucketBuilder = toJsonFormat(bucketBillingInfo, collectionTime);			
 
 			IndexRequestBuilder request = elasticClient.prepareIndex()
-					.setIndex(BILLING_BUCKET_INDEX_NAME)
+					.setIndex(billingBucketIndexDayName)
 					.setType(BILLING_BUCKET_INDEX_TYPE)
 					.setSource(bucketBuilder);
 			requestBuilder.add(request);
@@ -169,11 +174,11 @@ public class ElasticBillingDAO implements BillingDAO {
 		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 		int items = bulkResponse.getItems().length;
 		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch" + "index: " + 
-				BILLING_NAMESPACE_INDEX_NAME + " index type: " +  BILLING_NAMESPACE_INDEX_TYPE ); 
+				billingNamespaceIndexDayName + " index type: " +  BILLING_BUCKET_INDEX_TYPE ); 
 
 		if( bulkResponse.hasFailures() ) {
 			LOGGER.error( "Failures occured while items in Elasticsearch " + "index: " + 
-					BILLING_NAMESPACE_INDEX_NAME + " index type: " +  BILLING_NAMESPACE_INDEX_TYPE );
+					billingNamespaceIndexDayName + " index type: " +  BILLING_BUCKET_INDEX_TYPE );
 		}
 		
 	}
@@ -199,7 +204,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			XContentBuilder objectBucketBuilder = toJsonFormat(objectBucket, collectionTime);
 			
 			IndexRequestBuilder request = elasticClient.prepareIndex()
-	                .setIndex(OBJECT_BUCKET_INDEX_NAME)
+	                .setIndex(objectBucketIndexDayName)
 	                .setType(OBJECT_BUCKET_INDEX_TYPE)
 	                .setSource(objectBucketBuilder);
 			requestBuilder.add(request);
@@ -208,11 +213,11 @@ public class ElasticBillingDAO implements BillingDAO {
 		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 	    int items = bulkResponse.getItems().length;
 		LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in ElasticSearch" + "index: " + 
-				    OBJECT_BUCKET_INDEX_NAME + " index type: " +  OBJECT_BUCKET_INDEX_TYPE ); 
+				     objectBucketIndexDayName + " index type: " +  OBJECT_BUCKET_INDEX_TYPE ); 
 	    
 		if( bulkResponse.hasFailures() ) {
 			LOGGER.error( "Failures occured while items in ElasticSearch " + "index: " + 
-							OBJECT_BUCKET_INDEX_NAME + " index type: " +  OBJECT_BUCKET_INDEX_TYPE );
+					      objectBucketIndexDayName + " index type: " +  OBJECT_BUCKET_INDEX_TYPE );
 		}
 	}
 	
@@ -225,13 +230,22 @@ public class ElasticBillingDAO implements BillingDAO {
 		switch(type) {
 		  case billing_bucket:
 			// Purge old Billing Bucket entries
-			return purgeIndex(thresholdDate, BILLING_BUCKET_INDEX_NAME, BILLING_BUCKET_INDEX_TYPE);
+			ElasticIndexCleaner.truncateOldIndexes( elasticClient, thresholdDate,
+					                                BILLING_BUCKET_INDEX_NAME,
+					                                BILLING_BUCKET_INDEX_TYPE );
+			return 0L;
 		case billing_namespace:
 			// Purge old Billing Namespace entries 
-			return purgeIndex(thresholdDate, BILLING_NAMESPACE_INDEX_NAME, BILLING_NAMESPACE_INDEX_TYPE);
+			ElasticIndexCleaner.truncateOldIndexes( elasticClient, thresholdDate,
+													BILLING_NAMESPACE_INDEX_NAME,
+													BILLING_NAMESPACE_INDEX_TYPE);
+			return 0L;
 		case object_bucket:
 			// Purge old Object Bucket entries
-			return purgeIndex(thresholdDate, OBJECT_BUCKET_INDEX_NAME, OBJECT_BUCKET_INDEX_TYPE);
+			ElasticIndexCleaner.truncateOldIndexes( elasticClient, thresholdDate,
+					                                OBJECT_BUCKET_INDEX_NAME,
+					                                OBJECT_BUCKET_INDEX_TYPE );
+			return 0L;
 		default:
 			return 0L;
 		}
@@ -246,23 +260,38 @@ public class ElasticBillingDAO implements BillingDAO {
 	// Billing namespace methods
 	//===========================
 	
-	private void initBillingNamespaceIndex() {
+	private void initBillingNamespaceIndex( Date collectionTime ) {
+		
+		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
+		billingNamespaceIndexDayName = BILLING_NAMESPACE_INDEX_NAME + "-" + collectionDayString;
 		
 		if (elasticClient
 				.admin()
 				.indices()
-				.exists(new IndicesExistsRequest(BILLING_NAMESPACE_INDEX_NAME))
+				.exists(new IndicesExistsRequest(billingNamespaceIndexDayName))
 				.actionGet()
 				.isExists()) {
-			// Index already exists no need to re-create it
-			return;
+			
+			// Index already exists need to truncate it and recreate it
+			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(billingNamespaceIndexDayName);
+			ActionFuture<DeleteIndexResponse> futureResult = elasticClient.admin().indices().delete(deleteIndexRequest);
+			
+			// Wait until deletion is done
+			while( !futureResult.isDone() ) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 
-		elasticClient.admin().indices().create(new CreateIndexRequest(BILLING_NAMESPACE_INDEX_NAME)).actionGet();	
+		elasticClient.admin().indices().create(new CreateIndexRequest(billingNamespaceIndexDayName)).actionGet();	
 		
 		try {
 			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
-			    .preparePutMapping(BILLING_NAMESPACE_INDEX_NAME)
+			    .preparePutMapping(billingNamespaceIndexDayName)
 			    .setType(BILLING_NAMESPACE_INDEX_TYPE)
 			    .setSource(XContentFactory.jsonBuilder().prettyPrint()
 			                .startObject()
@@ -300,18 +329,18 @@ public class ElasticBillingDAO implements BillingDAO {
 			    .execute().actionGet();
 			
 			if (putMappingResponse.isAcknowledged()) {
-	            LOGGER.info("Index Created: " + BILLING_NAMESPACE_INDEX_NAME);
+	            LOGGER.info("Index Created: " + billingNamespaceIndexDayName);
 	        } else {
-	            LOGGER.error("Index {" + BILLING_NAMESPACE_INDEX_NAME + "} did not exist. " + 
+	            LOGGER.error("Index {" + billingNamespaceIndexDayName + "} did not exist. " + 
 	                         "While attempting to create the index in ElasticSearch " +
-	            		     "Templates we were unable to get an acknowledgement.", BILLING_NAMESPACE_INDEX_NAME);
+	            		     "Templates we were unable to get an acknowledgement.", billingNamespaceIndexDayName);
 	            LOGGER.error("Error Message: {}", putMappingResponse.toString());
-	            throw new RuntimeException("Unable to create index " + BILLING_NAMESPACE_INDEX_NAME);
+	            throw new RuntimeException("Unable to create index " + billingNamespaceIndexDayName);
 	        }			
 			
 		} catch (IOException e) {
 			 throw new RuntimeException( "Unable to create index " + 
-					 					 BILLING_NAMESPACE_INDEX_NAME +
+					                     billingNamespaceIndexDayName +
 					 					 " " + e.getMessage()           );  
 		}
 		
@@ -358,25 +387,40 @@ public class ElasticBillingDAO implements BillingDAO {
 	// Billing bucket methods
 	//=======================
 	
-	private void initBillingBucketIndex() {
+	private void initBillingBucketIndex( Date collectionTime ) {
+		
+		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
+		billingBucketIndexDayName = BILLING_BUCKET_INDEX_NAME + "-" +collectionDayString;
 		
 		if (elasticClient
 				.admin()
 				.indices()
-				.exists(new IndicesExistsRequest(BILLING_BUCKET_INDEX_NAME))
+				.exists(new IndicesExistsRequest(billingBucketIndexDayName))
 				.actionGet()
 				.isExists()) {
-			// Index already exists no need to re-create it
-			return;
+			
+			// Index already exists need to truncate it and recreate it
+			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(billingBucketIndexDayName);
+			ActionFuture<DeleteIndexResponse> futureResult = elasticClient.admin().indices().delete(deleteIndexRequest);
+			
+			// Wait until deletion is done
+			while( !futureResult.isDone() ) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 
-		elasticClient.admin().indices().create(new CreateIndexRequest(BILLING_BUCKET_INDEX_NAME)).actionGet();	
+		elasticClient.admin().indices().create(new CreateIndexRequest(billingBucketIndexDayName)).actionGet();	
 		
 		
 		
 		try {
 			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
-			    .preparePutMapping(BILLING_BUCKET_INDEX_NAME)
+			    .preparePutMapping(billingBucketIndexDayName)
 			    .setType(BILLING_BUCKET_INDEX_TYPE)
 			    .setSource(XContentFactory.jsonBuilder().prettyPrint()
 			                .startObject()
@@ -428,18 +472,18 @@ public class ElasticBillingDAO implements BillingDAO {
 			    .execute().actionGet();
 			
 			if (putMappingResponse.isAcknowledged()) {
-	            LOGGER.info("Index Created: " + BILLING_BUCKET_INDEX_NAME);
+	            LOGGER.info("Index Created: " + billingBucketIndexDayName);
 	        } else {
 	            LOGGER.error("Index {} did not exist. " + 
 	                         "While attempting to create the index from stored ElasticSearch " +
-	            		     "Templates we were unable to get an acknowledgement.", BILLING_BUCKET_INDEX_NAME);
+	            		     "Templates we were unable to get an acknowledgement.", billingBucketIndexDayName);
 	            LOGGER.error("Error Message: {}", putMappingResponse.toString());
-	            throw new RuntimeException("Unable to create index " + BILLING_BUCKET_INDEX_NAME);
+	            throw new RuntimeException("Unable to create index " + billingBucketIndexDayName);
 	        }			
 			
 		} catch (IOException e) {
 			 throw new RuntimeException( "Unable to create index " + 
-					 					 BILLING_BUCKET_INDEX_NAME +
+					                      billingBucketIndexDayName +
 					 					 " " + e.getMessage()           );  
 		}
 		
@@ -486,25 +530,40 @@ public class ElasticBillingDAO implements BillingDAO {
 	// Object bucket methods
 	//======================
 	
-	private void initObjectBucketIndex() {
+	private void initObjectBucketIndex( Date collectionTime ) {
+		
+		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
+		objectBucketIndexDayName = OBJECT_BUCKET_INDEX_NAME + "-" + collectionDayString;
 		
 		if (elasticClient
 				.admin()
 				.indices()
-				.exists(new IndicesExistsRequest(OBJECT_BUCKET_INDEX_NAME))
+				.exists(new IndicesExistsRequest(objectBucketIndexDayName))
 				.actionGet()
 				.isExists()) {
-			// Index already exists no need to re-create it
-			return;
+			
+			// Index already exists need to truncate it and recreate it
+			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(objectBucketIndexDayName);
+			ActionFuture<DeleteIndexResponse> futureResult = elasticClient.admin().indices().delete(deleteIndexRequest);
+			
+			// Wait until deletion is done
+			while( !futureResult.isDone() ) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
 		}
 
-		elasticClient.admin().indices().create(new CreateIndexRequest(OBJECT_BUCKET_INDEX_NAME)).actionGet();	
-		
-		
+		// create index
+		elasticClient.admin().indices().create(new CreateIndexRequest(objectBucketIndexDayName)).actionGet();
 		
 		try {
 			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
-					.preparePutMapping(OBJECT_BUCKET_INDEX_NAME)
+					.preparePutMapping(objectBucketIndexDayName)
 					.setType(OBJECT_BUCKET_INDEX_TYPE)
 					.setSource(XContentFactory.jsonBuilder().prettyPrint()
 							.startObject()
@@ -609,18 +668,18 @@ public class ElasticBillingDAO implements BillingDAO {
 					.execute().actionGet();
 
 			if (putMappingResponse.isAcknowledged()) {
-	            LOGGER.info("Index Created: " + OBJECT_BUCKET_INDEX_NAME);
+	            LOGGER.info("Index Created: " + objectBucketIndexDayName);
 	        } else {
 	            LOGGER.error("Index {} did not exist. " + 
 	                         "While attempting to create the index from stored ElasticSearch " +
-	            		     "Templates we were unable to get an acknowledgement.", OBJECT_BUCKET_INDEX_NAME);
+	            		     "Templates we were unable to get an acknowledgement.", objectBucketIndexDayName);
 	            LOGGER.error("Error Message: {}", putMappingResponse.toString());
-	            throw new RuntimeException("Unable to create index " + OBJECT_BUCKET_INDEX_NAME);
+	            throw new RuntimeException("Unable to create index " + objectBucketIndexDayName);
 	        }			
 			
 		} catch (IOException e) {
 			 throw new RuntimeException( "Unable to create index " + 
-					 					 BILLING_BUCKET_INDEX_NAME +
+					                     objectBucketIndexDayName +
 					 					 " " + e.getMessage()           );  
 		}
 		
@@ -711,75 +770,6 @@ public class ElasticBillingDAO implements BillingDAO {
 		return builder;
 	}
 
-
-	private Long purgeIndex(Date thresholdDate, String indexName, String indexType) {
-		
-		Long deletedDocs = 0L;
-		
-		String thresholdDateString = OLD_DATA_DATE_FORMAT.format(thresholdDate);
-		QueryBuilder qb = QueryBuilders.rangeQuery(COLLECTION_TIME).lt(thresholdDateString);
-		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(qb);
-		
-		// Purge 
-		SearchRequestBuilder searchRequestBuilder = elasticClient.prepareSearch(indexName);
-		searchRequestBuilder.setTypes(indexType);
-		searchRequestBuilder.setQuery(boolQuery);
-		// just need the id
-		searchRequestBuilder.setNoFields();
-		// limit the query to 25000 entries
-		searchRequestBuilder.setSize(25000);
-		// limit search time to 10 seconds
-		searchRequestBuilder.setScroll(new TimeValue(10000));
-		
-		SearchResponse searchResponse;
-		
-		do {
-			searchResponse = searchRequestBuilder.execute().actionGet();
-			SearchHits searchHits = searchResponse.getHits();
-			Iterator<SearchHit> itr = searchHits.iterator();	
-
-			BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
-
-			// loop all found entries and 
-			// add them to bulk delete request
-			while( itr.hasNext() ) { 
-				SearchHit searchHit = itr.next();	
-
-				DeleteRequestBuilder deleteRequest = elasticClient.prepareDelete()
-						.setIndex(indexName)
-						.setType(indexType)
-						.setId(searchHit.getId());
-
-				requestBuilder.add(deleteRequest);
-			}
-
-			if (requestBuilder.numberOfActions() > 0 ) {
-				LOGGER.info("Found " + requestBuilder.numberOfActions() + " documents to delete in Elasticsearch index: " + 
-						indexName + " as their collection_time < " + thresholdDateString);
-			} else {
-				// nothing was found so no need 
-				// to continue further
-				return deletedDocs;
-			}
-
-			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
-			int items = bulkResponse.getItems().length;
-
-			LOGGER.info( "Took " + bulkResponse.getTookInMillis() + " ms to delete [" + items + "] items in Elasticsearch " + "index: " + 
-					indexName + " index type: " +  indexType ); 
-
-			deletedDocs += items;
-			
-			if( bulkResponse.hasFailures() ) {
-				LOGGER.error( "Failure(s) occured while deleting items from index: " + 
-						indexName + " index type: " +  indexType );
-			}
-		} while ((searchResponse != null) && 
-				(searchResponse.getHits() != null) && 
-				(searchResponse.getHits().getTotalHits() > 0));
-		
-		return deletedDocs;
-	}
-
+	
 }
 
