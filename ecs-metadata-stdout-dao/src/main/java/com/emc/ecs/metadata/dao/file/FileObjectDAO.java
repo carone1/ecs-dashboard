@@ -113,4 +113,10 @@ public class FileObjectDAO implements ObjectDAO {
 		return 0L;
 	}
 
+	@Override
+	public void initIndexes(Date collectionTime) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
