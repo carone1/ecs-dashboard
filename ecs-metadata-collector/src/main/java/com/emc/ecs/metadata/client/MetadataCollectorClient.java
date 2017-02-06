@@ -455,6 +455,9 @@ public class MetadataCollectorClient {
 			daoConfig.setCollectionTime(collectionTime);
 			daoConfig.setCollectionType(EcsCollectionType.object);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
+			
+			// init indexes
+			objectDAO.initIndexes(collectionTime);
 		} else {
 			// Instantiate file DAO
 			objectDAO = new FileObjectDAO();
@@ -506,6 +509,9 @@ public class MetadataCollectorClient {
 			daoConfig.setCollectionTime(collectionTime);
 			daoConfig.setCollectionType(EcsCollectionType.object_version);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
+			
+			// init indexes
+			objectDAO.initIndexes(collectionTime);
 		} else {
 			// Instantiate file DAO
 			objectDAO = new FileObjectDAO();
@@ -513,6 +519,8 @@ public class MetadataCollectorClient {
 		
 		
 		ObjectBO objectBO = new ObjectBO(billingBO, hosts, objectDAO, threadPoolExecutor, futures, objectCount );
+		
+		//objectBO.
 		
 		// Start collection
 		objectBO.collectObjectVersionData(collectionTime);
