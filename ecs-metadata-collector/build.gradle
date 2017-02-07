@@ -71,7 +71,23 @@ applicationDistribution.from("scripts/kibana") {
 	into "scripts"
 }
 
-applicationDistribution.from("scripts/run-ecs-collector.sample") {
+applicationDistribution.from("scripts/run-ecs-collector-for-all-data.sample") {
+	into "bin"
+}
+
+applicationDistribution.from("scripts/run-ecs-collector-for-billing-data.sample") {
+	into "bin"
+}
+
+applicationDistribution.from("scripts/run-ecs-collector-for-index-init.sample") {
+	into "bin"
+}
+
+applicationDistribution.from("scripts/run-ecs-collector-for-object-data.sample") {
+	into "bin"
+}
+
+applicationDistribution.from("scripts/run-ecs-collector-for-object-version-data.sample") {
 	into "bin"
 }
 
