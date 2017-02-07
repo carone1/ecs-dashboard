@@ -555,7 +555,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 		if (elasticClient
 				.admin()
 				.indices()
-				.exists(new IndicesExistsRequest(S3_OBJECT_VERSION_INDEX_NAME))
+				.exists(new IndicesExistsRequest(s3ObjectVersionIndexDayName))
 				.actionGet()
 				.isExists()) {
 			

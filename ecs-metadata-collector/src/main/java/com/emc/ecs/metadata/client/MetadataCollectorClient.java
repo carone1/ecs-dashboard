@@ -70,6 +70,7 @@ public class MetadataCollectorClient {
 	private static final String  ECS_COLLECT_BILLING_DATA = "billing";
 	private static final String  ECS_COLLECT_OBJECT_DATA = "object";
 	private static final String  ECS_COLLECT_OBJECT_VERSION_DATA = "object-version";
+	
 	private static final String  ECS_COLLECT_ALL_DATA = "all";
 	
 	private static final String ECS_HOSTS_CONFIG_ARGUMENT                    = "--ecs-hosts";
@@ -78,10 +79,12 @@ public class MetadataCollectorClient {
 	private static final String ECS_MGMT_PORT_CONFIG_ARGUMENT                = "--ecs-mgmt-port";
 	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT             = "--collect-data";
 	private static final String ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT  = "--collect-only-modified-objects";
+	private static final String ECS_INIT_INDEXES_ONLY_CONFIG_ARGUMENT        = "--init-indexes-only";
 	
 	private static final String ELASTIC_HOSTS_CONFIG_ARGUMENT                = "--elastic-hosts";
 	private static final String ELASTIC_PORT_CONFIG_ARGUMENT                 = "--elastic-port";
-	private static final String ELASTIC_CLUSTER_CONFIG_ARGUMENT              = "--elastic-cluster"; 
+	private static final String ELASTIC_CLUSTER_CONFIG_ARGUMENT              = "--elastic-cluster";
+	
 	
 	private static final String ECS_OBJECT_LAST_MODIFIED_MD_KEY  = "LastModified";
 	
@@ -100,6 +103,7 @@ public class MetadataCollectorClient {
 			"[" + ELASTIC_HOSTS_CONFIG_ARGUMENT + " <host1,host2>] " +
 			"[" + ELASTIC_PORT_CONFIG_ARGUMENT + "<elastic-port {default: 9300}>]" +
 			"[" + ELASTIC_CLUSTER_CONFIG_ARGUMENT + "<elastic-cluster>]" +
+			"[" + ECS_INIT_INDEXES_ONLY_CONFIG_ARGUMENT + "]" +
 			"[" + ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT + "<number of days>" + " | " +
 			ECS_COLLECT_DATA_CONFIG_ARGUMENT + " <" + 
 			ECS_COLLECT_BILLING_DATA + "|" +
@@ -118,11 +122,14 @@ public class MetadataCollectorClient {
 	private static Integer relativeDayShift                  = 0;
 	private static Integer objectModifiedSinceNoOfDays       = 0;
 	private static boolean relativeObjectModifiedSinceOption = false;
+	private static boolean initIndexesOnlyOption             = false;
 	
 	
 	private final static Logger       logger             = LoggerFactory.getLogger(MetadataCollectorClient.class);
 	
-	private static ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+	// Thread pool 
+	private static ThreadPoolExecutor threadPoolExecutor = 
+			(ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 	private static Queue<Future<?>>   futures            = new ConcurrentLinkedQueue<Future<?>>();
 	private static AtomicLong         objectCount        = new AtomicLong(0L);
 	
@@ -134,6 +141,13 @@ public class MetadataCollectorClient {
 		// grab current to timestamp in order
 		// to label collected data with time
 		Date collectionTime = new Date(System.currentTimeMillis());
+		
+		if(initIndexesOnlyOption) {
+			initIndexesOnly(collectionTime);
+			// no need to go further
+			return;
+		}
+		
 		
 		if(relativeObjectModifiedSinceOption) {
 			// collect object data
@@ -306,6 +320,8 @@ public class MetadataCollectorClient {
 						System.err.println(ECS_COLLECTION_DAY_SHIFT_ARGUMENT + " requires a day shift value port value");
 						System.exit(0);
 					}
+				} else if (arg.equals( ECS_INIT_INDEXES_ONLY_CONFIG_ARGUMENT)) { 
+					initIndexesOnlyOption = true;
 				} else {
 					System.err.println("Unreconized option: " + arg); 
 					System.err.println(menuString);
@@ -314,25 +330,35 @@ public class MetadataCollectorClient {
 			}                
 		}
 
-		// Check hosts
-		if(ecsHosts.isEmpty()) {	
-			System.err.println("Missing ECS hostname use " + ECS_HOSTS_CONFIG_ARGUMENT + 
-					"<host1, host2> to specify a value" );
-			return;
-		}
+		if(initIndexesOnlyOption) {
+			// Check hosts
+			if(elasticHosts.isEmpty()) {	
+				System.err.println("Missing Elastic hostname use " + ELASTIC_HOSTS_CONFIG_ARGUMENT + 
+								"<host1, host2> to specify a value" );
+				return;
+			}	
+		} else {
 
-		// management access/user key
-		if(ecsMgmtAccessKey.isEmpty()) {
-			System.err.println("Missing managment access key use" + ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT +
-					"<admin-username> to specify a value" );
-			return;
-		}
+			// Check hosts
+			if(ecsHosts.isEmpty()) {	
+				System.err.println("Missing ECS hostname use " + ECS_HOSTS_CONFIG_ARGUMENT + 
+						"<host1, host2> to specify a value" );
+				return;
+			}
 
-		// management access/user key
-		if(ecsMgmtSecretKey.isEmpty()) {
-			System.err.println("Missing management secret key use " + ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT +
-					"<admin-password> to specify a value" );
-			return;
+			// management access/user key
+			if(ecsMgmtAccessKey.isEmpty()) {
+				System.err.println("Missing managment access key use" + ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT +
+						"<admin-username> to specify a value" );
+				return;
+			}
+
+			// management access/user key
+			if(ecsMgmtSecretKey.isEmpty()) {
+				System.err.println("Missing management secret key use " + ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT +
+						"<admin-password> to specify a value" );
+				return;
+			}
 		}
 	}
 	
@@ -385,7 +411,6 @@ public class MetadataCollectorClient {
 	private static void collectObjectData(Date collectionTime) {
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
-		
 		
 		// instantiate billing BO
 		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
@@ -526,6 +551,39 @@ public class MetadataCollectorClient {
 		objectBO.collectObjectVersionData(collectionTime);
 		
 		objectBO.shutdown();
+	}
+	
+	
+	private static void initIndexesOnly(Date collectionTime) {
+		
+		// Instantiate Object DAO
+		ObjectDAO objectDAO = null;
+		BillingDAO billingDAO = null;
+		
+		if(!elasticHosts.isEmpty()) {
+			
+			// Instantiate ElasticSearch DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			daoConfig.setCollectionType(EcsCollectionType.object);
+			objectDAO = new ElasticS3ObjectDAO(daoConfig);
+			
+			// init indexes
+			daoConfig.setCollectionType(EcsCollectionType.object_version);
+			objectDAO.initIndexes(collectionTime);
+			//daoConfig.setCollectionType(EcsCollectionType.object);
+			//objectDAO.initIndexes(collectionTime);
+	
+			
+			
+			billingDAO = new ElasticBillingDAO(daoConfig);
+			// init indexes
+			billingDAO.initIndexes(collectionTime);
+		}
+		
 	}
 	
 }

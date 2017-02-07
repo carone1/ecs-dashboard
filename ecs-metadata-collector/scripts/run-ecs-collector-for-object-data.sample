@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+./ecs-metadata-collector --ecs-hosts <ecs-host1, ecs-host2> --ecs-mgmt-access-key <ecs-admin-user-name> --ecs-mgmt-secret-key <ecs-admin-password> --ecs-mgmt-port 4443 --elastic-hosts <elastic-host-1, elastic-host-2> --elastic-port 9300 --elastic-cluster ecs-analytics --collect-data object

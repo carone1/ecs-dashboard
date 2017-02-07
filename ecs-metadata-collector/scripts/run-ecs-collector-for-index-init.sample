@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+./ecs-metadata-collector --elastic-hosts <elastic-host-1, elastic-host-2> --elastic-port 9300 --elastic-cluster ecs-analytics --init-indexes-only
