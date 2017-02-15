@@ -212,9 +212,10 @@ Kibana interface should be coming.
 ## ECS Dashboard
 
 On top of using Elasticsearch and Kibana there are extra java programs to:
-	1. Collect metadata information from ECS systems. Referenced as the `Collector'
-	2. Purge older metadata stored in Elasticsearch. Referenced as the `Cleaner`
-	3. Screen capture Kibana Dashboards and send them by email. Referenced as the `Emailer` 
+
+	1. Collect metadata information from ECS systems. Referenced as the 'Collector'
+	2. Purge older metadata stored in Elasticsearch. Referenced as the 'Cleaner'
+	3. Screen capture Kibana Dashboards and send them by email. Referenced as the 'Emailer' 
  
 An ansible playbook was developed to install Collectors, Cleaners, Emailer on nodes where Elasticsearch and Kibana are also installed.
 
@@ -351,21 +352,21 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
     
 9. Under /opt/ecs-dashboard on node01, node02, node03 there will be different java programs installed and pre-configured scripts installed to run collectors, cleaners, emailers.
 
-      drwxr-xr-x. 2 ecs-dashboard ecs-dashboard  chromedriver-2.9
-      drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  ecs-elasticsearch-cleaner-1.3
-      drwxr-xr-x. 6 ecs-dashboard ecs-dashboard  ecs-metadata-collector-1.3
-      drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  kibana-emailer-1.3
-      drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  logs
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_all_data.sh
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_billing_data.sh
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_index_init.sh
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_data.sh
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_version_data.sh
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_all_data.sh
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_billing_data.sh
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_object_data.sh
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_object_version_data.sh
-      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_kibana_emailer.sh
+      	drwxr-xr-x. 2 ecs-dashboard ecs-dashboard  chromedriver-2.9
+      	drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  ecs-elasticsearch-cleaner-1.3
+      	drwxr-xr-x. 6 ecs-dashboard ecs-dashboard  ecs-metadata-collector-1.3
+      	drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  kibana-emailer-1.3
+      	drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  logs
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_all_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_billing_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_index_init.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_version_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_all_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_billing_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_object_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_object_version_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_kibana_emailer.sh
 
 
 
