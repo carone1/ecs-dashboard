@@ -207,7 +207,166 @@ An ansible playbook is used to deploy Kibana on our hosts.
 
 Kibana interface should be coming.
 
+
+
+## ECS Dashboard
+
+On top of using Elasticsearch and Kibana there are extra java programs to:
+	1. Collect metadata information from ECS systems. Referenced as the `Collector'
+	2. Purge older metadata stored in Elasticsearch. Referenced as the `Cleaner`
+	3. Screen capture Kibana Dashboards and send them by email. Referenced as the `Emailer` 
+ 
+An ansible playbook was developed to install Collectors, Cleaners, Emailer on nodes where Elasticsearch and Kibana are also installed.
+
+
+1. Create /my/gitrepos directory
+
+	    mkdir /my/gitrepos ; /my/gitrepos
+	
+2. Clone Elasticsearch playbook
+
+	    git clone https://github.com/carone1/ansible-ecs-dashboard.git
+	
+3. Create /my/playbooks/roles
+
+	    mkdir -p /my/playbooks/roles
+	
+4. Link ECS Dashboard playbook under roles
+
+        ln -s /my/gitrepos/ansible-ecs-dashboard /my/playbooks/ecs-dashboard
     
+5. cd to playbook
+
+	    cd /my/playbooks/ecs-dashboard
+	
+6. create hosts file indicating where Collectors, Cleaners and Emailers will be installed
+
+	    [ecs-dashboard]
+	    node01
+	    node02
+	    node03
+
+	    
+7.  copy /my/gitrepos/ansible-ecs-dashboard/install-ecs-dashboard.yml.sample into /my/playbooks/ecs-dashboard
+    should look like this
+    
+
+      ```
+      - hosts: ecs-dashboard
+      roles:
+       - ecs-dashboard
+
+      ```
+        
+8. Adjust few parameters in /my/playbooks/ecs-dashboard/defaults/main.yml where indicated below.
+
+      ```
+      ---
+
+      # default file for ecs dashboard
+
+      ecs_dashboard_bin_version: 1.3
+      ecs_dashboard_url_version: 'v1.3'
+
+      chrome_driver_url_version: '2.27'
+      chrome_driver_bin_version: '2.27'
+
+      # *** section to be modified ***
+      ecs_hosts: 'specify-host'
+      ecs_mgmt_access_key: 'specify-user-key'
+      ecs_mgmt_secret_key: 'specify-user-secret'
+      ecs_mgmt_port: 4443
+
+      # *** section to be modified as mutliple Elasticsearch hosts are proabably installed*** 
+      # ip or hosts for elasticsearch cluster
+      # multiple hosts ip must comma seperated
+      elastic_hosts: 'localhost'
+
+      # port to use to communicate with elasticsearch
+      # cluster this is the transport port
+      elastic_port: 9300
+
+      # This value must match the value in the elasticsearch playbook
+      # elasticsearch cluster name
+      elastic_cluster_name: 'ecs-analytics'
+
+      # specify how many days worth of data
+      # cleaner will keep in elastcisearch
+      collection_days_to_keep: 7
+
+
+      # Emailer settings
+
+      # *** section to be modified as the links are not valid ****
+      kibana_urls:
+       - name: "AnalysisPerNamespace"
+         url: "http://kibana_username:kibana_password@url_to_kibana_dashboard"
+      # - name: "Top 10 Dashboard"
+      #   url: "http://kibana_username:kibana_password@url_to_kibana_dashboard_2"
+
+      # *** section to modified if chrome is installed somewhere else ****
+      # chrome browser location
+      chrome_browser: "/bin/google-chrome"
+
+      # delay before taking screen capture in seconds
+      screen_capture_delay: 15
+
+      # path where Kibana screen captures are saved
+      screen_capture_destination_path: "{{ ecs_dashboard_install_dir }}/kibana-screen-captures"
+
+      # section to be modified to match your smtp server config
+      smtp_host: "localhost"
+      smtp_port: 587
+      smtp_username: "smtpusername"
+      smtp_password: "smtppassword"
+
+      # Specify tls or ssl. Default to tls
+      smtp_security: "tls"
+
+      # source host
+      smtp_source_host: "localhost"
+
+      # e-mail address
+      smtp_source_address: "ecsdashboard@ecsanalytics.com"
+
+      smtp_destination_addresses:
+      - "destination@gmail.com"
+      # - "destination2@gmail.com"
+
+      # e-mail content
+      # mail.title
+      smtp_mail_title: "Kibana Reports"
+
+      # mail.body
+      smtp_mail_body: "Kibana Body"
+
+      # certificate
+      smtp_ssl_port: 443
+
+      ```
+      
+8. run kibana playbook on ansible01
+
+	    ansible-playbook -i host install-ecs-dashboard.yml --ask-become
+    
+9. Under /opt/ecs-dashboard on node01, node02, node03 there will be different java programs installed and pre-configured scripts installed to run collectors, cleaners, emailers.
+
+      drwxr-xr-x. 2 ecs-dashboard ecs-dashboard  chromedriver-2.9
+      drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  ecs-elasticsearch-cleaner-1.3
+      drwxr-xr-x. 6 ecs-dashboard ecs-dashboard  ecs-metadata-collector-1.3
+      drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  kibana-emailer-1.3
+      drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  logs
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_all_data.sh
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_billing_data.sh
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_index_init.sh
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_data.sh
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_version_data.sh
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_all_data.sh
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_billing_data.sh
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_object_data.sh
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_object_version_data.sh
+      -rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_kibana_emailer.sh
+
 
 
 
