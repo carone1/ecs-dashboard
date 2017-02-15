@@ -398,7 +398,7 @@ Under Settings / Index Paterns Create index patern for
 	ecs-billing-bucket-*, 
 	ecs-billing-namespace*.
 
-Note: Always use the collection_time field as the time-field name. It is very very important to end index patern names with -* so the pattern will be able to see all indexes terminating with -<yyyy-mm-dd>.
+Note: Always use the collection_time field as the time-field name. It is very very important to end index patern names with -* so the pattern will be able to see all indexes terminating with -yyyy-mm-dd patterns.
 
 ###Import Searches
 
