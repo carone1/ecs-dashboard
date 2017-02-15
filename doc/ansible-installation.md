@@ -369,5 +369,45 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_kibana_emailer.sh
 
 
+# Import Default Kibana ECS Dashboards
 
+### Verify Indexes Presence
+
+
+Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=() verify that ecs-bucket-<yyyy-mm-dd>, ecs-s3-object-<yyyy-mm-dd>, ecs-billing-bucket-<yyyy-mm-dd>, ecs-billing-namespace-<yyyy-mm-dd> indexes are present.  (Rest command: "get _cat/indices?v")
+
+![ElasticSearch Index Presence](https://github.com/carone1/ecs-dashboard/blob/master/doc/images/elasticSearchIndexPresence.png)
+
+	Access Kibanna: http://<kibana-ip>:<kibana-port>/app/kibana#
+
+### Configure Index Patterns
+
+![Kibana Index Pattern] (https://github.com/carone1/ecs-dashboard/blob/master/doc/images/kibanaIndexPattern.png)
+
+Under Settings / Indexes
+
+	Create index for ecs-bucket-*, ecs-s3-object-*, ecs-billing-bucket-*, 
+	ecs-billing-namespace*. Always use the collection_time field 
+	as the time-field name. 
+
+###Import Searches
+
+Under Settings / Objects / Searches
+
+	Click Import and select kibana-searches-1.3.json. Download file locally from => https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-searches-1.3.json
+
+### Import Visualizations
+
+Under Settings / Objects / Visualization
+
+	Click Import and select kibana-visualization-1.3.json. Download file locally from => https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-visualization-1.3.json
+
+### Import Dashboards
+
+Under Settings / Objects / Dashboards
+
+	Click Import and select kibana-dashboards-1.3.json. Download file locally from => https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-visualization-1.3.json
+
+
+Voila! You should have a functional dashboard.
 
