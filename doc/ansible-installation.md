@@ -89,7 +89,7 @@ to deploy Elasticsearch on our hosts.
             es_log_dir: "/datadisk/elasticsearch/logs",
         es_config: {
             node.name: "node1",
-            cluster.name: "custom-cluster",
+            cluster.name: "ecs-analytics",
             discovery.zen.ping.unicast.hosts: "node01, node02, node03",
             network.host: "_eth0_, , _local_",
             node.data: true,
@@ -100,7 +100,7 @@ to deploy Elasticsearch on our hosts.
             }
         }
         
-      ```   
+      ```
         
         
 
@@ -170,14 +170,14 @@ An ansible playbook is used to deploy Kibana on our hosts.
     should look like this
     
 
-      ```      
+      ```
       - hosts: kibana
       roles:
        - kibana
 
-      ```   
+      ```
         
-8. Adjust few parameters in /my/playbooks/kibana/defaults/main.yml if required.     
+8. Adjust few parameters in /my/playbooks/kibana/defaults/main.yml if required.
 
       ```
       ---
