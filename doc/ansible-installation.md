@@ -374,7 +374,14 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 ### Verify Indexes Presence
 
 
-Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=() verify that ecs-bucket-<yyyy-mm-dd>, ecs-s3-object-<yyyy-mm-dd>, ecs-billing-bucket-<yyyy-mm-dd>, ecs-billing-namespace-<yyyy-mm-dd> indexes are present.  (Rest command: "get _cat/indices?v")
+Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=() verify that indexes are present.
+
+	ecs-bucket-<yyyy-mm-dd>, 
+	ecs-s3-object-<yyyy-mm-dd>, 
+	ecs-billing-bucket-<yyyy-mm-dd>, 
+	ecs-billing-namespace-<yyyy-mm-dd> 
+
+	(Rest command: "get _cat/indices?v")
 
 ![ElasticSearch Index Presence](https://github.com/carone1/ecs-dashboard/blob/master/doc/images/elasticSearchIndexPresence.png)
 
@@ -384,11 +391,14 @@ Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=(
 
 ![Kibana Index Pattern] (https://github.com/carone1/ecs-dashboard/blob/master/doc/images/kibanaIndexPattern.png)
 
-Under Settings / Indexes
+Under Settings / Index Paterns Create index patern for 
 
-	Create index for ecs-bucket-*, ecs-s3-object-*, ecs-billing-bucket-*, 
-	ecs-billing-namespace*. Always use the collection_time field 
-	as the time-field name. 
+	ecs-bucket-*, 
+	ecs-s3-object-*, 
+	ecs-billing-bucket-*, 
+	ecs-billing-namespace*.
+
+Note: Always use the collection_time field as the time-field name. The -* is very very important to be present in the index parten names.
 
 ###Import Searches
 
