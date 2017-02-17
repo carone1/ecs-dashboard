@@ -58,9 +58,9 @@ to deploy Elasticsearch on our hosts.
 
         ln -s /my/gitrepos/ansible-elasticsearch /my/playbooks/elasticsearch
     
-5. cd to playbook
+5. cd to playbookdir
 
-	    cd /my/playbooks/elasticsearch
+	    cd /my/playbooks/
 	
 6. create hosts file indicating where master and data nodes are running
 
@@ -74,7 +74,7 @@ to deploy Elasticsearch on our hosts.
 	    [elasticsearch_data_nodes]
 	    
 7. copy /my/gitrepos/ansible-elasticsearch/install-elasticsearch.yml.sample into 
-   /my/playbooks/elasticsearch and modify parameters that might require modifications 
+   /my/playbooks/ and modify parameters that might require modifications 
 
       ```
       
@@ -154,11 +154,12 @@ An ansible playbook is used to deploy Kibana on our hosts.
 
         ln -s /my/gitrepos/ansible-role-kibana /my/playbooks/kibana
     
-5. cd to playbook
+5. cd to playbook dir
 
-	    cd /my/playbooks/kibana
+	    cd /my/playbooks/
 	
-6. create hosts file indicating where kibana nodes are running
+6. create hosts file indicating where kibana nodes are running. Alternatively, kibana role can be added 
+   bottom of the existing hosts file created during the elasticsearch installation steps.
 
 	    [kibana]
 	    node01
@@ -166,7 +167,7 @@ An ansible playbook is used to deploy Kibana on our hosts.
 	    node03
 
 	    
-7.  copy /my/gitrepos/ansible-role-kibana/install-kibana.yml.sample into /my/playbooks/kibana
+7.  copy /my/gitrepos/ansible-role-kibana/install-kibana.yml.sample into /my/playbooks/
     should look like this
     
 
@@ -177,7 +178,7 @@ An ansible playbook is used to deploy Kibana on our hosts.
 
       ```
         
-8. Adjust few parameters in /my/playbooks/kibana/defaults/main.yml if required.
+8. Adjust few parameters in /my/playbooks/roles/kibana/defaults/main.yml if required.
 
       ```
       ---
@@ -236,30 +237,30 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 
         ln -s /my/gitrepos/ansible-ecs-dashboard /my/playbooks/ecs-dashboard
     
-5. cd to playbook
+5. cd to playbook root
 
-	    cd /my/playbooks/ecs-dashboard
+	    cd /my/playbooks
 	
 6. create hosts file indicating where Collectors, Cleaners and Emailers will be installed
 
-	    [ecs-dashboard]
+	    [ecs_dashboard]
 	    node01
 	    node02
 	    node03
 
 	    
-7.  copy /my/gitrepos/ansible-ecs-dashboard/install-ecs-dashboard.yml.sample into /my/playbooks/ecs-dashboard
-    should look like this
+7.  copy /my/gitrepos/ansible-ecs-dashboard/install-ecs-dashboard.yml.sample into /my/playbooks/install-ecs-dashboard.yml
+    It should look like this
     
 
       ```
-      - hosts: ecs-dashboard
+      - hosts: ecs_dashboard
       roles:
-       - ecs-dashboard
+       - ecs_dashboard
 
       ```
         
-8. Adjust few parameters in /my/playbooks/ecs-dashboard/defaults/main.yml where indicated below.
+8. Adjust few parameters in /my/playbooks/roles/ecs-dashboard/defaults/main.yml where indicated below.
 
       ```
       ---
@@ -387,15 +388,32 @@ Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=(
 
 	Access Kibanna: http://<kibana-ip>:<kibana-port>/app/kibana#
 
+### Start Data Collection
+
+Might be design intent but Kiana 5.2+ will complain when importing searches/visualizations/dashboards if referenced indexes do not have any data present in them.  The import will sill be succesful but will keep give out errors when opening dashboards.   As described here [Visualize field is a required parameter](https://discuss.elastic.co/t/visualize-field-is-a-required-parameter-how-to-solve/74619) The workaround is to initiate a data collection wait for a few minutes before proceding to the next step...
+
+	On Node01 or Node02 or Node03
+	cd /opt/ecs-dashboard
+	First shell
+	./run_ecs_collector_for_object_version_data.sh  
+	Second Shell
+        ./run_ecs_collector_for_object_data.sh
+
+
+Wait 4-5 minutes so all indexes will have at least one document in them.
+
+
+
 ### Configure Index Patterns
 
 ![Kibana Index Pattern] (https://github.com/carone1/ecs-dashboard/blob/master/doc/images/kibanaIndexPattern.png)
 
 Under Settings / Index Paterns Create index patern for 
 
-	ecs-bucket-*, 
-	ecs-s3-object-*, 
-	ecs-billing-bucket-*, 
+	ecs-bucket*, 
+	ecs-s3-object*,
+	ecs-s3-object-version*, 
+	ecs-billing-bucket*, 
 	ecs-billing-namespace*.
 
 Note: Always use the collection_time field as the time-field name. It is very very important to end index patern names with -* so the pattern will be able to see all indexes terminating with -yyyy-mm-dd patterns.
@@ -404,20 +422,24 @@ Note: Always use the collection_time field as the time-field name. It is very ve
 
 Under Settings / Objects / Searches
 
-	Click Import and select kibana-searches-1.3.json. Download file locally from => https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-searches-1.3.json
+	 
+	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-searches-1.3.json
+	Click Import and select kibana-searches-1.3.json.
 
 ### Import Visualizations
 
 Under Settings / Objects / Visualization
 
-	Click Import and select kibana-visualization-1.3.json. Download file locally from => https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-visualization-1.3.json
+	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-visualization-1.3.json
+	Click Import and select kibana-visualization-1.3.json.
 
 ### Import Dashboards
 
 Under Settings / Objects / Dashboards
 
-	Click Import and select kibana-dashboards-1.3.json. Download file locally from => https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-visualization-1.3.json
+	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-visualization-1.3.json
+	Click Import and select kibana-dashboards-1.3.json.
 
 
-Voila! You should have a functional dashboard.
+Voila! You should have a functional dashboardat this point.
 
