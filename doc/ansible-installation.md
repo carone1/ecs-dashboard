@@ -390,14 +390,14 @@ Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=(
 
 ### Start Data Collection
 
-Might be design intent but Kiana 5.2+ will complain when importing searches/visualizations/dashboards if referenced indexes do not have any data present in them.  The import will sill be succesful but will keep give out errors when opening dashboards.   As described here [Visualize field is a required parameter](https://discuss.elastic.co/t/visualize-field-is-a-required-parameter-how-to-solve/74619) The workaround is to initiate a data collection wait for a few minutes before proceding to the next step...
+Might be design intent but Kiana 5.2+ will complain when importing searches/visualizations/dashboards if referenced indexes don't have any record/document present in them.  The import will sill be succesful but Kiabana will keep give errors when opening out dashboards.   As described here [Visualize field is a required parameter](https://discuss.elastic.co/t/visualize-field-is-a-required-parameter-how-to-solve/74619) The workaround is to initiate a data collection wait for a few minutes before proceding to Index Pattern Creation
 
 	On Node01 or Node02 or Node03
 	cd /opt/ecs-dashboard
 	First shell
-	./run_ecs_collector_for_object_version_data.sh  
+	./run_ecs_collector_for_object_version_data.sh
 	Second Shell
-        ./run_ecs_collector_for_object_data.sh
+	./run_ecs_collector_for_object_data.sh
 
 
 Wait 4-5 minutes so all indexes will have at least one document in them.
@@ -408,7 +408,9 @@ Wait 4-5 minutes so all indexes will have at least one document in them.
 
 ![Kibana Index Pattern] (https://github.com/carone1/ecs-dashboard/blob/master/doc/images/kibanaIndexPattern.png)
 
-Under Settings / Index Paterns Create index patern for 
+Under Settings / Index Paterns 
+
+Create index patern for 
 
 	ecs-bucket*, 
 	ecs-s3-object*,
@@ -441,5 +443,5 @@ Under Settings / Objects / Dashboards
 	Click Import and select kibana-dashboards-1.3.json.
 
 
-Voila! You should have a functional dashboardat this point.
+Voila! You should have a functional dashboard at this point.
 
