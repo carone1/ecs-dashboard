@@ -56,7 +56,7 @@ to deploy Elasticsearch on our hosts.
 	
 4. Link ES playbook under roles
 
-        ln -s /my/gitrepos/ansible-elasticsearch /my/playbooks/elasticsearch
+        ln -s /my/gitrepos/ansible-elasticsearch /my/playbooks/roles/elasticsearch
     
 5. cd to playbookdir
 
@@ -152,7 +152,7 @@ An ansible playbook is used to deploy Kibana on our hosts.
 	
 4. Link ES playbook under roles
 
-        ln -s /my/gitrepos/ansible-role-kibana /my/playbooks/kibana
+        ln -s /my/gitrepos/ansible-role-kibana /my/playbooks/roles/kibana
     
 5. cd to playbook dir
 
@@ -235,7 +235,7 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 	
 4. Link ECS Dashboard playbook under roles
 
-        ln -s /my/gitrepos/ansible-ecs-dashboard /my/playbooks/ecs-dashboard
+        ln -s /my/gitrepos/ansible-ecs-dashboard /my/playbooks/roles/ecs-dashboard
     
 5. cd to playbook root
 

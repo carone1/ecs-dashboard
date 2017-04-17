@@ -574,10 +574,8 @@ public class MetadataCollectorClient {
 			// init indexes
 			daoConfig.setCollectionType(EcsCollectionType.object_version);
 			objectDAO.initIndexes(collectionTime);
-			//daoConfig.setCollectionType(EcsCollectionType.object);
-			//objectDAO.initIndexes(collectionTime);
-	
-			
+			daoConfig.setCollectionType(EcsCollectionType.object);
+			objectDAO.initIndexes(collectionTime);
 			
 			billingDAO = new ElasticBillingDAO(daoConfig);
 			// init indexes
