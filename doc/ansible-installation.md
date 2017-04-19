@@ -204,7 +204,7 @@ An ansible playbook is used to deploy Kibana on our hosts.
 
 	    ansible-playbook -i host install-kibana.yml --ask-become
     
-9. Point a browser to *node01:9601* or *node02:9601* or *node03:9601*
+9. Point a browser to *node01:5601* or *node02:5601* or *node03:5601*
 
 Kibana interface should be coming.
 
@@ -235,7 +235,7 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 	
 4. Link ECS Dashboard playbook under roles
 
-        ln -s /my/gitrepos/ansible-ecs-dashboard /my/playbooks/roles/ecs-dashboard
+        ln -s /my/gitrepos/ansible-ecs-dashboard /my/playbooks/roles/ecs_dashboard
     
 5. cd to playbook root
 
