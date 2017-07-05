@@ -1,0 +1,75 @@
+d": "Bucket-Data-And-Metadata-Search",
+    "_type": "visualization",
+        "_source": {
+	      "title": "Table Bucket Data And Metadata Search",
+	            "visState": "{\"title\":\"Table Bucket Data And Metadata Search\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Bucket Count\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"name\",\"size\":20,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Bucket Name\"}}],\"listeners\":{}}",
+		          "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+			        "description": "",
+				      "savedSearchId": "8cbeaf90-60df-11e7-9c08-0f60be736c56",
+				            "version": 1,
+					          "kibanaSavedObjectMeta": {
+						          "searchSourceJSON": "{\"filter\":[]}"
+							        }
+								    }
+								      },
+								        {
+									    "_id": "Bucket-Data-And-Retention-Period",
+									        "_type": "visualization",
+										    "_source": {
+										          "title": "Table Bucket Data And Retention Period",
+											        "visState": "{\"title\":\"Table Bucket Data And Retention Period\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"name\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Bucket Name\"}},{\"id\":\"3\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"default_retention\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\"}}],\"listeners\":{}}",
+												      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+												            "description": "",
+													          "savedSearchId": "7168a470-60e5-11e7-9c08-0f60be736c56",
+														        "version": 1,
+															      "kibanaSavedObjectMeta": {
+															              "searchSourceJSON": "{\"filter\":[]}"
+																            }
+																	        }
+																		  },
+																		    {
+																		        "_id": "Bucket-Data-And-Api-Type",
+																			    "_type": "visualization",
+																			        "_source": {
+																				      "title": "Table Bucket Data Name And Api Type",
+																				            "visState": "{\"title\":\"Table Bucket Data Name And Api Type\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Api Type Count\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"api_type\",\"size\":20,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Api Type\"}},{\"id\":\"3\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"name\",\"size\":20,\"orderAgg\":{\"id\":\"3-orderAgg\",\"enabled\":true,\"type\":\"count\",\"schema\":\"orderAgg\",\"params\":{}},\"order\":\"desc\",\"orderBy\":\"custom\",\"customLabel\":\"Bucket Name\"}}],\"listeners\":{}}",
+																					          "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+																						        "description": "",
+																							      "savedSearchId": "7f408330-60de-11e7-9c08-0f60be736c56",
+																							            "version": 1,
+																								          "kibanaSavedObjectMeta": {
+																									          "searchSourceJSON": "{\"filter\":[]}"
+																										        }
+																											    }
+																											      },
+																											        {
+																												    "_id": "Bucket-Data-And-Quota-Flag",
+																												        "_type": "visualization",
+																													    "_source": {
+																													          "title": "Table Bucket Data Name And Quota Flag",
+																														        "visState": "{\"title\":\"Table Bucket Data Name And Quota Flag\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Bucket count\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"name\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Bucket Name\"}}],\"listeners\":{}}",
+																															      "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+																															            "description": "",
+																																          "savedSearchId": "811352f0-60d4-11e7-9c08-0f60be736c56",
+																																	        "version": 1,
+																																		      "kibanaSavedObjectMeta": {
+																																		              "searchSourceJSON": "{\"filter\":[]}"
+																																			            }
+																																				        }
+																																					  },
+																																					    {
+																																					        "_id": "Bucket-Data-And-FileSystem-Enabled",
+																																						    "_type": "visualization",
+																																						        "_source": {
+																																							      "title": "Table File System Count Enabled Per Bucket",
+																																							            "visState": "{\"title\":\"Table File System Count Enabled Per Bucket\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false,\"sort\":{\"columnIndex\":null,\"direction\":null},\"showTotal\":false,\"totalFunc\":\"sum\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{\"customLabel\":\"Bucket Name Count\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"name\",\"size\":2000,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Bucket Name\"}}],\"listeners\":{}}",
+																																								          "uiStateJSON": "{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}",
+																																									        "description": "",
+																																										      "savedSearchId": "64dce800-60dc-11e7-9c08-0f60be736c56",
+																																										            "version": 1,
+																																											          "kibanaSavedObjectMeta": {
+																																												          "searchSourceJSON": "{\"filter\":[]}"
+																																													        }
+																																														    }
+																																														      }
+																																														      ]

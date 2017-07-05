@@ -1,0 +1,34 @@
+[
+  {
+      "_id": "Bucket-Data-And-MetaSearch",
+          "_type": "search",
+	      "_source": {
+	            "title": "Bucket Data And Metadata Search",
+		          "description": "",
+			        "hits": 0,
+				      "columns": [
+				              "name",
+					              "owner",
+						              "vdc",
+							              "vpool",
+								              "id",
+									              "block_size",
+										              "api_type",
+											              "softquota",
+												              "collection_time",
+													              "fs_access_enabled",
+														              "name_analyzed",
+															              "notification_size",
+																              "locked"
+																	            ],
+																		          "sort": [
+																			          "collection_time",
+																				          "desc"
+																					        ],
+																						      "version": 1,
+																						            "kibanaSavedObjectMeta": {
+																							            "searchSourceJSON": "{\n  \"index\": \"ecs-bucket*\",\n  \"filter\": [],\n  \"highlight\": {\n    \"pre_tags\": [\n      \"@kibana-highlighted-field@\"\n    ],\n    \"post_tags\": [\n      \"@/kibana-highlighted-field@\"\n    ],\n    \"fields\": {\n      \"*\": {}\n    },\n    \"require_field_match\": false,\n    \"fragment_size\": 2147483647\n  },\n  \"query\": {\n    \"query_string\": {\n      \"query\": \"_exists_:search_metadata\",\n      \"analyze_wildcard\": true\n    }\n  }\n}"
+																								          }
+																									      }
+																									        }
+																										]
