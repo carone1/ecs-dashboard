@@ -35,11 +35,14 @@ import javax.ws.rs.core.Response;
 import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.NamespaceBillingInfo;
+import com.emc.ecs.management.entity.NamespaceDetail;
+import com.emc.ecs.management.entity.NamespaceQuota;
 import com.emc.ecs.management.entity.NamespaceRequest;
 import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.management.entity.ObjectUserSecretKeys;
 import com.emc.ecs.management.entity.ObjectUsers;
 import com.emc.ecs.management.entity.ObjectUsersRequest;
+import com.emc.ecs.management.entity.VdcDetails;
 import com.emc.rest.smart.LoadBalancer;
 import com.emc.rest.smart.SmartClientFactory;
 import com.emc.rest.smart.SmartConfig;
@@ -74,6 +77,10 @@ public class ManagementClient {
 	private static final String REST_MARKER_PARAMETER 					= "marker";
 	private static final String REST_LIMIT_PARAMETER 					= "limit";
 	private static final String REST_NAMESPACE_PARAMETER 				= "namespace";
+	private static final String  REST_QUOTA_NAMESPACES_FIRST 			= "/object/namespaces/namespace/";
+	private static final String  REST_QUOTA_NAMESPACES_SECOND			= "/quota";
+	private static final String  REST_ALL_VDC							= "/object/vdcs/vdc/list";
+	
 	
 	//================================
 	// Private Members
@@ -83,6 +90,8 @@ public class ManagementClient {
 	private Client					mgmtClient;
 	
 	private URI						uri;
+
+
 	
 	//================================
 	// Constructor
@@ -334,6 +343,52 @@ public class ManagementClient {
 	}
 	
 	
+	/**
+	 * Returns namespace specific details
+	 * @return NamespaceDetail
+	 */
+	public NamespaceDetail getNamespaceDetails(String namespaceid) {
+		String authToken = getAuthToken();
+		WebResource mgmtResource = this.mgmtClient.resource(uri);
+		StringBuilder restStr = new StringBuilder();
+		restStr.append(REST_LIST_NAMESPACES);
+		// Get Namespace Detail Ressource
+		WebResource getNamespaceDetailResource = mgmtResource.path(restStr.toString())
+				.queryParam(REST_NAMESPACE_PARAMETER, namespaceid);
+		NamespaceDetail namespaceDetailResponse = getNamespaceDetailResource.header(X_SDS_AUTH_TOKEN, authToken)
+				.get(NamespaceDetail.class);
+		return namespaceDetailResponse;
+	}
+	
+	/**
+	 * Returns namespace specific details
+	 * @return NamespaceDetail
+	 */
+	public NamespaceQuota getNamespaceQuota(NamespaceRequest namespaceRequest) {
+		String authToken = getAuthToken();
+		WebResource mgmtResource = this.mgmtClient.resource(uri);
+		StringBuilder restStr = new StringBuilder();
+		restStr.append(REST_QUOTA_NAMESPACES_FIRST)
+		.append(namespaceRequest.getName())
+		.append(REST_QUOTA_NAMESPACES_SECOND);
+		// Get Namespace Detail Ressource
+		WebResource getNamespaceDetailResource = mgmtResource.path(restStr.toString());
+		NamespaceQuota namespaceQuotaResponse = getNamespaceDetailResource.header(X_SDS_AUTH_TOKEN, authToken)
+				.get(NamespaceQuota.class);
+		return namespaceQuotaResponse;
+	}
+	
+	public VdcDetails getVdcDetails() {
+		String authToken = getAuthToken();
+		WebResource mgmtResource = this.mgmtClient.resource(uri);
+		StringBuilder restStr = new StringBuilder();
+		restStr.append(REST_ALL_VDC);
+		// Get Namespace Detail Ressource
+		WebResource getNamespaceDetailResource = mgmtResource.path(restStr.toString());
+		VdcDetails vdcDetailsResponse = getNamespaceDetailResource.header(X_SDS_AUTH_TOKEN, authToken)
+				.get(VdcDetails.class);
+		return vdcDetailsResponse;
+	}
 	
 	/**
 	 * Shutdown the management client

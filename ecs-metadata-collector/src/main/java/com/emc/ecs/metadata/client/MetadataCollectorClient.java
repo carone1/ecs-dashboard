@@ -48,15 +48,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.metadata.bo.BillingBO;
+import com.emc.ecs.metadata.bo.NamespaceBO;
 import com.emc.ecs.metadata.bo.ObjectBO;
+import com.emc.ecs.metadata.bo.VdcBO;
 import com.emc.ecs.metadata.dao.BillingDAO;
 import com.emc.ecs.metadata.dao.EcsCollectionType;
+import com.emc.ecs.metadata.dao.NamespaceDAO;
 import com.emc.ecs.metadata.dao.ObjectDAO;
+import com.emc.ecs.metadata.dao.VdcDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticBillingDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticDAOConfig;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticNamespaceDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticS3ObjectDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticVdcDAO;
 import com.emc.ecs.metadata.dao.file.FileBillingDAO;
+import com.emc.ecs.metadata.dao.file.FileNamespaceDAO;
 import com.emc.ecs.metadata.dao.file.FileObjectDAO;
+import com.emc.ecs.metadata.dao.file.FileVdcDAO;
 
 
 /**
@@ -70,6 +78,9 @@ public class MetadataCollectorClient {
 	private static final String  ECS_COLLECT_BILLING_DATA = "billing";
 	private static final String  ECS_COLLECT_OBJECT_DATA = "object";
 	private static final String  ECS_COLLECT_OBJECT_VERSION_DATA = "object-version";
+	private static final String  ECS_COLLECT_NAMESPACE_DETAIL = "namespace-detail";
+	private static final String  ECS_COLLECT_NAMESPACE_QUOTA = "namespace-quota";
+	private static final String  ECS_COLLECT_ALL_VDC = "vdc";
 	
 	private static final String  ECS_COLLECT_ALL_DATA = "all";
 	
@@ -109,6 +120,9 @@ public class MetadataCollectorClient {
 			ECS_COLLECT_BILLING_DATA + "|" +
 			ECS_COLLECT_OBJECT_DATA + "|" +
 			ECS_COLLECT_OBJECT_VERSION_DATA + "|" +
+			ECS_COLLECT_NAMESPACE_DETAIL + "|" +
+			ECS_COLLECT_NAMESPACE_QUOTA + "|" +
+			ECS_COLLECT_ALL_VDC + "|" +
 			ECS_COLLECT_ALL_DATA +">] "; 
 	
 	private static String  ecsHosts                          = "";
@@ -185,7 +199,17 @@ public class MetadataCollectorClient {
 					// collect object data
 					collectObjectData(collectionTime);
 				}
-
+				collectNamespaceDetails(collectionTime);
+				collectNamespaceQuota(collectionTime);
+			} else if(collectData.equals(ECS_COLLECT_NAMESPACE_DETAIL)) {
+				// collect namespace details
+				collectNamespaceDetails(collectionTime);
+			} else if(collectData.equals(ECS_COLLECT_NAMESPACE_QUOTA)) {
+				// collect namespace quota
+				collectNamespaceQuota(collectionTime);
+			}  else if(collectData.equals(ECS_COLLECT_ALL_VDC)) {
+				// collect namespace quota
+				collectVdcList(collectionTime);
 			} else {		
 				System.err.println("Unsupported data collection action: " + collectData );
 				System.err.println(menuString);
@@ -582,6 +606,111 @@ public class MetadataCollectorClient {
 			billingDAO.initIndexes(collectionTime);
 		}
 		
+	}
+	
+	/**
+	 * Collects Namespace details data
+	 * 
+	 * @param collectionTime
+	 */
+	private static void collectNamespaceDetails(Date collectionTime) {
+		
+		NamespaceDAO namespaceDAO = null;
+		if(!elasticHosts.isEmpty()) {
+			// Instantiate file DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			namespaceDAO = new ElasticNamespaceDAO(daoConfig);
+			// init indexes
+			namespaceDAO.initIndexes(collectionTime);
+		} else {
+			// Instantiate file DAO
+			namespaceDAO = new FileNamespaceDAO(null);
+		}
+		
+		// instantiate billing BO
+		NamespaceBO namespaceBO = new NamespaceBO( ecsMgmtAccessKey, 
+											 ecsMgmtSecretKey,
+											 Arrays.asList(ecsHosts.split(",")),
+											 ecsMgmtPort,
+											 namespaceDAO,
+											 objectCount );
+		
+		// Start collection
+		namespaceBO.collectNamespaceDetails(collectionTime);
+		namespaceBO.shutdown();
+	}
+	
+	/**
+	 * Collects Namespace quota data
+	 * 
+	 * @param collectionTime
+	 */
+	private static void collectNamespaceQuota(Date collectionTime) {
+		NamespaceDAO namespaceDAO = null;
+		if(!elasticHosts.isEmpty()) {
+			// Instantiate file DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			namespaceDAO = new ElasticNamespaceDAO(daoConfig);
+			// init indexes
+			namespaceDAO.initIndexes(collectionTime);
+		} else {
+			// Instantiate file DAO
+			namespaceDAO = new FileNamespaceDAO(null);
+		}
+		
+		// instantiate billing BO
+		NamespaceBO namespaceBO = new NamespaceBO( ecsMgmtAccessKey, 
+											 ecsMgmtSecretKey,
+											 Arrays.asList(ecsHosts.split(",")),
+											 ecsMgmtPort,
+											 namespaceDAO,
+											 objectCount );
+		
+		// Start collection
+		namespaceBO.collectNamespaceQuota(collectionTime);
+		namespaceBO.shutdown();
+	}
+	
+	/**
+	 * 
+	 * @param collectionTime
+	 */
+	private static void collectVdcList(Date collectionTime) {
+		VdcDAO vdcDAO = null;
+		if(!elasticHosts.isEmpty()) {
+			// Instantiate file DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			vdcDAO = new ElasticVdcDAO(daoConfig);
+			// init indexes
+			vdcDAO.initIndexes(collectionTime);
+		} else {
+			// Instantiate file DAO
+			vdcDAO = new FileVdcDAO(null);
+		}
+		
+		// instantiate billing BO
+		VdcBO vdcBO = new VdcBO( ecsMgmtAccessKey, 
+											 ecsMgmtSecretKey,
+											 Arrays.asList(ecsHosts.split(",")),
+											 ecsMgmtPort,
+											 vdcDAO,
+											 objectCount );
+		
+		// Start collection
+		vdcBO.collectVdcDetails(collectionTime);
+		vdcBO.shutdown();	
 	}
 	
 }
