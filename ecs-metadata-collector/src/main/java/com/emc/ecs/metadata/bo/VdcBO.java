@@ -12,9 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.management.client.ManagementClient;
 import com.emc.ecs.management.client.ManagementClientConfig;
-import com.emc.ecs.management.entity.Namespace;
-import com.emc.ecs.management.entity.NamespaceQuota;
-import com.emc.ecs.management.entity.NamespaceRequest;
 import com.emc.ecs.management.entity.VdcDetails;
 import com.emc.ecs.metadata.dao.VdcDAO;
 
@@ -23,7 +20,7 @@ import com.emc.ecs.metadata.dao.VdcDAO;
  *
  */
 public class VdcBO {
-	private final static Logger LOGGER = LoggerFactory.getLogger(NamespaceBO.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(VdcBO.class);
 	private ManagementClient client;
 	private VdcDAO vdcDAO;
 	private AtomicLong objectCount;

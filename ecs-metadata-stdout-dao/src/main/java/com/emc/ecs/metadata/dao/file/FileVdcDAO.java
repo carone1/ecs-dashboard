@@ -43,7 +43,7 @@ public class FileVdcDAO implements VdcDAO {
 
 		JAXBContext jaxbContext;
 		try {
-			jaxbContext = JAXBContext.newInstance(NamespaceDetail.class);
+			jaxbContext = JAXBContext.newInstance(VdcDetails.class);
 			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);

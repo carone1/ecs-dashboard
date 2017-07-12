@@ -352,9 +352,10 @@ public class ManagementClient {
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
 		StringBuilder restStr = new StringBuilder();
 		restStr.append(REST_LIST_NAMESPACES);
+		restStr.append("/namespace/");
+		restStr.append(namespaceid);
 		// Get Namespace Detail Ressource
-		WebResource getNamespaceDetailResource = mgmtResource.path(restStr.toString())
-				.queryParam(REST_NAMESPACE_PARAMETER, namespaceid);
+		WebResource getNamespaceDetailResource = mgmtResource.path(restStr.toString());
 		NamespaceDetail namespaceDetailResponse = getNamespaceDetailResource.header(X_SDS_AUTH_TOKEN, authToken)
 				.get(NamespaceDetail.class);
 		return namespaceDetailResponse;

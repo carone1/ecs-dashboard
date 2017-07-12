@@ -19,7 +19,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement(name = "namespace")
 @XmlType(propOrder = {"defaultDataServicesVPool", "allowedVPools", "disallowedVPools", "namespaceAdmins", "isEncryptionEnabled", 
 		"userMappings", "defaultBucketBlockSize", "externalGroupAdmins", "isStaledAllowed", "isComplianceEnabled",
-		"name", "id", "link", "creationTime", "global", "remote", "vdc", "internal"})
+		"name", "id", "link", "creationTime", "global", "inactive", "remote", "vdc", "internal"})
 public class NamespaceDetail {
 
 	public final static String ID = "id";

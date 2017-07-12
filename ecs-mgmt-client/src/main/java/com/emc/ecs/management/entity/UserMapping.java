@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlType;
  * @author nlengc
  *
  */
-@XmlRootElement(name = "namespace")
+@XmlRootElement(name = "user_mapping")
 @XmlType(propOrder = {"domain", "attributes", "groups"})
 public class UserMapping {
 	public final static String DOMAIN = "domain";

@@ -110,49 +110,71 @@ public class ElasticVdcDAO implements VdcDAO {
 		try {
 			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
 					.preparePutMapping(vdcIndexDayName).setType(VDC_INDEX_TYPE)
-					.setSource(XContentFactory.jsonBuilder().prettyPrint().startObject()
-							.startObject(VDC_INDEX_TYPE).startObject("properties")
-							.startObject(VdcDetail.VDC_ID).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.VDC_NAME).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.INTER_VDC_END_POINTS).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.INTER_VDC_CMD_END_POINTS).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.SECRET_KEYS).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.PERMANENTLY_FAILED).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.LOCAL).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.MGMT_END_POINTS).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.NAME).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.ID).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.LINK).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.INACTIVE).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.GLOBAL).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.REMOTE).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.VDC).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.INTERNAL).field("type", "string").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.CREATION_TIME).field("type", "date").field("format", "strict_date_optional_time||epoch_millis").endObject()
-							.field("index", NOT_ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.NAME + ANALYZED_TAG).field("type", "string")
-							.field("index", ANALYZED_INDEX).endObject()
-							.startObject(VdcDetail.VDC_NAME + ANALYZED_TAG).field("type", "string")
-							.field("index", ANALYZED_INDEX).endObject()
-							.startObject(COLLECTION_TIME)
-							.field("type", "date").field("format", "strict_date_optional_time||epoch_millis")
-							.endObject().endObject()
+					.setSource(XContentFactory.jsonBuilder().prettyPrint()
+							.startObject()
+								.startObject(VDC_INDEX_TYPE)
+									.startObject("properties")
+										.startObject(VdcDetail.VDC_ID).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+							
+										.startObject(VdcDetail.VDC_NAME).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.INTER_VDC_END_POINTS).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.INTER_VDC_CMD_END_POINTS).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.SECRET_KEYS).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.PERMANENTLY_FAILED).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.LOCAL).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.MGMT_END_POINTS).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.NAME).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.ID).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.LINK).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.INACTIVE).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.GLOBAL).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.REMOTE).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.VDC).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.INTERNAL).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.CREATION_TIME).field("type", "date").field("format", "strict_date_optional_time||epoch_millis")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.NAME + ANALYZED_TAG).field("type", "string")
+										.field("index", ANALYZED_INDEX).endObject()
+										
+										.startObject(VdcDetail.VDC_NAME + ANALYZED_TAG).field("type", "string")
+										.field("index", ANALYZED_INDEX).endObject()
+										
+										.startObject(COLLECTION_TIME)
+										.field("type", "date").field("format", "strict_date_optional_time||epoch_millis")
+										.endObject()
+									.endObject()
 
 							// =================================
 							// Dynamic fields won't be analyzed

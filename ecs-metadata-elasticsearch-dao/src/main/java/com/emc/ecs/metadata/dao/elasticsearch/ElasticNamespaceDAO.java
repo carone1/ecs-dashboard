@@ -16,8 +16,6 @@ import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
@@ -240,40 +238,18 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 
 	@Override
 	public void insert(NamespaceDetail namespaceDetail, Date collectionTime) {
-
-		// Generate JSON for namespace billing info
+		// Generate JSON for namespace quota
 		XContentBuilder namespaceBuilder = toJsonFormat(namespaceDetail, collectionTime);
-		elasticClient.prepareIndex(namespaceIndexDayName, NAMESPACE_INDEX_NAME).setSource(namespaceBuilder).get();
-
-		BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
-		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
-		int items = bulkResponse.getItems().length;
-		LOGGER.info("Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch"
-				+ "index: " + namespaceIndexDayName + " index type: " + NAMESPACE_INDEX_NAME);
-
-		if (bulkResponse.hasFailures()) {
-			LOGGER.error("Failures occured while items in Elasticsearch " + "index: " + namespaceIndexDayName
-					+ " index type: " + NAMESPACE_INDEX_NAME);
-		}
+		elasticClient.prepareIndex( namespaceIndexDayName, 
+				DETAIL_NAMESPACE_INDEX_TYPE).setSource(namespaceBuilder).get();
 	}
 
 	@Override
 	public void insert(NamespaceQuota namespaceQuota, Date collectionTime) {
-		// Generate JSON for namespace billing info
+		// Generate JSON for namespace quota
 		XContentBuilder namespaceBuilder = toJsonFormat(namespaceQuota, collectionTime);
-		elasticClient.prepareIndex(namespaceIndexDayName, NAMESPACE_INDEX_NAME).setSource(namespaceBuilder).get();
-
-		BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
-
-		BulkResponse bulkResponse = requestBuilder.execute().actionGet();
-		int items = bulkResponse.getItems().length;
-		LOGGER.info("Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in Elasticsearch"
-				+ "index: " + namespaceIndexDayName + " index type: " + NAMESPACE_INDEX_NAME);
-
-		if (bulkResponse.hasFailures()) {
-			LOGGER.error("Failures occured while items in Elasticsearch " + "index: " + namespaceIndexDayName
-					+ " index type: " + NAMESPACE_INDEX_NAME);
-		}
+		elasticClient.prepareIndex( namespaceIndexDayName, 
+				QUOTA_NAMESPACE_INDEX_TYPE).setSource(namespaceBuilder).get();
 	}
 
 	private static XContentBuilder toJsonFormat(NamespaceDetail namespaceDetail, Date collectionTime,

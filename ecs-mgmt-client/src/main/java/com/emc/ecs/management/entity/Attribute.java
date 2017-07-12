@@ -14,7 +14,7 @@ import javax.xml.bind.annotation.XmlType;
  * @author nlengc
  *
  */
-@XmlRootElement(name = "user_mapping")
+@XmlRootElement(name = "attributes")
 @XmlType(propOrder = {"key", "values"})
 public class Attribute {
 	
