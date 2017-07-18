@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.management.client.ManagementClient;
 import com.emc.ecs.management.client.ManagementClientConfig;
+import com.emc.ecs.management.entity.BucketOwner;
 import com.emc.ecs.management.entity.VdcDetails;
 import com.emc.ecs.metadata.dao.VdcDAO;
 
@@ -50,6 +51,23 @@ public class VdcBO {
 		// Push collected details into datastore
 		if (vdcDAO != null) {
 			vdcDAO.insert(vdcDetails, collectionTime);
+		}
+		// peg global counter
+		this.objectCount.getAndAdd(objCounter);
+	}
+	
+	
+	public void collectBucketOwner(Date collectionTime) {
+		long objCounter = 0;
+		LOGGER.info("Collecting all bucket owner on cluster. ");
+		List<BucketOwner> bucketOwners = client.getBucketOwner();
+		if (bucketOwners == null || bucketOwners.isEmpty()) {
+			return;
+		}
+		objCounter = objCounter + bucketOwners.size();
+		// Push collected details into datastore
+		if (vdcDAO != null) {
+			vdcDAO.insert(bucketOwners, collectionTime);
 		}
 		// peg global counter
 		this.objectCount.getAndAdd(objCounter);

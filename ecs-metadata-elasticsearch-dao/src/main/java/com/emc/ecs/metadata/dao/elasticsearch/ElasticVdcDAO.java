@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
@@ -28,6 +29,7 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.emc.ecs.management.entity.BucketOwner;
 import com.emc.ecs.management.entity.VdcDetails;
 import com.emc.ecs.metadata.dao.VdcDAO;
 
@@ -79,6 +81,30 @@ public class ElasticVdcDAO implements VdcDAO {
 	@Override
 	public void initIndexes(Date collectionTime) {
 		initVdcIndex(collectionTime);
+		initBucketOwnerIndex(collectionTime);
+	}
+
+	private void initBucketOwnerIndex(Date collectionTime) {
+		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
+		vdcIndexDayName = VDC_INDEX_NAME + "-" + collectionDayString;
+
+		if (elasticClient.admin().indices().exists(new IndicesExistsRequest(vdcIndexDayName)).actionGet()
+				.isExists()) {
+			// Index already exists need to truncate it and recreate it
+			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(vdcIndexDayName);
+			ActionFuture<DeleteIndexResponse> futureResult = elasticClient.admin().indices().delete(deleteIndexRequest);
+
+			// Wait until deletion is done
+			while (!futureResult.isDone()) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		elasticClient.admin().indices().create(new CreateIndexRequest(vdcIndexDayName)).actionGet();
 	}
 
 	/**
@@ -268,6 +294,12 @@ public class ElasticVdcDAO implements VdcDAO {
 			throw new RuntimeException(e.getLocalizedMessage());
 		}
 		return builder;
+	}
+
+	@Override
+	public void insert(List<BucketOwner> bucketOwners, Date collectionTime) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

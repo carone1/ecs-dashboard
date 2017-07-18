@@ -28,10 +28,17 @@ package com.emc.ecs.management.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.core.Response;
 
+import com.emc.ecs.management.entity.BucketOwner;
 import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.NamespaceBillingInfo;
@@ -77,9 +84,13 @@ public class ManagementClient {
 	private static final String REST_MARKER_PARAMETER 					= "marker";
 	private static final String REST_LIMIT_PARAMETER 					= "limit";
 	private static final String REST_NAMESPACE_PARAMETER 				= "namespace";
-	private static final String  REST_QUOTA_NAMESPACES_FIRST 			= "/object/namespaces/namespace/";
-	private static final String  REST_QUOTA_NAMESPACES_SECOND			= "/quota";
-	private static final String  REST_ALL_VDC							= "/object/vdcs/vdc/list";
+	private static final String REST_QUOTA_NAMESPACES_FIRST 			= "/object/namespaces/namespace/";
+	private static final String REST_QUOTA_NAMESPACES_SECOND			= "/quota";
+	private static final String REST_ALL_VDC							= "/object/vdcs/vdc/list";
+	private static final String REST_ALL_BUCKET_KEYS					= "/diagnostic/RT/0/DumpAllKeys/BUCKET_KEY/";
+	private static final String REST_ALL_BUCKET_VALUE_PARAMETER			= "showvalue";
+	private static final String REST_ALL_BUCKET_STYLE_PARAMETER			= "useStyle";
+	private static final String REST_ALL_BUCKET_KEY_PARAMETER			= "bucketId";
 	
 	
 	//================================
@@ -379,6 +390,10 @@ public class ManagementClient {
 		return namespaceQuotaResponse;
 	}
 	
+	/**
+	 * Returns VDC details list
+	 * @return
+	 */
 	public VdcDetails getVdcDetails() {
 		String authToken = getAuthToken();
 		WebResource mgmtResource = this.mgmtClient.resource(uri);
@@ -389,6 +404,53 @@ public class ManagementClient {
 		VdcDetails vdcDetailsResponse = getNamespaceDetailResource.header(X_SDS_AUTH_TOKEN, authToken)
 				.get(VdcDetails.class);
 		return vdcDetailsResponse;
+	}
+	
+	/**
+	 * returns bucket owner list
+	 * @return
+	 */
+	public List<BucketOwner> getBucketOwner() {
+		String authToken = getAuthToken();
+		final WebResource mgmtResource = this.mgmtClient.resource(uri);
+		StringBuilder restStr = new StringBuilder();
+		restStr.append(REST_ALL_BUCKET_KEYS);
+		// Get Namespace Detail Ressource
+		WebResource getNamespaceDetailResource = mgmtResource.path(restStr.toString());
+		String bucketKeyReponse = getNamespaceDetailResource.header(X_SDS_AUTH_TOKEN, authToken).get(String.class);
+		final List<BucketOwner> bucketOwners = new ArrayList<>();
+		final Map<String, List<String>> urlBucketKeysmap = getUrlBucketKeyMap(bucketKeyReponse);
+		urlBucketKeysmap.forEach((url, bucketKeys) -> {
+			bucketKeys.forEach( bucketKey -> {
+				WebResource getBucketDetailsResource = mgmtResource.path(url)
+						.queryParam(REST_ALL_BUCKET_KEY_PARAMETER, bucketKey)
+						.queryParam(REST_ALL_BUCKET_VALUE_PARAMETER, "gpb")
+						.queryParam(REST_ALL_BUCKET_STYLE_PARAMETER, "raw");
+				bucketOwners.add(getBucketOwnerFromString(bucketKey, getBucketDetailsResource.get(String.class))); 
+			} );
+		});
+		return bucketOwners;
+	}
+	
+	/**
+	 * 
+	 * @param response
+	 * @return
+	 */
+	private BucketOwner getBucketOwnerFromString(String bucketKey, String response) {
+		final String OWNER_SHIP = "ownerzone";
+		final String TEXT_VALUE = "textValue:";
+		final String DOUBLE_QUOTES = "\"";
+		final String COLON = ":";
+		final Pattern pattern = Pattern.compile("(?s)" + OWNER_SHIP + "\\s*" 
+		+ TEXT_VALUE + "\\s*" + DOUBLE_QUOTES + "(.*?)" + COLON + "(.*?)" + COLON + "(.*?)" + COLON + "(.*?)" + DOUBLE_QUOTES );
+		final Matcher matcher = pattern.matcher(response);
+		String vdcId = null;
+		while (matcher.find()) {
+			vdcId = matcher.group(4);
+		}
+		BucketOwner bucketOwner = new BucketOwner(vdcId, bucketKey);
+		return bucketOwner;
 	}
 	
 	/**
@@ -512,6 +574,34 @@ public class ManagementClient {
 
 	    return SmartClientFactory.createSmartClient(smartConfig);
 	}
-
 	
+	/**
+	 * 
+	 * @param response
+	 * @return
+	 */
+	private Map<String, List<String>> getUrlBucketKeyMap(String response) {
+		final Map<String, List<String>> urlBucketMap = new HashMap<>();
+		final String HTTP_PREFIX = "http://";
+		final String EOF = "\n";
+		final String SCHEMA_TYPE = "schemaType";
+		final Pattern pattern = Pattern.compile("(?s)" + HTTP_PREFIX + "\\s*(.*?)(?=\\s*" + HTTP_PREFIX + "|$)");
+		final Matcher matcher = pattern.matcher(response);
+		while (matcher.find()) {
+			List<String> arrays = Arrays.asList((HTTP_PREFIX + matcher.group(1)).split(EOF));
+			String key = "";
+			final List<String> values = new ArrayList<>();
+			for(String array : arrays) {
+				if (array.startsWith(HTTP_PREFIX)) {
+					key = array;
+				} else if (array.trim().startsWith(SCHEMA_TYPE)) {
+					String bucketId = array.trim().split("\\s+")[3];
+					values.add(bucketId);
+				}
+			}
+			urlBucketMap.put(key, values);
+		}
+		return urlBucketMap;
+	}
+
 }

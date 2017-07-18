@@ -4,7 +4,9 @@
 package com.emc.ecs.metadata.dao;
 
 import java.util.Date;
+import java.util.List;
 
+import com.emc.ecs.management.entity.BucketOwner;
 import com.emc.ecs.management.entity.VdcDetails;
 
 /**
@@ -28,4 +30,11 @@ public interface VdcDAO {
 	 * @param collectionTime - collection time
 	 */
 	public void insert(VdcDetails vdcDetails, Date collectionTime);
+
+	/**
+	 * 
+	 * @param bucketOwners
+	 * @param collectionTime
+	 */
+	public void insert(List<BucketOwner> bucketOwners, Date collectionTime);
 }

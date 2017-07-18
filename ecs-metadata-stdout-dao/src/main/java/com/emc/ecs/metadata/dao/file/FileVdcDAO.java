@@ -6,12 +6,13 @@ package com.emc.ecs.metadata.dao.file;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import com.emc.ecs.management.entity.NamespaceDetail;
+import com.emc.ecs.management.entity.BucketOwner;
 import com.emc.ecs.management.entity.VdcDetails;
 import com.emc.ecs.metadata.dao.VdcDAO;
 
@@ -59,6 +60,11 @@ public class FileVdcDAO implements VdcDAO {
 			throw new RuntimeException(e.getLocalizedMessage());
 		}
 
+	}
+
+	@Override
+	public void insert(List<BucketOwner> bucketOwners, Date collectionTime) {
+		// TODO Auto-generated method stub
 	}
 
 }

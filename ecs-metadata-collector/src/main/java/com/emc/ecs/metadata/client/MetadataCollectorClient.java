@@ -81,7 +81,7 @@ public class MetadataCollectorClient {
 	private static final String  ECS_COLLECT_NAMESPACE_DETAIL = "namespace-detail";
 	private static final String  ECS_COLLECT_NAMESPACE_QUOTA = "namespace-quota";
 	private static final String  ECS_COLLECT_ALL_VDC = "vdc";
-	
+	private static final String  ECS_COLLECT_BUCKET_OWNER = "bucket-owner";
 	private static final String  ECS_COLLECT_ALL_DATA = "all";
 	
 	private static final String ECS_HOSTS_CONFIG_ARGUMENT                    = "--ecs-hosts";
@@ -123,6 +123,7 @@ public class MetadataCollectorClient {
 			ECS_COLLECT_NAMESPACE_DETAIL + "|" +
 			ECS_COLLECT_NAMESPACE_QUOTA + "|" +
 			ECS_COLLECT_ALL_VDC + "|" +
+			ECS_COLLECT_BUCKET_OWNER        + "|" +
 			ECS_COLLECT_ALL_DATA +">] "; 
 	
 	private static String  ecsHosts                          = "";
@@ -207,8 +208,11 @@ public class MetadataCollectorClient {
 			} else if(collectData.equals(ECS_COLLECT_NAMESPACE_QUOTA)) {
 				// collect namespace quota
 				collectNamespaceQuota(collectionTime);
+			}  else if(collectData.equals(ECS_COLLECT_BUCKET_OWNER)) {
+				// collect bucket owner
+				collectBucketOwnership(collectionTime);
 			}  else if(collectData.equals(ECS_COLLECT_ALL_VDC)) {
-				// collect namespace quota
+				// collect vdc list
 				collectVdcList(collectionTime);
 			} else {		
 				System.err.println("Unsupported data collection action: " + collectData );
@@ -677,6 +681,36 @@ public class MetadataCollectorClient {
 		// Start collection
 		namespaceBO.collectNamespaceQuota(collectionTime);
 		namespaceBO.shutdown();
+	}
+	
+	private static void collectBucketOwnership(Date collectionTime) {
+		VdcDAO vdcDAO = null;
+		if(!elasticHosts.isEmpty()) {
+			// Instantiate file DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			vdcDAO = new ElasticVdcDAO(daoConfig);
+			// init indexes
+			vdcDAO.initIndexes(collectionTime);
+		} else {
+			// Instantiate file DAO
+			vdcDAO = new FileVdcDAO(null);
+		}
+		
+		// instantiate billing BO
+		VdcBO vdcBO = new VdcBO( ecsMgmtAccessKey, 
+											 ecsMgmtSecretKey,
+											 Arrays.asList(ecsHosts.split(",")),
+											 ecsMgmtPort,
+											 vdcDAO,
+											 objectCount );
+		
+		// Start collection
+		vdcBO.collectBucketOwner(collectionTime);
+		vdcBO.shutdown();
 	}
 	
 	/**
