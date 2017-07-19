@@ -96,11 +96,11 @@ public class ManagementClient {
 	//================================
 	// Private Members
 	//================================
-	private ManagementClientConfig  mgmtConfig;
-	private String 					mgmtAuthToken;
-	private Client					mgmtClient;
+	protected ManagementClientConfig  mgmtConfig;
+	protected String 					mgmtAuthToken;
+	protected Client					mgmtClient;
 	
-	private URI						uri;
+	protected URI						uri;
 
 
 	
@@ -411,18 +411,20 @@ public class ManagementClient {
 	 * @return
 	 */
 	public List<BucketOwner> getBucketOwner() {
-		String authToken = getAuthToken();
 		final WebResource mgmtResource = this.mgmtClient.resource(uri);
 		StringBuilder restStr = new StringBuilder();
 		restStr.append(REST_ALL_BUCKET_KEYS);
 		// Get Namespace Detail Ressource
 		WebResource getNamespaceDetailResource = mgmtResource.path(restStr.toString());
-		String bucketKeyReponse = getNamespaceDetailResource.header(X_SDS_AUTH_TOKEN, authToken).get(String.class);
+		String bucketKeyReponse = getNamespaceDetailResource.get(String.class);
 		final List<BucketOwner> bucketOwners = new ArrayList<>();
 		final Map<String, List<String>> urlBucketKeysmap = getUrlBucketKeyMap(bucketKeyReponse);
 		urlBucketKeysmap.forEach((url, bucketKeys) -> {
+			final String host = url.split("@@")[0];
+			final String path = url.split("@@")[1];
 			bucketKeys.forEach( bucketKey -> {
-				WebResource getBucketDetailsResource = mgmtResource.path(url)
+				WebResource getBucketDetailsResource = this.mgmtClient.resource(host)
+						.path(path)
 						.queryParam(REST_ALL_BUCKET_KEY_PARAMETER, bucketKey)
 						.queryParam(REST_ALL_BUCKET_VALUE_PARAMETER, "gpb")
 						.queryParam(REST_ALL_BUCKET_STYLE_PARAMETER, "raw");
@@ -546,7 +548,7 @@ public class ManagementClient {
 	 * @param ipAddresses - ip addresses
 	 * @return Client
 	 */
-	private Client createMgmtClient( List<String> ipAddresses ) {
+	protected Client createMgmtClient( List<String> ipAddresses ) {
 		
 		String[] ips = (String[])ipAddresses.toArray();
 	    SmartConfig smartConfig = new SmartConfig(ips);
@@ -582,6 +584,11 @@ public class ManagementClient {
 	 */
 	private Map<String, List<String>> getUrlBucketKeyMap(String response) {
 		final Map<String, List<String>> urlBucketMap = new HashMap<>();
+		final String IP_PATTERN =
+				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])";
 		final String HTTP_PREFIX = "http://";
 		final String EOF = "\n";
 		final String SCHEMA_TYPE = "schemaType";
@@ -593,7 +600,10 @@ public class ManagementClient {
 			final List<String> values = new ArrayList<>();
 			for(String array : arrays) {
 				if (array.startsWith(HTTP_PREFIX)) {
-					key = array;
+					Matcher inMatcher = Pattern.compile("(?<host>"+HTTP_PREFIX + IP_PATTERN + ":(\\d+)?)(?<path>.*)").matcher(array);
+					while (inMatcher.find()) {
+						key = inMatcher.group("host") + "@@" +inMatcher.group("path");;
+					}
 				} else if (array.trim().startsWith(SCHEMA_TYPE)) {
 					String bucketId = array.trim().split("\\s+")[3];
 					values.add(bucketId);
@@ -603,5 +613,5 @@ public class ManagementClient {
 		}
 		return urlBucketMap;
 	}
-
+	
 }

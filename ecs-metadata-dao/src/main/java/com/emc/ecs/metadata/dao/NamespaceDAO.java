@@ -40,4 +40,12 @@ public interface NamespaceDAO {
 	 * @param collectionTime
 	 */
 	public void insert(NamespaceQuota namespacequota, Date collectionTime);
+
+	/**
+	 * 
+	 * @param type
+	 * @param thresholdDate
+	 * @return
+	 */
+	public Long purgeOldData(NamespaceDataType type, Date thresholdDate);
 }

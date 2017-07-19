@@ -14,8 +14,9 @@ import com.emc.ecs.management.entity.VdcDetails;
  *
  */
 public interface VdcDAO {
-	public enum ManagementDataType {
-		vdc
+	public enum VdcDataType {
+		vdc,
+		bucket_owner
 	};
 	
 	/**
@@ -37,4 +38,12 @@ public interface VdcDAO {
 	 * @param collectionTime
 	 */
 	public void insert(List<BucketOwner> bucketOwners, Date collectionTime);
+
+	/**
+	 * 
+	 * @param type
+	 * @param thresholdDate
+	 * @return
+	 */
+	public Long purgeOldData(VdcDataType type, Date thresholdDate);
 }

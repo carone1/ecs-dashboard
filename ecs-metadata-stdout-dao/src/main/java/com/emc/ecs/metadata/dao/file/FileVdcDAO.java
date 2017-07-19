@@ -64,7 +64,33 @@ public class FileVdcDAO implements VdcDAO {
 
 	@Override
 	public void insert(List<BucketOwner> bucketOwners, Date collectionTime) {
+
+		JAXBContext jaxbContext;
+		for (BucketOwner bucketOwner : bucketOwners) {
+			try {
+				jaxbContext = JAXBContext.newInstance(BucketOwner.class);
+				Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+				jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+				OutputStream byteOut = new ByteArrayOutputStream();
+				jaxbMarshaller.marshal(bucketOwner, byteOut);
+				String bytesOutStr = byteOut.toString();
+				System.out.println(bytesOutStr);
+
+				if (this.destinationPath != null) {
+					// could write the formatted output to a file too
+				}
+			} catch (JAXBException e) {
+				throw new RuntimeException(e.getLocalizedMessage());
+			}
+		}
+		
+	}
+
+	@Override
+	public Long purgeOldData(VdcDataType type, Date thresholdDate) {
 		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

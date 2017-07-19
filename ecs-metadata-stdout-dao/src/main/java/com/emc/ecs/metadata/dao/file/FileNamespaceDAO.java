@@ -87,4 +87,10 @@ public class FileNamespaceDAO implements NamespaceDAO {
 
 	}
 
+	@Override
+	public Long purgeOldData(NamespaceDataType type, Date thresholdDate) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

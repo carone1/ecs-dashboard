@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.management.client.ManagementClient;
 import com.emc.ecs.management.client.ManagementClientConfig;
+import com.emc.ecs.management.client.VdcManagementClient;
+import com.emc.ecs.management.client.VdcManagementClientConfig;
 import com.emc.ecs.management.entity.BucketOwner;
 import com.emc.ecs.management.entity.VdcDetails;
 import com.emc.ecs.metadata.dao.VdcDAO;
@@ -31,6 +33,15 @@ public class VdcBO {
 		// client config
 		ManagementClientConfig clientConfig = new ManagementClientConfig(mgmtAccessKey, mgmtSecretKey, port, hosts);
 		this.client = new ManagementClient(clientConfig);
+		this.vdcDAO = vdcDAO;
+		this.objectCount = objectCount;
+	}
+	
+	public VdcBO(String mgmtAccessKey, String mgmtSecretKey, List<String> hosts, Integer port, Integer alternativePort, VdcDAO vdcDAO,
+			AtomicLong objectCount) {
+		// client config
+		ManagementClientConfig clientConfig = new VdcManagementClientConfig(mgmtAccessKey, mgmtSecretKey, port, alternativePort, hosts);
+		this.client = new VdcManagementClient(clientConfig);
 		this.vdcDAO = vdcDAO;
 		this.objectCount = objectCount;
 	}

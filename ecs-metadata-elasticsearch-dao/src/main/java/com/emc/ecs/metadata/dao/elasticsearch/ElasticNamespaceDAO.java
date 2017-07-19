@@ -373,4 +373,22 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 	public static XContentBuilder toJsonFormat(NamespaceQuota namespaceQuota, Date collectionTime) {
 		return toJsonFormat(namespaceQuota, collectionTime, null);
 	}
+
+	@Override
+	public Long purgeOldData(NamespaceDataType type, Date thresholdDate) {
+		switch(type) {
+		case namespace_detail:
+			// Purge old nemaspace dertails Objects
+			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, NAMESPACE_INDEX_NAME,
+					DETAIL_NAMESPACE_INDEX_TYPE);
+			return 0L;
+		case namespace_quota:
+			// Purge old namespace quota objects
+			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, NAMESPACE_INDEX_NAME,
+					QUOTA_NAMESPACE_INDEX_TYPE);
+			return 0L;
+		default:
+			return 0L;
+		}
+	}
 }

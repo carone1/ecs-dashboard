@@ -75,6 +75,7 @@ public class MetadataCollectorClient {
 	
 	
 	private static final Integer DEFAULT_ECS_MGMT_PORT = 4443;
+	private static final Integer DEFAULT_ECS_ALTERNATIVE_MGMT_PORT = 9101;
 	private static final String  ECS_COLLECT_BILLING_DATA = "billing";
 	private static final String  ECS_COLLECT_OBJECT_DATA = "object";
 	private static final String  ECS_COLLECT_OBJECT_VERSION_DATA = "object-version";
@@ -138,6 +139,7 @@ public class MetadataCollectorClient {
 	private static Integer objectModifiedSinceNoOfDays       = 0;
 	private static boolean relativeObjectModifiedSinceOption = false;
 	private static boolean initIndexesOnlyOption             = false;
+	private static Integer ecsAlternativeMgmtPort			 = DEFAULT_ECS_ALTERNATIVE_MGMT_PORT;
 	
 	
 	private final static Logger       logger             = LoggerFactory.getLogger(MetadataCollectorClient.class);
@@ -705,6 +707,7 @@ public class MetadataCollectorClient {
 											 ecsMgmtSecretKey,
 											 Arrays.asList(ecsHosts.split(",")),
 											 ecsMgmtPort,
+											 ecsAlternativeMgmtPort,
 											 vdcDAO,
 											 objectCount );
 		

@@ -9,6 +9,9 @@ package com.emc.ecs.management.entity;
  */
 public class BucketOwner {
 	
+	public final static String VDC_ID = "vdcId";
+	public final static String BUCKET_KEY = "bucketKey";
+	
 	private String vdcId;
 	private String bucketKey;
 	

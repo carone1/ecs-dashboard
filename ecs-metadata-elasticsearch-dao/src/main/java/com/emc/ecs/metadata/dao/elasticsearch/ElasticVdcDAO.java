@@ -45,6 +45,7 @@ public class ElasticVdcDAO implements VdcDAO {
 	private final static String CLIENT_CLUSTER_NAME_CONFIG = "cluster.name";
 	public final static String VDC_INDEX_NAME = "ecs-vdc";
 	public final static String VDC_INDEX_TYPE = "vdc-details";
+	public final static String BUCKET_OWNER_INDEX_TYPE = "bucket-owner";
 	public final static String COLLECTION_TIME = "collection_time";
 	public final static String ANALYZED_TAG = "_analyzed";
 	public final static String NOT_ANALYZED_INDEX = "not_analyzed";
@@ -105,6 +106,49 @@ public class ElasticVdcDAO implements VdcDAO {
 		}
 
 		elasticClient.admin().indices().create(new CreateIndexRequest(vdcIndexDayName)).actionGet();
+		
+		try {
+			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
+					.preparePutMapping(vdcIndexDayName).setType(BUCKET_OWNER_INDEX_TYPE)
+					.setSource(XContentFactory.jsonBuilder().prettyPrint()
+							.startObject()
+								.startObject(BUCKET_OWNER_INDEX_TYPE)
+									.startObject("properties")
+										.startObject(BucketOwner.VDC_ID).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+							
+										.startObject(BucketOwner.BUCKET_KEY).field("type", "string")
+										.field("index", NOT_ANALYZED_INDEX).endObject()
+										
+										.startObject(COLLECTION_TIME)
+										.field("type", "date").field("format", "strict_date_optional_time||epoch_millis")
+										.endObject()
+									.endObject()
+
+							// =================================
+							// Dynamic fields won't be analyzed
+							// =================================
+							.startArray("dynamic_templates").startObject().startObject("notanalyzed")
+							.field("match", "*").field("match_mapping_type", "string").startObject("mapping")
+							.field("type", "string").field("index", NOT_ANALYZED_INDEX).endObject().endObject()
+							.endObject().endArray()
+
+							.endObject().endObject())
+					.execute().actionGet();
+
+			if (putMappingResponse.isAcknowledged()) {
+				LOGGER.info("Index Created: " + vdcIndexDayName);
+			} else {
+				LOGGER.error("Index {" + vdcIndexDayName + "} did not exist. "
+						+ "While attempting to create the index in ElasticSearch "
+						+ "Templates we were unable to get an acknowledgement.", vdcIndexDayName);
+				LOGGER.error("Error Message: {}", putMappingResponse.toString());
+				throw new RuntimeException("Unable to create index " + vdcIndexDayName);
+			}
+
+		} catch (IOException e) {
+			throw new RuntimeException("Unable to create index " + vdcIndexDayName + " " + e.getMessage());
+		}
 	}
 
 	/**
@@ -298,8 +342,64 @@ public class ElasticVdcDAO implements VdcDAO {
 
 	@Override
 	public void insert(List<BucketOwner> bucketOwners, Date collectionTime) {
-		// TODO Auto-generated method stub
 		
+		if (bucketOwners != null && !bucketOwners.isEmpty()) {
+			BulkRequestBuilder requestBuilder = elasticClient.prepareBulk();
+			// Generate JSON for object buckets info
+			for (BucketOwner bucketOwner : bucketOwners) {
+				XContentBuilder objectBucketBuilder = toJsonFormat(bucketOwner, collectionTime);
+				IndexRequestBuilder request = elasticClient.prepareIndex().setIndex(vdcIndexDayName)
+						.setType(BUCKET_OWNER_INDEX_TYPE).setSource(objectBucketBuilder);
+				requestBuilder.add(request);
+			}
+
+			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
+			int items = bulkResponse.getItems().length;
+			LOGGER.info("Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in ElasticSearch"
+					+ "index: " + vdcIndexDayName + " index type: " + BUCKET_OWNER_INDEX_TYPE);
+
+			if (bulkResponse.hasFailures()) {
+				LOGGER.error("Failures occured while items in ElasticSearch " + "index: " + vdcIndexDayName
+						+ " index type: " + BUCKET_OWNER_INDEX_TYPE);
+			}
+		}
+	}
+	
+	public static XContentBuilder toJsonFormat( BucketOwner bucketOwner, Date collectionTime ) {						
+		return toJsonFormat(bucketOwner, collectionTime, null);
+	}
+	
+	private static XContentBuilder toJsonFormat(BucketOwner bucketOwner, Date collectionTime, XContentBuilder builder) {
+		try {
+			if (builder == null) {
+				builder = XContentFactory.jsonBuilder();
+			}
+			// namespace portion
+			builder = builder.startObject()
+					.field(BucketOwner.VDC_ID, bucketOwner.getVdcId())
+					.field(BucketOwner.BUCKET_KEY, bucketOwner.getBucketKey())
+					.field(COLLECTION_TIME, collectionTime).endObject();
+		} catch (IOException e) {
+			throw new RuntimeException(e.getLocalizedMessage());
+		}
+		return builder;
+	}
+
+	@Override
+	public Long purgeOldData(VdcDataType type, Date thresholdDate) {
+		switch (type) {
+		case bucket_owner:
+			// Purge old Billing Bucket entries
+			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, VDC_INDEX_NAME,
+					BUCKET_OWNER_INDEX_TYPE);
+			return 0L;
+		case vdc:
+			// Purge old Billing Namespace entries
+			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, VDC_INDEX_NAME, VDC_INDEX_TYPE);
+			return 0L;
+		default:
+			return 0L;
+		}
 	}
 
 }
