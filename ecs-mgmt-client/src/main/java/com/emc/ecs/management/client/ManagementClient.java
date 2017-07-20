@@ -444,12 +444,12 @@ public class ManagementClient {
 		final String TEXT_VALUE = "textValue:";
 		final String DOUBLE_QUOTES = "\"";
 		final String COLON = ":";
-		final Pattern pattern = Pattern.compile("(?s)" + OWNER_SHIP + "\\s*" 
-		+ TEXT_VALUE + "\\s*" + DOUBLE_QUOTES + "(.*?)" + COLON + "(.*?)" + COLON + "(.*?)" + COLON + "(.*?)" + DOUBLE_QUOTES );
+		final Pattern pattern = Pattern.compile("(?s)(.*?)" + OWNER_SHIP + "(.*?)" 
+		+ TEXT_VALUE + "(.*?)" + DOUBLE_QUOTES + "(.*?)" + COLON + "(.*?)" + COLON + "(.*?)" + COLON + "(?<vdcid>.*?)" + DOUBLE_QUOTES + "(.*?)$" );
 		final Matcher matcher = pattern.matcher(response);
 		String vdcId = null;
 		while (matcher.find()) {
-			vdcId = matcher.group(4);
+			vdcId = matcher.group("vdcid");
 		}
 		BucketOwner bucketOwner = new BucketOwner(vdcId, bucketKey);
 		return bucketOwner;
