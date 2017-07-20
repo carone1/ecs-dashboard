@@ -40,13 +40,15 @@ import com.emc.ecs.metadata.dao.NamespaceDAO;
 import com.emc.ecs.metadata.dao.NamespaceDAO.NamespaceDataType;
 import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.ecs.metadata.dao.ObjectDAO.ObjectDataType;
-import com.emc.ecs.metadata.dao.VdcDAO.VdcDataType;
 import com.emc.ecs.metadata.dao.VdcDAO;
+import com.emc.ecs.metadata.dao.VdcDAO.VdcDataType;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticBillingDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticBucketOwnerDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticDAOConfig;
-import com.emc.ecs.metadata.dao.elasticsearch.ElasticNamespaceDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticNamespaceDetailDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticNamespaceQuotaDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticS3ObjectDAO;
-import com.emc.ecs.metadata.dao.elasticsearch.ElasticVdcDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticVdcDetailDAO;
 
 
 /**
@@ -287,7 +289,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
-		VdcDAO objectDAO = new ElasticVdcDAO(daoConfig);
+		VdcDAO objectDAO = new ElasticBucketOwnerDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(VdcDataType.bucket_owner, thresholdDate);
 		
@@ -302,7 +304,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
-		VdcDAO objectDAO = new ElasticVdcDAO(daoConfig);
+		VdcDAO objectDAO = new ElasticVdcDetailDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(VdcDataType.vdc, thresholdDate);
 		
@@ -317,7 +319,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
-		NamespaceDAO objectDAO = new ElasticNamespaceDAO(daoConfig);
+		NamespaceDAO objectDAO = new ElasticNamespaceQuotaDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(NamespaceDataType.namespace_quota, thresholdDate);
 		
@@ -332,7 +334,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
-		NamespaceDAO objectDAO = new ElasticNamespaceDAO(daoConfig);
+		NamespaceDAO objectDAO = new ElasticNamespaceDetailDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(NamespaceDataType.namespace_detail, thresholdDate);
 		

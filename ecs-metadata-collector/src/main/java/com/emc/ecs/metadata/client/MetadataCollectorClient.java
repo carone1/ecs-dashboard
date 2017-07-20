@@ -57,10 +57,12 @@ import com.emc.ecs.metadata.dao.NamespaceDAO;
 import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.ecs.metadata.dao.VdcDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticBillingDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticBucketOwnerDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticDAOConfig;
-import com.emc.ecs.metadata.dao.elasticsearch.ElasticNamespaceDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticNamespaceDetailDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticNamespaceQuotaDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticS3ObjectDAO;
-import com.emc.ecs.metadata.dao.elasticsearch.ElasticVdcDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticVdcDetailDAO;
 import com.emc.ecs.metadata.dao.file.FileBillingDAO;
 import com.emc.ecs.metadata.dao.file.FileNamespaceDAO;
 import com.emc.ecs.metadata.dao.file.FileObjectDAO;
@@ -629,7 +631,7 @@ public class MetadataCollectorClient {
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
-			namespaceDAO = new ElasticNamespaceDAO(daoConfig);
+			namespaceDAO = new ElasticNamespaceDetailDAO(daoConfig);
 			// init indexes
 			namespaceDAO.initIndexes(collectionTime);
 		} else {
@@ -664,7 +666,7 @@ public class MetadataCollectorClient {
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
-			namespaceDAO = new ElasticNamespaceDAO(daoConfig);
+			namespaceDAO = new ElasticNamespaceQuotaDAO(daoConfig);
 			// init indexes
 			namespaceDAO.initIndexes(collectionTime);
 		} else {
@@ -694,7 +696,7 @@ public class MetadataCollectorClient {
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
-			vdcDAO = new ElasticVdcDAO(daoConfig);
+			vdcDAO = new ElasticBucketOwnerDAO(daoConfig);
 			// init indexes
 			vdcDAO.initIndexes(collectionTime);
 		} else {
@@ -729,7 +731,7 @@ public class MetadataCollectorClient {
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
-			vdcDAO = new ElasticVdcDAO(daoConfig);
+			vdcDAO = new ElasticVdcDetailDAO(daoConfig);
 			// init indexes
 			vdcDAO.initIndexes(collectionTime);
 		} else {
