@@ -40,7 +40,8 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 
 	private final static String CLIENT_SNIFFING_CONFIG = "client.transport.sniff";
 	private final static String CLIENT_CLUSTER_NAME_CONFIG = "cluster.name";
-	public final static String NAMESPACE_INDEX_NAME = "ecs-namespace";
+	public final static String NAMESPACE_DETAIL_INDEX_NAME = "ecs-namespace-detail";
+	public final static String NAMESPACE_QUOTA_INDEX_NAME = "ecs-namespace-quota";
 	public final static String DETAIL_NAMESPACE_INDEX_TYPE = "namespace-details";
 	public final static String QUOTA_NAMESPACE_INDEX_TYPE = "namespace-quota";
 	public final static String COLLECTION_TIME = "collection_time";
@@ -52,7 +53,8 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 	private static Logger LOGGER = LoggerFactory.getLogger(ElasticNamespaceDAO.class);
 	private static final String DATA_DATE_PATTERN = "yyyy-MM-dd";
 	private static final SimpleDateFormat DATA_DATE_FORMAT = new SimpleDateFormat(DATA_DATE_PATTERN);
-	private static String namespaceIndexDayName;
+	private static String namespacedetailIndexDayName;
+	private static String namespacequotaIndexDayName;
 
 	public ElasticNamespaceDAO(ElasticDAOConfig config) {
 		try {
@@ -79,7 +81,7 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 	@Override
 	public void initIndexes(Date collectionTime) {
 		// init indexes
-		initNamespaceIndex(collectionTime);
+		initNamespaceDetailIndex(collectionTime);
 		initNamespaceQuotaIndex(collectionTime);
 	}
 	
@@ -90,13 +92,13 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 	private void initNamespaceQuotaIndex(Date collectionTime) {
 
 		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
-		namespaceIndexDayName = NAMESPACE_INDEX_NAME + "-" + collectionDayString;
+		namespacequotaIndexDayName = NAMESPACE_QUOTA_INDEX_NAME + "-" + collectionDayString;
 
-		if (elasticClient.admin().indices().exists(new IndicesExistsRequest(namespaceIndexDayName)).actionGet()
+		if (!elasticClient.admin().indices().exists(new IndicesExistsRequest(namespacequotaIndexDayName)).actionGet()
 				.isExists()) {
 
 			// Index already exists need to truncate it and recreate it
-			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(namespaceIndexDayName);
+			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(namespacequotaIndexDayName);
 			ActionFuture<DeleteIndexResponse> futureResult = elasticClient.admin().indices().delete(deleteIndexRequest);
 
 			// Wait until deletion is done
@@ -109,11 +111,11 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 			}
 		}
 
-		elasticClient.admin().indices().create(new CreateIndexRequest(namespaceIndexDayName)).actionGet();
+		elasticClient.admin().indices().create(new CreateIndexRequest(namespacequotaIndexDayName)).actionGet();
 
 		try {
 			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
-					.preparePutMapping(namespaceIndexDayName).setType(QUOTA_NAMESPACE_INDEX_TYPE)
+					.preparePutMapping(namespacequotaIndexDayName).setType(QUOTA_NAMESPACE_INDEX_TYPE)
 					.setSource(XContentFactory.jsonBuilder().prettyPrint().startObject()
 							.startObject(QUOTA_NAMESPACE_INDEX_TYPE).startObject("properties")
 							.startObject(NamespaceQuota.BLOCK_SIZE).field("type", "long").endObject()
@@ -135,30 +137,30 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 					.execute().actionGet();
 
 			if (putMappingResponse.isAcknowledged()) {
-				LOGGER.info("Index Created: " + namespaceIndexDayName);
+				LOGGER.info("Index Created: " + namespacequotaIndexDayName);
 			} else {
-				LOGGER.error("Index {" + namespaceIndexDayName + "} did not exist. "
+				LOGGER.error("Index {" + namespacequotaIndexDayName + "} did not exist. "
 						+ "While attempting to create the index in ElasticSearch "
-						+ "Templates we were unable to get an acknowledgement.", namespaceIndexDayName);
+						+ "Templates we were unable to get an acknowledgement.", namespacequotaIndexDayName);
 				LOGGER.error("Error Message: {}", putMappingResponse.toString());
-				throw new RuntimeException("Unable to create index " + namespaceIndexDayName);
+				throw new RuntimeException("Unable to create index " + namespacequotaIndexDayName);
 			}
 
 		} catch (IOException e) {
-			throw new RuntimeException("Unable to create index " + namespaceIndexDayName + " " + e.getMessage());
+			throw new RuntimeException("Unable to create index " + namespacequotaIndexDayName + " " + e.getMessage());
 		}
 	}
 
-	private void initNamespaceIndex(Date collectionTime) {
+	private void initNamespaceDetailIndex(Date collectionTime) {
 
 		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
-		namespaceIndexDayName = NAMESPACE_INDEX_NAME + "-" + collectionDayString;
+		namespacedetailIndexDayName = NAMESPACE_DETAIL_INDEX_NAME + "-" + collectionDayString;
 
-		if (elasticClient.admin().indices().exists(new IndicesExistsRequest(namespaceIndexDayName)).actionGet()
+		if (elasticClient.admin().indices().exists(new IndicesExistsRequest(namespacedetailIndexDayName)).actionGet()
 				.isExists()) {
 
 			// Index already exists need to truncate it and recreate it
-			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(namespaceIndexDayName);
+			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(namespacedetailIndexDayName);
 			ActionFuture<DeleteIndexResponse> futureResult = elasticClient.admin().indices().delete(deleteIndexRequest);
 
 			// Wait until deletion is done
@@ -171,11 +173,11 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 			}
 		}
 
-		elasticClient.admin().indices().create(new CreateIndexRequest(namespaceIndexDayName)).actionGet();
+		elasticClient.admin().indices().create(new CreateIndexRequest(namespacedetailIndexDayName)).actionGet();
 
 		try {
 			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
-					.preparePutMapping(namespaceIndexDayName).setType(DETAIL_NAMESPACE_INDEX_TYPE)
+					.preparePutMapping(namespacedetailIndexDayName).setType(DETAIL_NAMESPACE_INDEX_TYPE)
 					.setSource(XContentFactory.jsonBuilder().prettyPrint().startObject()
 							.startObject(DETAIL_NAMESPACE_INDEX_TYPE).startObject("properties")
 							.startObject(NamespaceDetail.ID).field("type", "string").field("index", NOT_ANALYZED_INDEX).endObject()
@@ -222,17 +224,17 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 					.execute().actionGet();
 
 			if (putMappingResponse.isAcknowledged()) {
-				LOGGER.info("Index Created: " + namespaceIndexDayName);
+				LOGGER.info("Index Created: " + namespacedetailIndexDayName);
 			} else {
-				LOGGER.error("Index {" + namespaceIndexDayName + "} did not exist. "
+				LOGGER.error("Index {" + namespacedetailIndexDayName + "} did not exist. "
 						+ "While attempting to create the index in ElasticSearch "
-						+ "Templates we were unable to get an acknowledgement.", namespaceIndexDayName);
+						+ "Templates we were unable to get an acknowledgement.", namespacedetailIndexDayName);
 				LOGGER.error("Error Message: {}", putMappingResponse.toString());
-				throw new RuntimeException("Unable to create index " + namespaceIndexDayName);
+				throw new RuntimeException("Unable to create index " + namespacedetailIndexDayName);
 			}
 
 		} catch (IOException e) {
-			throw new RuntimeException("Unable to create index " + namespaceIndexDayName + " " + e.getMessage());
+			throw new RuntimeException("Unable to create index " + namespacedetailIndexDayName + " " + e.getMessage());
 		}
 	}
 
@@ -240,7 +242,7 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 	public void insert(NamespaceDetail namespaceDetail, Date collectionTime) {
 		// Generate JSON for namespace quota
 		XContentBuilder namespaceBuilder = toJsonFormat(namespaceDetail, collectionTime);
-		elasticClient.prepareIndex( namespaceIndexDayName, 
+		elasticClient.prepareIndex( namespacedetailIndexDayName, 
 				DETAIL_NAMESPACE_INDEX_TYPE).setSource(namespaceBuilder).get();
 	}
 
@@ -248,7 +250,7 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 	public void insert(NamespaceQuota namespaceQuota, Date collectionTime) {
 		// Generate JSON for namespace quota
 		XContentBuilder namespaceBuilder = toJsonFormat(namespaceQuota, collectionTime);
-		elasticClient.prepareIndex( namespaceIndexDayName, 
+		elasticClient.prepareIndex( namespacequotaIndexDayName, 
 				QUOTA_NAMESPACE_INDEX_TYPE).setSource(namespaceBuilder).get();
 	}
 
@@ -379,12 +381,12 @@ public class ElasticNamespaceDAO implements NamespaceDAO {
 		switch(type) {
 		case namespace_detail:
 			// Purge old nemaspace dertails Objects
-			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, NAMESPACE_INDEX_NAME,
+			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, NAMESPACE_DETAIL_INDEX_NAME,
 					DETAIL_NAMESPACE_INDEX_TYPE);
 			return 0L;
 		case namespace_quota:
 			// Purge old namespace quota objects
-			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, NAMESPACE_INDEX_NAME,
+			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, NAMESPACE_QUOTA_INDEX_NAME,
 					QUOTA_NAMESPACE_INDEX_TYPE);
 			return 0L;
 		default:

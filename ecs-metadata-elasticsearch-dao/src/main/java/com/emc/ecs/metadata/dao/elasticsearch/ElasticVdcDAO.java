@@ -44,6 +44,7 @@ public class ElasticVdcDAO implements VdcDAO {
 	private final static String CLIENT_SNIFFING_CONFIG = "client.transport.sniff";
 	private final static String CLIENT_CLUSTER_NAME_CONFIG = "cluster.name";
 	public final static String VDC_INDEX_NAME = "ecs-vdc";
+	public final static String BUCKET_OWNER_INDEX_NAME = "ecs-bucket-owner";
 	public final static String VDC_INDEX_TYPE = "vdc-details";
 	public final static String BUCKET_OWNER_INDEX_TYPE = "bucket-owner";
 	public final static String COLLECTION_TIME = "collection_time";
@@ -55,6 +56,7 @@ public class ElasticVdcDAO implements VdcDAO {
 	private static final String DATA_DATE_PATTERN = "yyyy-MM-dd";
 	private static final SimpleDateFormat DATA_DATE_FORMAT = new SimpleDateFormat(DATA_DATE_PATTERN);
 	private static String vdcIndexDayName;
+	private static String bucketownerIndexDayName;
 	private TransportClient elasticClient;
 
 	public ElasticVdcDAO(ElasticDAOConfig config) {
@@ -87,12 +89,12 @@ public class ElasticVdcDAO implements VdcDAO {
 
 	private void initBucketOwnerIndex(Date collectionTime) {
 		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
-		vdcIndexDayName = VDC_INDEX_NAME + "-" + collectionDayString;
+		bucketownerIndexDayName = BUCKET_OWNER_INDEX_NAME + "-" + collectionDayString;
 
-		if (elasticClient.admin().indices().exists(new IndicesExistsRequest(vdcIndexDayName)).actionGet()
+		if (elasticClient.admin().indices().exists(new IndicesExistsRequest(bucketownerIndexDayName)).actionGet()
 				.isExists()) {
 			// Index already exists need to truncate it and recreate it
-			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(vdcIndexDayName);
+			DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(bucketownerIndexDayName);
 			ActionFuture<DeleteIndexResponse> futureResult = elasticClient.admin().indices().delete(deleteIndexRequest);
 
 			// Wait until deletion is done
@@ -105,11 +107,11 @@ public class ElasticVdcDAO implements VdcDAO {
 			}
 		}
 
-		elasticClient.admin().indices().create(new CreateIndexRequest(vdcIndexDayName)).actionGet();
+		elasticClient.admin().indices().create(new CreateIndexRequest(bucketownerIndexDayName)).actionGet();
 		
 		try {
 			PutMappingResponse putMappingResponse = elasticClient.admin().indices()
-					.preparePutMapping(vdcIndexDayName).setType(BUCKET_OWNER_INDEX_TYPE)
+					.preparePutMapping(bucketownerIndexDayName).setType(BUCKET_OWNER_INDEX_TYPE)
 					.setSource(XContentFactory.jsonBuilder().prettyPrint()
 							.startObject()
 								.startObject(BUCKET_OWNER_INDEX_TYPE)
@@ -348,7 +350,7 @@ public class ElasticVdcDAO implements VdcDAO {
 			// Generate JSON for object buckets info
 			for (BucketOwner bucketOwner : bucketOwners) {
 				XContentBuilder objectBucketBuilder = toJsonFormat(bucketOwner, collectionTime);
-				IndexRequestBuilder request = elasticClient.prepareIndex().setIndex(vdcIndexDayName)
+				IndexRequestBuilder request = elasticClient.prepareIndex().setIndex(bucketownerIndexDayName)
 						.setType(BUCKET_OWNER_INDEX_TYPE).setSource(objectBucketBuilder);
 				requestBuilder.add(request);
 			}
@@ -356,10 +358,10 @@ public class ElasticVdcDAO implements VdcDAO {
 			BulkResponse bulkResponse = requestBuilder.execute().actionGet();
 			int items = bulkResponse.getItems().length;
 			LOGGER.info("Took " + bulkResponse.getTookInMillis() + " ms to index [" + items + "] items in ElasticSearch"
-					+ "index: " + vdcIndexDayName + " index type: " + BUCKET_OWNER_INDEX_TYPE);
+					+ "index: " + bucketownerIndexDayName + " index type: " + BUCKET_OWNER_INDEX_TYPE);
 
 			if (bulkResponse.hasFailures()) {
-				LOGGER.error("Failures occured while items in ElasticSearch " + "index: " + vdcIndexDayName
+				LOGGER.error("Failures occured while items in ElasticSearch " + "index: " + bucketownerIndexDayName
 						+ " index type: " + BUCKET_OWNER_INDEX_TYPE);
 			}
 		}
@@ -390,7 +392,7 @@ public class ElasticVdcDAO implements VdcDAO {
 		switch (type) {
 		case bucket_owner:
 			// Purge old Billing Bucket entries
-			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, VDC_INDEX_NAME,
+			ElasticIndexCleaner.truncateOldIndexes(elasticClient, thresholdDate, BUCKET_OWNER_INDEX_NAME,
 					BUCKET_OWNER_INDEX_TYPE);
 			return 0L;
 		case vdc:
