@@ -3,10 +3,14 @@
  */
 package com.emc.ecs.management.entity;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * @author nlengc
  *
  */
+@XmlRootElement(name = "bucket_owner")
 public class BucketOwner {
 	
 	public final static String VDC_ID = "vdcId";
@@ -21,19 +25,20 @@ public class BucketOwner {
 		this.bucketKey = bucketKey;
 	}
 	
+	@XmlElement(name = VDC_ID)
 	public String getVdcId() {
 		return vdcId;
 	}
 	public void setVdcId(String vdcId) {
 		this.vdcId = vdcId;
 	}
+	
+	@XmlElement(name = BUCKET_KEY)
 	public String getBucketKey() {
 		return bucketKey;
 	}
 	public void setBucketKey(String bucketKey) {
 		this.bucketKey = bucketKey;
 	}
-	
-	
 
 }
