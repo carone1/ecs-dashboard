@@ -29,7 +29,7 @@ import com.emc.ecs.management.entity.BucketOwner;
  */
 public class ElasticBucketOwnerDAO extends ElasticVdcDetailDAO {
 
-	public final static String BUCKET_OWNER_INDEX_NAME = "ecs-bucket-owner";
+	public final static String BUCKET_OWNER_INDEX_NAME = "ecs-owner-bucket";
 	public final static String BUCKET_OWNER_INDEX_TYPE = "bucket-owner";
 	public final static String COLLECTION_TIME = "collection_time";
 
