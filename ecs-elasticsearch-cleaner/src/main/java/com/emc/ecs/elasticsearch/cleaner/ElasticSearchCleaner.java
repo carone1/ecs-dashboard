@@ -36,11 +36,19 @@ import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.metadata.dao.BillingDAO;
 import com.emc.ecs.metadata.dao.BillingDAO.ManagementDataType;
+import com.emc.ecs.metadata.dao.NamespaceDAO;
+import com.emc.ecs.metadata.dao.NamespaceDAO.NamespaceDataType;
 import com.emc.ecs.metadata.dao.ObjectDAO;
 import com.emc.ecs.metadata.dao.ObjectDAO.ObjectDataType;
+import com.emc.ecs.metadata.dao.VdcDAO;
+import com.emc.ecs.metadata.dao.VdcDAO.VdcDataType;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticBillingDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticBucketOwnerDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticDAOConfig;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticNamespaceDetailDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticNamespaceQuotaDAO;
 import com.emc.ecs.metadata.dao.elasticsearch.ElasticS3ObjectDAO;
+import com.emc.ecs.metadata.dao.elasticsearch.ElasticVdcDetailDAO;
 
 
 /**
@@ -53,6 +61,10 @@ public class ElasticSearchCleaner {
 	private static final String  ECS_CLEAN_BILLING_DATA        = "billing";
 	private static final String  ECS_CLEAN_OBJECT_DATA         = "object";
 	private static final String  ECS_CLEAN_OBJECT_VERSION_DATA = "object-version";
+	private static final String  ECS_COLLECT_NAMESPACE_DETAIL = "namespace-detail";
+	private static final String  ECS_COLLECT_NAMESPACE_QUOTA = "namespace-quota";
+	private static final String  ECS_COLLECT_ALL_VDC = "vdc";
+	private static final String  ECS_COLLECT_BUCKET_OWNER = "bucket-owner";
 	private static final String  ECS_CLEAN_ALL_DATA            = "all";
 	
 
@@ -80,7 +92,11 @@ public class ElasticSearchCleaner {
 				                "[" + ECS_CLEAN_DATA_CONFIG_ARGUMENT + " <" + 
 										ECS_CLEAN_BILLING_DATA + "|" +
 										ECS_CLEAN_OBJECT_DATA + "|" +
-										ECS_CLEAN_OBJECT_VERSION_DATA + "| \n" +
+										ECS_CLEAN_OBJECT_VERSION_DATA + "| " +
+										ECS_COLLECT_NAMESPACE_DETAIL + "| " +
+										ECS_COLLECT_NAMESPACE_QUOTA + "| " +
+										ECS_COLLECT_ALL_VDC + "| " +
+										ECS_COLLECT_BUCKET_OWNER + "| \n" +
 										ECS_CLEAN_ALL_DATA +">] - Specify which ElasticSearch index to clean \n" +
 								"[" + ES_COLLECTION_DAYS_TO_KEEP_ARGUMENT + "<number-of-days-to-keep-in-es> - " + 
 										"Specify how many days of data to keep in ElasticSearch {Default: 7 (days)}"; 
@@ -168,6 +184,26 @@ public class ElasticSearchCleaner {
 			// collect object data
 			docsCount += cleanObjectVersionData(thresholdDate);
 			
+		} else if(cleanData.equals(ECS_COLLECT_NAMESPACE_DETAIL)) {
+			
+			// collect object data
+			docsCount += cleanNamespaceDetailsData(thresholdDate);
+			
+		} else if(cleanData.equals(ECS_COLLECT_NAMESPACE_QUOTA)) {
+			
+			// collect object data
+			docsCount += cleanNamespaceQuotaData(thresholdDate);
+			
+		} else if(cleanData.equals(ECS_COLLECT_ALL_VDC)) {
+			
+			// collect object data
+			docsCount += cleanVdcData(thresholdDate);
+			
+		} else if(cleanData.equals(ECS_COLLECT_BUCKET_OWNER)) {
+			
+			// collect object data
+			docsCount += cleanBucketownerData(thresholdDate);
+			
 		} else if(cleanData.equals(ECS_CLEAN_ALL_DATA)) {
 			
 			// collect billing data 
@@ -191,6 +227,7 @@ public class ElasticSearchCleaner {
 		logger.info("Total deletion time: " + deltaTime + " seconds");
 		
 	}
+
 
 	private static Long cleanBillingData(Date thresholdDate) {
 		
@@ -244,4 +281,63 @@ public class ElasticSearchCleaner {
 		return deletedDocs;
 	}
 	
+	private static Long cleanBucketownerData(Date thresholdDate) {
+		Long deletedDocs = 0L;
+		
+		// Instantiate ElasticSearch DAO
+		ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+		daoConfig.setPort(elasticPort);
+		daoConfig.setClusterName(elasticCluster);
+		VdcDAO objectDAO = new ElasticBucketOwnerDAO(daoConfig);
+		
+		deletedDocs += objectDAO.purgeOldData(VdcDataType.bucket_owner, thresholdDate);
+		
+		return deletedDocs;
+	}
+	
+	private static Long cleanVdcData(Date thresholdDate) {
+		Long deletedDocs = 0L;
+		
+		// Instantiate ElasticSearch DAO
+		ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+		daoConfig.setPort(elasticPort);
+		daoConfig.setClusterName(elasticCluster);
+		VdcDAO objectDAO = new ElasticVdcDetailDAO(daoConfig);
+		
+		deletedDocs += objectDAO.purgeOldData(VdcDataType.vdc, thresholdDate);
+		
+		return deletedDocs;
+	}
+	
+	private static Long cleanNamespaceQuotaData(Date thresholdDate) {
+		Long deletedDocs = 0L;
+		
+		// Instantiate ElasticSearch DAO
+		ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+		daoConfig.setPort(elasticPort);
+		daoConfig.setClusterName(elasticCluster);
+		NamespaceDAO objectDAO = new ElasticNamespaceQuotaDAO(daoConfig);
+		
+		deletedDocs += objectDAO.purgeOldData(NamespaceDataType.namespace_quota, thresholdDate);
+		
+		return deletedDocs;
+	}
+	
+	private static Long cleanNamespaceDetailsData(Date thresholdDate) {
+		Long deletedDocs = 0L;
+		
+		// Instantiate ElasticSearch DAO
+		ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+		daoConfig.setPort(elasticPort);
+		daoConfig.setClusterName(elasticCluster);
+		NamespaceDAO objectDAO = new ElasticNamespaceDetailDAO(daoConfig);
+		
+		deletedDocs += objectDAO.purgeOldData(NamespaceDataType.namespace_detail, thresholdDate);
+		
+		return deletedDocs;
+	}
 }
