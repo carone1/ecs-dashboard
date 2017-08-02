@@ -215,7 +215,7 @@ public class NamespaceDetail {
 		this.creationTime = creationTime;
 	}
 
-	@XmlElement(name = CREATION_TIME)
+	@XmlElement(name = DEFAULT_BUCKET_BLOCK_SIZE)
 	public Long getDefaultBucketBlockSize() {
 		return defaultBucketBlockSize;
 	}
