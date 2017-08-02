@@ -256,133 +256,6 @@
     }
   },
   {
-    "_id": "Bucket-Data-And-Metadata-Search",
-    "_type": "search",
-    "_source": {
-      "title": "Bucket Data And Metadata Search",
-      "description": "",
-      "hits": 0,
-      "columns": [
-        "name",
-        "owner",
-        "vdc",
-        "vpool",
-        "id",
-        "block_size",
-        "api_type",
-        "softquota",
-        "collection_time",
-        "fs_access_enabled",
-        "name_analyzed",
-        "notification_size",
-        "locked"
-      ],
-      "sort": [
-        "collection_time",
-        "desc"
-      ],
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\n  \"index\": \"ecs-bucket*\",\n  \"filter\": [],\n  \"highlight\": {\n    \"pre_tags\": [\n      \"@kibana-highlighted-field@\"\n    ],\n    \"post_tags\": [\n      \"@/kibana-highlighted-field@\"\n    ],\n    \"fields\": {\n      \"*\": {}\n    },\n    \"require_field_match\": false,\n    \"fragment_size\": 2147483647\n  },\n  \"query\": {\n    \"query_string\": {\n      \"query\": \"_exists_:search_metadata\",\n      \"analyze_wildcard\": true\n    }\n  }\n}"
-      }
-    }
-  },
-  {
-    "_id": "Bucket-Data-Name-And-Quota",
-    "_type": "search",
-    "_source": {
-      "title": "Bucket Data Name And Quota",
-      "description": "",
-      "hits": 0,
-      "columns": [
-        "name",
-        "softquota"
-      ],
-      "sort": [
-        "collection_time",
-        "desc"
-      ],
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\n  \"index\": \"ecs-bucket*\",\n  \"query\": {\n    \"query_string\": {\n      \"query\": \"_exists_:softquota\",\n      \"analyze_wildcard\": true\n    }\n  },\n  \"filter\": [],\n  \"highlight\": {\n    \"pre_tags\": [\n      \"@kibana-highlighted-field@\"\n    ],\n    \"post_tags\": [\n      \"@/kibana-highlighted-field@\"\n    ],\n    \"fields\": {\n      \"*\": {}\n    },\n    \"require_field_match\": false,\n    \"fragment_size\": 2147483647\n  }\n}"
-      }
-    }
-  },
-  {
-    "_id": "Bucket-Data-And-Retention-Period",
-    "_type": "search",
-    "_source": {
-      "title": "Bucket Data And Retention Period",
-      "description": "",
-      "hits": 0,
-      "columns": [
-        "name",
-        "default_retention"
-      ],
-      "sort": [
-        "collection_time",
-        "desc"
-      ],
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"ecs-bucket*\",\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
-      }
-    }
-  },
-  {
-    "_id": "Bucket-Data-Name-And-Api-Type",
-    "_type": "search",
-    "_source": {
-      "title": "Bucket Data Name And Api Type",
-      "description": "",
-      "hits": 0,
-      "columns": [
-        "api_type",
-        "name"
-      ],
-      "sort": [
-        "collection_time",
-        "desc"
-      ],
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"ecs-bucket*\",\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
-      }
-    }
-  },
-  {
-    "_id": "Bucket-Data-And-File-System",
-    "_type": "search",
-    "_source": {
-      "title": "Bucket Data And File System",
-      "description": "",
-      "hits": 0,
-      "columns": [
-        "name",
-        "owner",
-        "vdc",
-        "vpool",
-        "id",
-        "block_size",
-        "api_type",
-        "softquota",
-        "collection_time",
-        "fs_access_enabled",
-        "notification_size",
-        "name_analyzed",
-        "locked"
-      ],
-      "sort": [
-        "collection_time",
-        "desc"
-      ],
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\n  \"index\": \"ecs-bucket*\",\n  \"filter\": [],\n  \"highlight\": {\n    \"pre_tags\": [\n      \"@kibana-highlighted-field@\"\n    ],\n    \"post_tags\": [\n      \"@/kibana-highlighted-field@\"\n    ],\n    \"fields\": {\n      \"*\": {}\n    },\n    \"require_field_match\": false,\n    \"fragment_size\": 2147483647\n  },\n  \"query\": {\n    \"query_string\": {\n      \"query\": \"fs_access_enabled:true\",\n      \"analyze_wildcard\": true\n    }\n  }\n}"
-      }
-    }
-  },
-  {
     "_id": "Namespace-Quota",
     "_type": "search",
     "_source": {
@@ -422,6 +295,110 @@
     }
   },
   {
+    "_id": "Vdc-Detail",
+    "_type": "search",
+    "_source": {
+      "title": "Vdc Detail",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "vdcId",
+        "vdcName"
+      ],
+      "sort": [
+        "collection_time",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"ecs-vdc*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+      }
+    }
+  },
+  {
+    "_id": "Bucket-Owner",
+    "_type": "search",
+    "_source": {
+      "title": "Bucket Owner",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "bucketKey",
+        "vdcId"
+      ],
+      "sort": [
+        "collection_time",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"ecs-owner-bucket*\",\"query\":{\"query_string\":{\"query\":\"_exists_:vdcId\",\"analyze_wildcard\":true}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+      }
+    }
+  },
+  {
+    "_id": "Namespace-Data-And-Compliance",
+    "_type": "search",
+    "_source": {
+      "title": "Namespace Data And Compliance",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "default_bucket_block_size",
+        "is_compliance_enabled",
+        "name",
+        "default_data_services_vpool",
+        "inactive",
+        "internal",
+        "is_encryption_enabled",
+        "is_stale_allowed",
+        "link",
+        "namespace_admins",
+        "remote",
+        "global"
+      ],
+      "sort": [
+        "collection_time",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"ecs-namespace-detail*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"is_compliance_enabled:true\"}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+      }
+    }
+  },
+  {
+    "_id": "Namespace-Detail-And-ADO",
+    "_type": "search",
+    "_source": {
+      "title": "Namespace Detail And ADO",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "name",
+        "namespace_admins",
+        "is_stale_allowed",
+        "remote",
+        "is_compliance_enabled",
+        "internal",
+        "inactive",
+        "global",
+        "default_data_services_vpool",
+        "default_bucket_block_size",
+        "is_encryption_enabled",
+        "link"
+      ],
+      "sort": [
+        "collection_time",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"ecs-namespace-detail*\",\"query\":{\"query_string\":{\"query\":\"is_stale_allowed:true\",\"analyze_wildcard\":true}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+      }
+    }
+  },
+  {
     "_id": "Namespace-Detail",
     "_type": "search",
     "_source": {
@@ -457,15 +434,27 @@
     }
   },
   {
-    "_id": "Vdc-Detail",
+    "_id": "Bucket-Data-And-Metadata-Search",
     "_type": "search",
     "_source": {
-      "title": "Vdc Detail",
+      "title": "Bucket Data And Metadata Search",
       "description": "",
       "hits": 0,
       "columns": [
-        "vdcId",
-        "vdcName"
+        "name",
+        "owner",
+        "vdc",
+        "vpool",
+        "id",
+        "block_size",
+        "api_type",
+        "softquota",
+        "collection_time",
+        "fs_access_enabled",
+        "name_analyzed",
+        "notification_size",
+        "locked",
+        "search_metadata"
       ],
       "sort": [
         "collection_time",
@@ -473,47 +462,7 @@
       ],
       "version": 1,
       "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"ecs-vdc*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
-      }
-    }
-  },
-  {
-    "_id": "Namespace-Data-And-Compliance",
-    "_type": "search",
-    "_source": {
-      "title": "Namespace Data And Compliance",
-      "description": "",
-      "hits": 0,
-      "columns": [
-        "_source"
-      ],
-      "sort": [
-        "collection_time",
-        "desc"
-      ],
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"ecs-namespace-detail*\",\"query\":{\"query_string\":{\"query\":\"is_compliance_enabled:true\",\"analyze_wildcard\":true}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
-      }
-    }
-  },
-  {
-    "_id": "Namespace-Detail-And-ADO",
-    "_type": "search",
-    "_source": {
-      "title": "Namespace Data And ADO",
-      "description": "",
-      "hits": 0,
-      "columns": [
-        "_source"
-      ],
-      "sort": [
-        "collection_time",
-        "desc"
-      ],
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"ecs-namespace-detail*\",\"query\":{\"query_string\":{\"query\":\"is_stale_allowed:true\",\"analyze_wildcard\":true}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+        "searchSourceJSON": "{\"index\":\"ecs-bucket*\",\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"_exists_:search_metadata\",\"analyze_wildcard\":true}}}"
       }
     }
   },
@@ -525,7 +474,20 @@
       "description": "",
       "hits": 0,
       "columns": [
-        "_source"
+        "api_type",
+        "default_retention",
+        "fs_access_enabled",
+        "block_size",
+        "locked",
+        "notification_size",
+        "owner",
+        "softquota",
+        "vpool",
+        "name_analyzed",
+        "id",
+        "vdc",
+        "name",
+        "collection_time"
       ],
       "sort": [
         "collection_time",
@@ -538,15 +500,26 @@
     }
   },
   {
-    "_id": "Bucket-Owner",
+    "_id": "Bucket-Data-And-File-System",
     "_type": "search",
     "_source": {
-      "title": "Bucket Owner",
+      "title": "Bucket Data And File System",
       "description": "",
       "hits": 0,
       "columns": [
-        "bucketKey",
-        "vdcId"
+        "name",
+        "owner",
+        "vdc",
+        "vpool",
+        "id",
+        "block_size",
+        "api_type",
+        "softquota",
+        "collection_time",
+        "fs_access_enabled",
+        "notification_size",
+        "name_analyzed",
+        "locked"
       ],
       "sort": [
         "collection_time",
@@ -554,7 +527,103 @@
       ],
       "version": 1,
       "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"ecs-owner-bucket*\",\"query\":{\"query_string\":{\"query\":\"_exists_:vdcId\",\"analyze_wildcard\":true}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+        "searchSourceJSON": "{\"index\":\"ecs-bucket*\",\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"fs_access_enabled:true\",\"analyze_wildcard\":true}}}"
+      }
+    }
+  },
+  {
+    "_id": "Bucket-Data-And-Retention-Period",
+    "_type": "search",
+    "_source": {
+      "title": "Bucket Data And Retention Period",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "name",
+        "default_retention",
+        "fs_access_enabled",
+        "name_analyzed",
+        "api_type",
+        "notification_size",
+        "id",
+        "locked",
+        "block_size",
+        "owner",
+        "softquota",
+        "vdc",
+        "collection_time"
+      ],
+      "sort": [
+        "collection_time",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"ecs-bucket*\",\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
+      }
+    }
+  },
+  {
+    "_id": "Bucket-Data-Name-And-Quota",
+    "_type": "search",
+    "_source": {
+      "title": "Bucket Data Name And Quota",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "name",
+        "softquota",
+        "fs_access_enabled",
+        "block_size",
+        "api_type",
+        "collection_time",
+        "name_analyzed",
+        "notification_size",
+        "id",
+        "locked",
+        "owner",
+        "vdc",
+        "vpool"
+      ],
+      "sort": [
+        "collection_time",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"ecs-bucket*\",\"query\":{\"query_string\":{\"query\":\"_exists_:softquota\",\"analyze_wildcard\":true}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+      }
+    }
+  },
+  {
+    "_id": "Bucket-Data-Name-And-Api-Type",
+    "_type": "search",
+    "_source": {
+      "title": "Bucket Data Name And Api Type",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "api_type",
+        "name",
+        "fs_access_enabled",
+        "name_analyzed",
+        "notification_size",
+        "id",
+        "locked",
+        "block_size",
+        "owner",
+        "vpool",
+        "softquota",
+        "vdc",
+        "collection_time"
+      ],
+      "sort": [
+        "collection_time",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"ecs-bucket*\",\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647},\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}"
       }
     }
   }

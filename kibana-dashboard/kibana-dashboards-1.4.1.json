@@ -187,58 +187,7 @@
     }
   },
   {
-    "_id": "Namespace-Data-And-Admin",
-    "_type": "dashboard",
-    "_source": {
-      "title": "Namespace Data and Admin",
-      "hits": 0,
-      "description": "",
-      "panelsJSON": "[{\"size_x\":9,\"size_y\":4,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Namespace-detail\",\"col\":1,\"row\":1}]",
-      "optionsJSON": "{\"darkTheme\":false}",
-      "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
-      "version": 1,
-      "timeRestore": false,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
-      }
-    }
-  },
-  {
-    "_id": "Namespace-And-Bucket-Data-And-Quota",
-    "_type": "dashboard",
-    "_source": {
-      "title": "Namespace And Bucket Data And Quota",
-      "hits": 0,
-      "description": "",
-      "panelsJSON": "[{\"size_x\":5,\"size_y\":5,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Namespace-Quota\",\"col\":1,\"row\":1},{\"size_x\":5,\"size_y\":3,\"panelIndex\":2,\"type\":\"visualization\",\"id\":\"Table-Namespace-with-Default-Quota\",\"col\":1,\"row\":6},{\"size_x\":5,\"size_y\":3,\"panelIndex\":3,\"type\":\"visualization\",\"id\":\"Table-Bucket-Data-Name-And-Quota\",\"col\":1,\"row\":9}]",
-      "optionsJSON": "{\"darkTheme\":false}",
-      "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-2\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-3\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
-      "version": 1,
-      "timeRestore": false,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
-      }
-    }
-  },
-  {
-    "_id": "Namespace-And-Bucket-Data-And-ADO",
-    "_type": "dashboard",
-    "_source": {
-      "title": "Namespace And Bucket Data And ADO",
-      "hits": 0,
-      "description": "",
-      "panelsJSON": "[{\"size_x\":10,\"size_y\":3,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Namespace-Data-And-ADO\",\"col\":1,\"row\":1},{\"size_x\":10,\"size_y\":5,\"panelIndex\":2,\"type\":\"visualization\",\"id\":\"Table-Bucket-Data-And-ADO\",\"col\":1,\"row\":4}]",
-      "optionsJSON": "{\"darkTheme\":false}",
-      "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-2\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
-      "version": 1,
-      "timeRestore": false,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
-      }
-    }
-  },
-  {
-    "_id": "Bucket-Data-And-File-System-Enabled",
+    "_id": "Dashboard-Bucket-Data-And-File-System-Enabled",
     "_type": "dashboard",
     "_source": {
       "title": "Bucket Data And File System Enabled",
@@ -255,7 +204,7 @@
     }
   },
   {
-    "_id": "Bucket-Data-per-API-Access-method",
+    "_id": "Dashboard-Bucket-Data-per-API-Access-method",
     "_type": "dashboard",
     "_source": {
       "title": "Bucket Data per API Access method",
@@ -272,7 +221,7 @@
     }
   },
   {
-    "_id": "Bucket-Data-And-Retention-Period",
+    "_id": "Dashboard-Bucket-Data-And-Retention-Period",
     "_type": "dashboard",
     "_source": {
       "title": "Bucket Data And Retention Period",
@@ -289,7 +238,7 @@
     }
   },
   {
-    "_id": "Bucket-Data-And-Metasearch-Enabled",
+    "_id": "Dashboard-Bucket-Data-And-Metasearch-Enabled",
     "_type": "dashboard",
     "_source": {
       "title": "Bucket Data And Metasearch Enabled",
@@ -306,7 +255,75 @@
     }
   },
   {
-    "_id": "Namespace Data And Compliance",
+    "_id": "Dashbord-VDC-Details",
+    "_type": "dashboard",
+    "_source": {
+      "title": "VDC Details",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"size_x\":6,\"size_y\":3,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Vdc-Detail\",\"col\":1,\"row\":1}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
+      }
+    }
+  },
+  {
+    "_id": "Dashboard-Bucket-Ownership",
+    "_type": "dashboard",
+    "_source": {
+      "title": "Bucket Ownership",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"col\":1,\"id\":\"Table-Bucket-Owner\",\"panelIndex\":1,\"row\":1,\"size_x\":10,\"size_y\":5,\"type\":\"visualization\"},{\"size_x\":9,\"size_y\":2,\"panelIndex\":2,\"type\":\"visualization\",\"id\":\"Table-Vdc-Detail\",\"col\":1,\"row\":6}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-2\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}}}]}"
+      }
+    }
+  },
+  {
+    "_id": "03264dc0-720e-11e7-b0ce-bb0b2167b012",
+    "_type": "dashboard",
+    "_source": {
+      "title": "Namespace And Bucket Data And ADO",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"size_x\":10,\"size_y\":3,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Namespace-Data-And-ADO\",\"col\":1,\"row\":1},{\"size_x\":10,\"size_y\":5,\"panelIndex\":2,\"type\":\"visualization\",\"id\":\"Table-Bucket-Data-And-ADO\",\"col\":1,\"row\":4}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-2\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
+      }
+    }
+  },
+  {
+    "_id": "Dashboard-Namespace-And-Bucket-Data-And-Quota",
+    "_type": "dashboard",
+    "_source": {
+      "title": "Namespace And Bucket Data And Quota",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"size_x\":9,\"size_y\":5,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Namespace-Quota\",\"col\":1,\"row\":1},{\"size_x\":8,\"size_y\":3,\"panelIndex\":2,\"type\":\"visualization\",\"id\":\"Table-Namespace-with-Default-Quota\",\"col\":1,\"row\":6},{\"size_x\":9,\"size_y\":3,\"panelIndex\":3,\"type\":\"visualization\",\"id\":\"Table-Bucket-Data-Name-And-Quota\",\"col\":1,\"row\":9}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-2\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}},\"P-3\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
+      }
+    }
+  },
+  {
+    "_id": "Dashboard-Namespace-Data-And-Compliance",
     "_type": "dashboard",
     "_source": {
       "title": "Namespace Data And Compliance",
@@ -323,30 +340,13 @@
     }
   },
   {
-    "_id": "Bucket Ownership",
+    "_id": "Dashboard-Namespace-Data-And-Admin",
     "_type": "dashboard",
     "_source": {
-      "title": "Bucket Ownership",
+      "title": "Namespace Data and Admin",
       "hits": 0,
       "description": "",
-      "panelsJSON": "[{\"size_x\":8,\"size_y\":5,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Bucket-Owner\",\"col\":1,\"row\":1}]",
-      "optionsJSON": "{\"darkTheme\":false}",
-      "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
-      "version": 1,
-      "timeRestore": false,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
-      }
-    }
-  },
-  {
-    "_id": "VDC Details",
-    "_type": "dashboard",
-    "_source": {
-      "title": "VDC Details",
-      "hits": 0,
-      "description": "",
-      "panelsJSON": "[{\"size_x\":6,\"size_y\":3,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Vdc-Detail\",\"col\":1,\"row\":1}]",
+      "panelsJSON": "[{\"size_x\":11,\"size_y\":5,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Namespace-detail\",\"col\":1,\"row\":1}]",
       "optionsJSON": "{\"darkTheme\":false}",
       "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
       "version": 1,
