@@ -210,7 +210,7 @@
       "title": "Bucket Data per API Access method",
       "hits": 0,
       "description": "",
-      "panelsJSON": "[{\"size_x\":6,\"size_y\":5,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Total-Bucket-Per-API-Type\",\"col\":1,\"row\":1}]",
+      "panelsJSON": "[{\"size_x\":6,\"size_y\":5,\"panelIndex\":1,\"type\":\"visualization\",\"id\":\"Table-Bucket-Data-Name-And-Api-Type\",\"col\":1,\"row\":1}]",
       "optionsJSON": "{\"darkTheme\":false}",
       "uiStateJSON": "{\"P-1\":{\"vis\":{\"params\":{\"sort\":{\"columnIndex\":null,\"direction\":null}}}}}",
       "version": 1,
