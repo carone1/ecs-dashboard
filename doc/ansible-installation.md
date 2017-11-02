@@ -443,7 +443,7 @@ Under Settings / Objects / Visualization
 
 Under Settings / Objects / Dashboards
 
-	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-visualization-1.3.json
+	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-dashboards-1.3.json
 	Click Import and select kibana-dashboards-1.3.json.
 
 
