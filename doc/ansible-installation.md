@@ -297,7 +297,7 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
       collection_days_to_keep: 7
 
 
-      # Emailer settings
+      # Emailer settings  (Optional: You can ignore emailer section if you are not using emailer)
 
       # *** section to be modified as the links are not valid ****
       kibana_urls:
@@ -350,6 +350,10 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 8. run kibana playbook on ansible01
 
 	    ansible-playbook -i host install-ecs-dashboard.yml --ask-become
+	    
+	    If not installing emailer
+	    
+	    ansible-playbook -i host install-ecs-dashboard.yml --ask-become --skip-tags emailer
     
 9. Under /opt/ecs-dashboard on node01, node02, node03 there will be different java programs installed and pre-configured scripts installed to run collectors, cleaners, emailers.
 
