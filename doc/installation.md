@@ -38,11 +38,11 @@ As indicated in the Elasticsearch documentation see link, we recommend to instal
 
 # Installations
 
-## Manual Installations
+## Manual Installations (Out-Of-Date)
 
 [Manual Installation] (./manual-installation.md)
 
-## Ansible Installations
+## Ansible Installations (Preferred)
 
 [Ansible Installation ] (./ansible-installation.md)
 
