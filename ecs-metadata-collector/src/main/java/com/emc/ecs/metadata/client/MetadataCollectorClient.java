@@ -99,6 +99,13 @@ public class MetadataCollectorClient {
 	private static final String ELASTIC_PORT_CONFIG_ARGUMENT                 = "--elastic-port";
 	private static final String ELASTIC_CLUSTER_CONFIG_ARGUMENT              = "--elastic-cluster";
 	
+	// xpack security arguments
+	public final static String XPACK_SECURITY_USER_ARG = "--xpack-user";
+	public final static String XPACK_SECURITY_USER_PASSWORD_ARG = "--xpack-pwd";
+	public final static String XPACK_SSL_KEY_ARG = "--xpack-key";
+	public final static String XPACK_SSL_CERTIFICATE_ARG = "--xpack-cert";
+	public final static String XPACK_SSL_CERTIFICATE_AUTH_ARG = "--xpack--cert-ca";
+	
 	
 	private static final String ECS_OBJECT_LAST_MODIFIED_MD_KEY  = "LastModified";
 	
@@ -142,6 +149,12 @@ public class MetadataCollectorClient {
 	private static boolean relativeObjectModifiedSinceOption = false;
 	private static boolean initIndexesOnlyOption             = false;
 	private static Integer ecsAlternativeMgmtPort			 = DEFAULT_ECS_ALTERNATIVE_MGMT_PORT;
+	
+	private final static String xpackUser = "--xpack-user";
+	private final static String xpackPassword = "--xpack-pwd";
+	private final static String xpackSslKey = "--xpack-key";
+	private final static String xpackSslKCertificate = "--xpack-cert";
+	private final static String xpackSsslCertificateAuth = "--xpack--cert-ca";
 	
 	
 	private final static Logger       logger             = LoggerFactory.getLogger(MetadataCollectorClient.class);

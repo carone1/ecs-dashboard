@@ -43,12 +43,17 @@ public class ElasticDAOConfig {
 	//==========================
 	// Private members
 	//==========================
-	List<String>      hosts;
-	Integer           port;
-	String            clusterName;
-	Date              collectionTime;
-	EcsCollectionType collectionType;
+	private List<String>      hosts;
+	private Integer           port;
+	private String            clusterName;
+	private Date              collectionTime;
+	private EcsCollectionType collectionType;
 	
+	private String xpackUser;
+	private String xpackPassword;
+	private String xpackSslKey;
+	private String xpackSslCertificate;
+	private String xpackSslCertificateAuthothorities;
 	
 	//==========================
 	// Public Methods
@@ -88,4 +93,35 @@ public class ElasticDAOConfig {
 	public void setCollectionType(EcsCollectionType collectionType) {
 		this.collectionType = collectionType;
 	}
+	public final String getXpackUser() {
+		return xpackUser;
+	}
+	public final void setXpackUser(String xpackUser) {
+		this.xpackUser = xpackUser;
+	}
+	public final String getXpackPassword() {
+		return xpackPassword;
+	}
+	public final void setXpackPassword(String xpackPassword) {
+		this.xpackPassword = xpackPassword;
+	}
+	public final String getXpackSslKey() {
+		return xpackSslKey;
+	}
+	public final void setXpackSslKey(String xpackSslKey) {
+		this.xpackSslKey = xpackSslKey;
+	}
+	public final String getXpackSslCertificate() {
+		return xpackSslCertificate;
+	}
+	public final void setXpackSslCertificate(String xpackSslCertificate) {
+		this.xpackSslCertificate = xpackSslCertificate;
+	}
+	public final String getXpackSslCertificateAuthothorities() {
+		return xpackSslCertificateAuthothorities;
+	}
+	public final void setXpackSslCertificateAuthothorities(String xpackSslCertificateAuthothorities) {
+		this.xpackSslCertificateAuthothorities = xpackSslCertificateAuthothorities;
+	}
+	
 }

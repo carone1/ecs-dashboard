@@ -30,12 +30,9 @@ package com.emc.ecs.metadata.dao.elasticsearch;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -45,7 +42,6 @@ import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
-
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
@@ -53,6 +49,9 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.management.entity.BucketBillingInfo;
 import com.emc.ecs.management.entity.Metadata;
@@ -61,6 +60,7 @@ import com.emc.ecs.management.entity.ObjectBucket;
 import com.emc.ecs.management.entity.ObjectBuckets;
 import com.emc.ecs.management.entity.Tag;
 import com.emc.ecs.metadata.dao.BillingDAO;
+import com.emc.ecs.metadata.utils.Constants;
 
 
 public class ElasticBillingDAO implements BillingDAO {
@@ -77,7 +77,7 @@ public class ElasticBillingDAO implements BillingDAO {
 	public  final static String ANALYZED_TAG                 = "_analyzed";
 	public  final static String NOT_ANALYZED_INDEX           = "not_analyzed";
 	public  final static String ANALYZED_INDEX               = "analyzed";
-	
+
 	//=======================
 	// Private members
 	//=======================
@@ -102,6 +102,13 @@ public class ElasticBillingDAO implements BillingDAO {
 			
 			// Check for new hosts within the cluster
 			builder.put(CLIENT_SNIFFING_CONFIG, true);
+			if (config.getXpackUser() != null) {
+				builder.put(Constants.XPACK_SECURITY_USER, config.getXpackUser() + ":" + config.getXpackPassword());
+				builder.put(Constants.XPACK_SSL_KEY, config.getXpackSslKey());
+				builder.put(Constants.XPACK_SSL_CERTIFICATE, config.getXpackSslCertificate());
+				builder.put(Constants.XPACK_SSL_CERTIFICATE_AUTH, config.getXpackSslCertificateAuthothorities());
+				builder.put(Constants.XPACK_SECURITY_TRANPORT_ENABLED, "true");
+			}
 			
 			// specify cluster name
 			if( config.getClusterName() != null ) {
@@ -109,9 +116,12 @@ public class ElasticBillingDAO implements BillingDAO {
 			}
 			
 			Settings settings = builder.build();
-			
 			// create client
-			elasticClient = new PreBuiltTransportClient(settings);
+			if (config.getXpackUser() != null) {
+				elasticClient = new PreBuiltXPackTransportClient(settings);
+			} else {
+				elasticClient = new PreBuiltTransportClient(settings);
+			}
 			
 			// add hosts
 			for( String elasticHost : config.getHosts()) {

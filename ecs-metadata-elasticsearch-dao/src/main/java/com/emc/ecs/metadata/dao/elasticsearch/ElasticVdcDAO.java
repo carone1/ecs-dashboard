@@ -14,10 +14,12 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 
 import com.emc.ecs.management.entity.BucketOwner;
 import com.emc.ecs.management.entity.VdcDetails;
 import com.emc.ecs.metadata.dao.VdcDAO;
+import com.emc.ecs.metadata.utils.Constants;
 
 /**
  * @author nlengc
@@ -49,9 +51,20 @@ public abstract class ElasticVdcDAO implements VdcDAO {
 			if (config.getClusterName() != null) {
 				builder.put(CLIENT_CLUSTER_NAME_CONFIG, config.getClusterName());
 			}
+			if (config.getXpackUser() != null) {
+				builder.put(Constants.XPACK_SECURITY_USER, config.getXpackUser() + ":" + config.getXpackPassword());
+				builder.put(Constants.XPACK_SSL_KEY, config.getXpackSslKey());
+				builder.put(Constants.XPACK_SSL_CERTIFICATE, config.getXpackSslCertificate());
+				builder.put(Constants.XPACK_SSL_CERTIFICATE_AUTH, config.getXpackSslCertificateAuthothorities());
+				builder.put(Constants.XPACK_SECURITY_TRANPORT_ENABLED, "true");
+			}
 			Settings settings = builder.build();
 			// create client
-			elasticClient = new PreBuiltTransportClient(settings);
+			if (config.getXpackUser() != null) {
+				elasticClient = new PreBuiltXPackTransportClient(settings);
+			} else {
+				elasticClient = new PreBuiltTransportClient(settings);
+			}
 			// add hosts
 			for (String elasticHost : config.getHosts()) {
 				elasticClient.addTransportAddress(

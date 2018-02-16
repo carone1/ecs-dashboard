@@ -35,6 +35,8 @@ import com.emc.ecs.management.entity.ObjectBuckets;
 
 
 public interface BillingDAO {
+	
+	public  final static String XPACK_SECURITY_USER = "xpack.security.user";
 
 	public enum ManagementDataType {
 		billing_namespace,
