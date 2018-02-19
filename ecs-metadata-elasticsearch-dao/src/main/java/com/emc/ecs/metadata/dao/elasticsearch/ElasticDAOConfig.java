@@ -53,7 +53,7 @@ public class ElasticDAOConfig {
 	private String xpackPassword;
 	private String xpackSslKey;
 	private String xpackSslCertificate;
-	private String xpackSslCertificateAuthothorities;
+	private String xpackSslCertificateAuthorities;
 	
 	//==========================
 	// Public Methods
@@ -117,11 +117,11 @@ public class ElasticDAOConfig {
 	public final void setXpackSslCertificate(String xpackSslCertificate) {
 		this.xpackSslCertificate = xpackSslCertificate;
 	}
-	public final String getXpackSslCertificateAuthothorities() {
-		return xpackSslCertificateAuthothorities;
+	public final String getXpackSslCertificateAuthorities() {
+		return xpackSslCertificateAuthorities;
 	}
-	public final void setXpackSslCertificateAuthothorities(String xpackSslCertificateAuthothorities) {
-		this.xpackSslCertificateAuthothorities = xpackSslCertificateAuthothorities;
+	public final void setXpackSslCertificateAuthorities(String xpackSslCertificateAuthorities) {
+		this.xpackSslCertificateAuthorities = xpackSslCertificateAuthorities;
 	}
 	
 }

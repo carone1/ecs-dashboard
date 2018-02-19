@@ -106,7 +106,7 @@ public class ElasticBillingDAO implements BillingDAO {
 				builder.put(Constants.XPACK_SECURITY_USER, config.getXpackUser() + ":" + config.getXpackPassword());
 				builder.put(Constants.XPACK_SSL_KEY, config.getXpackSslKey());
 				builder.put(Constants.XPACK_SSL_CERTIFICATE, config.getXpackSslCertificate());
-				builder.put(Constants.XPACK_SSL_CERTIFICATE_AUTH, config.getXpackSslCertificateAuthothorities());
+				builder.put(Constants.XPACK_SSL_CERTIFICATE_AUTH, config.getXpackSslCertificateAuthorities());
 				builder.put(Constants.XPACK_SECURITY_TRANPORT_ENABLED, "true");
 			}
 			

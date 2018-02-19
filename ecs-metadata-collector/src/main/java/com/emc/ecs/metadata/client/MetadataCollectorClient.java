@@ -150,11 +150,11 @@ public class MetadataCollectorClient {
 	private static boolean initIndexesOnlyOption             = false;
 	private static Integer ecsAlternativeMgmtPort			 = DEFAULT_ECS_ALTERNATIVE_MGMT_PORT;
 	
-	private final static String xpackUser = "--xpack-user";
-	private final static String xpackPassword = "--xpack-pwd";
-	private final static String xpackSslKey = "--xpack-key";
-	private final static String xpackSslKCertificate = "--xpack-cert";
-	private final static String xpackSsslCertificateAuth = "--xpack--cert-ca";
+	private static String xpackUser;
+	private static String xpackPassword;
+	private static String xpackSslKey;
+	private static String xpackSslCertificate;
+	private static String xpackSsslCertificateAuth;
 	
 	
 	private final static Logger       logger             = LoggerFactory.getLogger(MetadataCollectorClient.class);
@@ -367,6 +367,41 @@ public class MetadataCollectorClient {
 					}
 				} else if (arg.equals( ECS_INIT_INDEXES_ONLY_CONFIG_ARGUMENT)) { 
 					initIndexesOnlyOption = true;
+				} else if (arg.equals( XPACK_SECURITY_USER_ARG)) { 
+					if (i < args.length) {
+						xpackUser = args[i++];
+					} else {
+						System.err.println( XPACK_SECURITY_USER_ARG + " requires a value");
+						System.exit(0);
+					}
+				} else if (arg.equals( XPACK_SECURITY_USER_PASSWORD_ARG)) { 
+					if (i < args.length) {
+						xpackPassword = args[i++];
+					} else {
+						System.err.println( XPACK_SECURITY_USER_PASSWORD_ARG + " requires a value");
+						System.exit(0);
+					}
+				} else if (arg.equals( XPACK_SSL_KEY_ARG)) { 
+					if (i < args.length) {
+						xpackSslKey = args[i++];
+					} else {
+						System.err.println( XPACK_SSL_KEY_ARG + " requires a value");
+						System.exit(0);
+					}
+				} else if (arg.equals( XPACK_SSL_CERTIFICATE_ARG)) { 
+					if (i < args.length) {
+						xpackSslCertificate = args[i++];
+					} else {
+						System.err.println( XPACK_SSL_CERTIFICATE_ARG + " requires a value");
+						System.exit(0);
+					}
+				} else if (arg.equals( XPACK_SSL_CERTIFICATE_AUTH_ARG)) { 
+					if (i < args.length) {
+						xpackSsslCertificateAuth = args[i++];
+					} else {
+						System.err.println( XPACK_SSL_CERTIFICATE_AUTH_ARG + " requires a value");
+						System.exit(0);
+					}
 				} else {
 					System.err.println("Unreconized option: " + arg); 
 					System.err.println(menuString);
@@ -424,6 +459,7 @@ public class MetadataCollectorClient {
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
+			initXPackConfig(daoConfig);
 			billingDAO = new ElasticBillingDAO(daoConfig);
 			
 			// init indexes
@@ -476,6 +512,7 @@ public class MetadataCollectorClient {
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
 			daoConfig.setCollectionType(EcsCollectionType.object);
+			initXPackConfig(daoConfig);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
 			
 			// init indexes
@@ -524,6 +561,7 @@ public class MetadataCollectorClient {
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
 			daoConfig.setCollectionType(EcsCollectionType.object);
+			initXPackConfig(daoConfig);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
 			
 			// init indexes
@@ -578,6 +616,7 @@ public class MetadataCollectorClient {
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
 			daoConfig.setCollectionType(EcsCollectionType.object_version);
+			initXPackConfig(daoConfig);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
 			
 			// init indexes
@@ -614,6 +653,7 @@ public class MetadataCollectorClient {
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
 			daoConfig.setCollectionType(EcsCollectionType.object);
+			initXPackConfig(daoConfig);
 			objectDAO = new ElasticS3ObjectDAO(daoConfig);
 			
 			// init indexes
@@ -644,6 +684,7 @@ public class MetadataCollectorClient {
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
+			initXPackConfig(daoConfig);
 			namespaceDAO = new ElasticNamespaceDetailDAO(daoConfig);
 			// init indexes
 			namespaceDAO.initIndexes(collectionTime);
@@ -679,6 +720,7 @@ public class MetadataCollectorClient {
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
+			initXPackConfig(daoConfig);
 			namespaceDAO = new ElasticNamespaceQuotaDAO(daoConfig);
 			// init indexes
 			namespaceDAO.initIndexes(collectionTime);
@@ -709,6 +751,7 @@ public class MetadataCollectorClient {
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
+			initXPackConfig(daoConfig);
 			vdcDAO = new ElasticBucketOwnerDAO(daoConfig);
 			// init indexes
 			vdcDAO.initIndexes(collectionTime);
@@ -744,6 +787,7 @@ public class MetadataCollectorClient {
 			daoConfig.setPort(elasticPort);
 			daoConfig.setClusterName(elasticCluster);
 			daoConfig.setCollectionTime(collectionTime);
+			initXPackConfig(daoConfig);
 			vdcDAO = new ElasticVdcDetailDAO(daoConfig);
 			// init indexes
 			vdcDAO.initIndexes(collectionTime);
@@ -763,6 +807,16 @@ public class MetadataCollectorClient {
 		// Start collection
 		vdcBO.collectVdcDetails(collectionTime);
 		vdcBO.shutdown();	
+	}
+	
+	private static void initXPackConfig(ElasticDAOConfig daoConfig) {
+		if (!xpackUser.isEmpty()) {
+			daoConfig.setXpackUser(xpackUser);
+			daoConfig.setXpackPassword(xpackPassword);
+			daoConfig.setXpackSslKey(xpackSslKey);
+			daoConfig.setXpackSslCertificate(xpackSslCertificate);
+			daoConfig.setXpackSslCertificateAuthorities(xpackSsslCertificateAuth);
+		}
 	}
 	
 }
