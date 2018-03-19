@@ -73,12 +73,25 @@ public class ElasticSearchCleaner {
 	private static final String ELASTIC_PORT_CONFIG_ARGUMENT        = "--elastic-port";
 	private static final String ELASTIC_CLUSTER_CONFIG_ARGUMENT     = "--elastic-cluster";
 	private static final String ES_COLLECTION_DAYS_TO_KEEP_ARGUMENT = "--collection-days-to-keep"; 
+	
+	// xpack security arguments
+	public final static String XPACK_SECURITY_USER_ARG = "--xpack-user";
+	public final static String XPACK_SECURITY_USER_PASSWORD_ARG = "--xpack-pwd";
+	public final static String XPACK_SSL_KEY_ARG = "--xpack-key";
+	public final static String XPACK_SSL_CERTIFICATE_ARG = "--xpack-cert";
+	public final static String XPACK_SSL_CERTIFICATE_AUTH_ARG = "--xpack--cert-ca";
 		
 	private static String  elasticHosts         = "";
 	private static Integer elasticPort          = 9300;
 	private static String  elasticCluster       = "ecs-analytics";
 	private static String  cleanData            = ECS_CLEAN_ALL_DATA;
 	private static Integer collectionDaysToKeep = 7;
+	
+	private static String xpackUser;
+	private static String xpackPassword;
+	private static String xpackSslKey;
+	private static String xpackSslCertificate;
+	private static String xpackSsslCertificateAuth;
 	
 	private final static Logger       logger      = LoggerFactory.getLogger(ElasticSearchCleaner.class);
 	private static 	     Long         docsCount = 0L;
@@ -99,7 +112,12 @@ public class ElasticSearchCleaner {
 										ECS_COLLECT_BUCKET_OWNER + "| \n" +
 										ECS_CLEAN_ALL_DATA +">] - Specify which ElasticSearch index to clean \n" +
 								"[" + ES_COLLECTION_DAYS_TO_KEEP_ARGUMENT + "<number-of-days-to-keep-in-es> - " + 
-										"Specify how many days of data to keep in ElasticSearch {Default: 7 (days)}"; 
+										"Specify how many days of data to keep in ElasticSearch {Default: 7 (days)}" +
+										"[" + XPACK_SECURITY_USER_ARG + "<xpack-username> " +
+										 XPACK_SECURITY_USER_PASSWORD_ARG + "<xpack-password> " +
+										 XPACK_SSL_KEY_ARG + "<ssl-key> " +
+										 XPACK_SSL_CERTIFICATE_ARG + "<ssl-certificate> " +
+										 XPACK_SSL_CERTIFICATE_AUTH_ARG + "<ssl-certificate-authorities> ]"; 
 
 		
 		if ( args.length > 0 && args[0].contains("--help")) {
@@ -148,7 +166,42 @@ public class ElasticSearchCleaner {
 						System.err.println(ES_COLLECTION_DAYS_TO_KEEP_ARGUMENT + " requires a day shift value port value");
 						System.exit(0);
 					}
-				} else {
+				} else if (arg.equals( XPACK_SECURITY_USER_ARG)) { 
+					if (i < args.length) {
+						xpackUser = args[i++];
+					} else {
+						System.err.println( XPACK_SECURITY_USER_ARG + " requires a value");
+						System.exit(0);
+					}
+				} else if (arg.equals( XPACK_SECURITY_USER_PASSWORD_ARG)) { 
+					if (i < args.length) {
+						xpackPassword = args[i++];
+					} else {
+						System.err.println( XPACK_SECURITY_USER_PASSWORD_ARG + " requires a value");
+						System.exit(0);
+					}
+				} else if (arg.equals( XPACK_SSL_KEY_ARG)) { 
+					if (i < args.length) {
+						xpackSslKey = args[i++];
+					} else {
+						System.err.println( XPACK_SSL_KEY_ARG + " requires a value");
+						System.exit(0);
+					}
+				} else if (arg.equals( XPACK_SSL_CERTIFICATE_ARG)) { 
+					if (i < args.length) {
+						xpackSslCertificate = args[i++];
+					} else {
+						System.err.println( XPACK_SSL_CERTIFICATE_ARG + " requires a value");
+						System.exit(0);
+					}
+				} else if (arg.equals( XPACK_SSL_CERTIFICATE_AUTH_ARG)) { 
+					if (i < args.length) {
+						xpackSsslCertificateAuth = args[i++];
+					} else {
+						System.err.println( XPACK_SSL_CERTIFICATE_AUTH_ARG + " requires a value");
+						System.exit(0);
+					}
+				}else {
 					System.err.println(menuString);
 					System.exit(0);
 				} 
@@ -238,6 +291,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
+		initXPackConfig(daoConfig);
 		BillingDAO billingDAO = new ElasticBillingDAO(daoConfig);	
 
 		deletedDocs += billingDAO.purgeOldData(ManagementDataType.billing_namespace, thresholdDate);
@@ -257,6 +311,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
+		initXPackConfig(daoConfig);
 		ObjectDAO objectDAO = new ElasticS3ObjectDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(ObjectDataType.object, thresholdDate);
@@ -274,6 +329,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
+		initXPackConfig(daoConfig);
 		ObjectDAO objectDAO = new ElasticS3ObjectDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(ObjectDataType.object_versions, thresholdDate);
@@ -289,6 +345,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
+		initXPackConfig(daoConfig);
 		VdcDAO objectDAO = new ElasticBucketOwnerDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(VdcDataType.bucket_owner, thresholdDate);
@@ -304,6 +361,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
+		initXPackConfig(daoConfig);
 		VdcDAO objectDAO = new ElasticVdcDetailDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(VdcDataType.vdc, thresholdDate);
@@ -319,6 +377,7 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
+		initXPackConfig(daoConfig);
 		NamespaceDAO objectDAO = new ElasticNamespaceQuotaDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(NamespaceDataType.namespace_quota, thresholdDate);
@@ -334,10 +393,21 @@ public class ElasticSearchCleaner {
 		daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
 		daoConfig.setPort(elasticPort);
 		daoConfig.setClusterName(elasticCluster);
+		initXPackConfig(daoConfig);
 		NamespaceDAO objectDAO = new ElasticNamespaceDetailDAO(daoConfig);
 		
 		deletedDocs += objectDAO.purgeOldData(NamespaceDataType.namespace_detail, thresholdDate);
 		
 		return deletedDocs;
+	}
+	
+	private static void initXPackConfig(ElasticDAOConfig daoConfig) {
+		if (xpackUser!=null && !xpackUser.isEmpty()) {
+			daoConfig.setXpackUser(xpackUser);
+			daoConfig.setXpackPassword(xpackPassword);
+			daoConfig.setXpackSslKey(xpackSslKey);
+			daoConfig.setXpackSslCertificate(xpackSslCertificate);
+			daoConfig.setXpackSslCertificateAuthorities(xpackSsslCertificateAuth);
+		}
 	}
 }

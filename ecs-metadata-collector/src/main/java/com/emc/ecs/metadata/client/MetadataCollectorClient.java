@@ -134,7 +134,12 @@ public class MetadataCollectorClient {
 			ECS_COLLECT_NAMESPACE_QUOTA + "|" +
 			ECS_COLLECT_ALL_VDC + "|" +
 			ECS_COLLECT_BUCKET_OWNER        + "|" +
-			ECS_COLLECT_ALL_DATA +">] "; 
+			ECS_COLLECT_ALL_DATA +">] " +
+			"[" + XPACK_SECURITY_USER_ARG + "<xpack-username> " +
+			 XPACK_SECURITY_USER_PASSWORD_ARG + "<xpack-password> " +
+			 XPACK_SSL_KEY_ARG + "<ssl-key> " +
+			 XPACK_SSL_CERTIFICATE_ARG + "<ssl-certificate> " +
+			 XPACK_SSL_CERTIFICATE_AUTH_ARG + "<ssl-certificate-authorities> ]";
 	
 	private static String  ecsHosts                          = "";
 	private static String  ecsMgmtAccessKey                  = "";
@@ -810,7 +815,7 @@ public class MetadataCollectorClient {
 	}
 	
 	private static void initXPackConfig(ElasticDAOConfig daoConfig) {
-		if (!xpackUser.isEmpty()) {
+		if (xpackUser!=null && !xpackUser.isEmpty()) {
 			daoConfig.setXpackUser(xpackUser);
 			daoConfig.setXpackPassword(xpackPassword);
 			daoConfig.setXpackSslKey(xpackSslKey);
