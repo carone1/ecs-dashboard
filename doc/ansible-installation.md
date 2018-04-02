@@ -146,6 +146,7 @@ to deploy Elasticsearch on our hosts.
 
 Note: Most values can be modified to fit your preferences like es_instance_name,
       node.name, cluster.name. Change the value eth0 to match your hosts nic.
+```
       conf_dir: elasticsearch configuration directory
       es_api_basic_auth_username: xpack username
       es_api_basic_auth_password: xpack password
@@ -153,6 +154,7 @@ Note: Most values can be modified to fit your preferences like es_instance_name,
       node_crt: node certificate
       node_key: node key
       node_ca: trusted certificate authorities
+```
 
 8. run elasticsearch playbook on ansible01
 
