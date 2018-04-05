@@ -180,6 +180,13 @@ Should be getting an output like this.
           node_key: "node01.key"
           node_ca: "ca.crt"
      ```
+     
+     * ```node_key``` - node certificate key
+     * ```node_crt``` - node certificate
+     * ```node_ca``` - node certificate authorities
+     * ```local_certificate_conf_dir``` - local folder containing all certificates and keys
+     * ```use_xpack_certificate``` - set to true if you want to install certificates via playbook
+
      #### Important note on certificates
       Certificates that you obtain must allow for both clientAuth and serverAuth if the extended key usage extension is present. The certificates need to be in PEM format. Although not required, it is highly recommended that the certificate contain the dns name(s) and/or ip address(es) of the node so that hostname verification may be used.
 
