@@ -142,45 +142,46 @@ In order for X-Pack to enforce security and encrypt traffic to, from and within 
 * ```xpack.security.http.ssl.enabled``` - enable ssl on http layer
 
 An example is as follow:
-     ```
-     ---
-     - hosts: master_data_nodes
-     name: Elasticsearch with custom configuration
-     roles:
-       #expand to all available parameters
-       - { role: elasticsearch,
-           es_instance_name: "es1",
-           es_data_dirs: "/datadisk/elasticsearch/data",
-           es_log_dir: "/datadisk/elasticsearch/logs",
-       es_config: {
-           node.name: "node1",
-           cluster.name: "ecs-analytics",
-           discovery.zen.ping.unicast.hosts: "node01, node02, node03",
-           network.host: "_eth0_, , _local_",
-           node.data: true,
-           node.master: true,
-           bootstrap.memory_lock: true,
-           http.port: "{{es_api_port}}",
-           transport.tcp.port:  "{{es_transport_port}}",
-           xpack.ssl.key: "{{conf_dir}}/{{node_key}}",
-           xpack.ssl.certificate: "{{conf_dir}}/{{node_crt}}",
-           xpack.ssl.certificate_authorities: ["{{conf_dir}}/{{node_ca}}"],
-           xpack.security.transport.ssl.enabled: true,
-           xpack.security.http.ssl.enabled: true
-           }
-       }
-       vars:
-          es_enable_xpack: true
-          es_xpack_custom_url: "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ es_major_version }}.zip"
-          use_xpack_certificate: true
-          es_api_basic_auth_username: elastic
-          es_api_basic_auth_password: changeme
-          es_xpack_features: ["alerting","monitoring","graph","security"]
-          local_certificate_conf_dir: "/localdisk/ansible-playbook/node01"
-          node_crt: "node01.crt"
-          node_key: "node01.key"
-          node_ca: "ca.crt"
-     ```
+
+      ```
+      ---
+      - hosts: master_data_nodes
+      name: Elasticsearch with custom configuration
+      roles:
+        #expand to all available parameters
+        - { role: elasticsearch,
+            es_instance_name: "es1",
+            es_data_dirs: "/datadisk/elasticsearch/data",
+            es_log_dir: "/datadisk/elasticsearch/logs",
+            es_config: {
+              node.name: "node1",
+              cluster.name: "ecs-analytics",
+              discovery.zen.ping.unicast.hosts: "node01, node02, node03",
+              network.host: "_eth0_, , _local_",
+              node.data: true,
+              node.master: true,
+              bootstrap.memory_lock: true,
+              http.port: "{{es_api_port}}",
+              transport.tcp.port:  "{{es_transport_port}}",
+              xpack.ssl.key: "{{conf_dir}}/{{node_key}}",
+              xpack.ssl.certificate: "{{conf_dir}}/{{node_crt}}",
+              xpack.ssl.certificate_authorities: ["{{conf_dir}}/{{node_ca}}"],
+              xpack.security.transport.ssl.enabled: true,
+              xpack.security.http.ssl.enabled: true
+            }
+          }
+          vars:
+            es_enable_xpack: true
+            es_xpack_custom_url: "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ es_major_version }}.zip"
+            use_xpack_certificate: true
+            es_api_basic_auth_username: elastic
+            es_api_basic_auth_password: changeme
+            es_xpack_features: ["alerting","monitoring","graph","security"]
+            local_certificate_conf_dir: "/localdisk/ansible-playbook/node01"
+            node_crt: "node01.crt"
+            node_key: "node01.key"
+            node_ca: "ca.crt"
+      ```
 
 * ```node_key``` - node certificate key
 * ```node_crt``` - node certificate
