@@ -133,15 +133,15 @@ Should be getting an output like this.
 
 ## X-Pack and SSL features
 
-     In order for X-Pack to enforce security and encrypt traffic to, from and within your Elasticsearch cluster, define following properties in elasticsearch configuration file via es_config environment variable.  
+In order for X-Pack to enforce security and encrypt traffic to, from and within your Elasticsearch cluster, define following properties in elasticsearch configuration file via es_config environment variable.  
 
-     * ```xpack.ssl.key``` - full path to certificate key
-     * ```xpack.ssl.certificate``` - full path to node certificate
-     * ```xpack.ssl.certificate_authorities``` - full path to certificate authorities
-     * ```xpack.security.transport.ssl.enabled``` - enable ssl on transport layer
-     * ```xpack.security.http.ssl.enabled``` - enable ssl on http layer
+* ```xpack.ssl.key``` - full path to certificate key
+* ```xpack.ssl.certificate``` - full path to node certificate
+* ```xpack.ssl.certificate_authorities``` - full path to certificate authorities
+* ```xpack.security.transport.ssl.enabled``` - enable ssl on transport layer
+* ```xpack.security.http.ssl.enabled``` - enable ssl on http layer
 
-     An example is as follow:
+An example is as follow:
      ```
      ---
      - hosts: master_data_nodes
@@ -182,14 +182,14 @@ Should be getting an output like this.
           node_ca: "ca.crt"
      ```
 
-     * ```node_key``` - node certificate key
-     * ```node_crt``` - node certificate
-     * ```node_ca``` - node certificate authorities
-     * ```local_certificate_conf_dir``` - local folder containing all certificates and keys
-     * ```use_xpack_certificate``` - set to true if you want to install certificates via playbook
+* ```node_key``` - node certificate key
+* ```node_crt``` - node certificate
+* ```node_ca``` - node certificate authorities
+* ```local_certificate_conf_dir``` - local folder containing all certificates and keys
+* ```use_xpack_certificate``` - set to true if you want to install certificates via playbook
 
-     #### Important note on certificates
-      Certificates that you obtain must allow for both clientAuth and serverAuth if the extended key usage extension is present. The certificates need to be in PEM format. Although not required, it is highly recommended that the certificate contain the dns name(s) and/or ip address(es) of the node so that hostname verification may be used.
+#### Important note on certificates
+Certificates that you obtain must allow for both clientAuth and serverAuth if the extended key usage extension is present. The certificates need to be in PEM format. Although not required, it is highly recommended that the certificate contain the dns name(s) and/or ip address(es) of the node so that hostname verification may be used.
 
 ## Ansible Kibana
 
