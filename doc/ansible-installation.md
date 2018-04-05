@@ -130,9 +130,10 @@ Should be getting an output like this.
      "tagline" : "You Know, for Search"
      }
      ```
-     ## X-Pack and SSL features
 
-     In order for X-Pack to enforce security and encrypt traffic to, from and within your Elasticsearch cluster, define following properties in elasticsearch configuration via es_config.  
+## X-Pack and SSL features
+
+     In order for X-Pack to enforce security and encrypt traffic to, from and within your Elasticsearch cluster, define following properties in elasticsearch configuration file via es_config environment variable.  
 
      * ```xpack.ssl.key``` - full path to certificate key
      * ```xpack.ssl.certificate``` - full path to node certificate
@@ -180,7 +181,7 @@ Should be getting an output like this.
           node_key: "node01.key"
           node_ca: "ca.crt"
      ```
-     
+
      * ```node_key``` - node certificate key
      * ```node_crt``` - node certificate
      * ```node_ca``` - node certificate authorities
