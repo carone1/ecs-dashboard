@@ -260,11 +260,29 @@ An ansible playbook is used to deploy Kibana on our hosts.
       kibana_logging_dest: /var/log/kibana/kibana.log
       ```
 
-8. run kibana playbook on ansible01
+10. if you want to enable security features (x-pack), add  and/or adjust following parameters in /my/playbooks/roles/kibana/defaults/main.yml
+
+      ```
+      ---
+      kibana_elasticsearch_url: "https://localhost:9200"
+
+      # enable or disable x-pack plugin (security)
+      kibana_use_xpack_authentication: false
+
+      # kibana needs to authenticate with Elasticsearch
+      kibana_elasticsearch_username: "elastic"
+
+      kibana_elasticsearch_password: "changeme"
+
+      # kibana home directory
+      kibana_home: /usr/share/kibana
+      ```
+
+11. run kibana playbook on ansible01
 
 	    ansible-playbook -i host install-kibana.yml --ask-become
 
-9. Point a browser to *node01:5601* or *node02:5601* or *node03:5601*
+12. Point a browser to *node01:5601* or *node02:5601* or *node03:5601*
 
 Kibana interface should be coming.
 
