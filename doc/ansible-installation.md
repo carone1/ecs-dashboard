@@ -101,60 +101,11 @@ to deploy Elasticsearch on our hosts.
         }
 
       ```
-     if you are using xpack and ssl features,
-     ```
 
-     ---
-     - hosts: master_data_nodes
-     name: Elasticsearch with custom configuration
-     roles:
-       #expand to all available parameters
-       - { role: elasticsearch,
-           es_instance_name: "es1",
-           es_data_dirs: "/datadisk/elasticsearch/data",
-           es_log_dir: "/datadisk/elasticsearch/logs",
-       es_config: {
-           node.name: "node1",
-           cluster.name: "ecs-analytics",
-           discovery.zen.ping.unicast.hosts: "node01, node02, node03",
-           network.host: "_eth0_, , _local_",
-           node.data: true,
-           node.master: true,
-           bootstrap.memory_lock: true,
-           http.port: "{{es_api_port}}",
-           transport.tcp.port:  "{{es_transport_port}}",
-           xpack.ssl.key: "{{conf_dir}}/{{node_key}}",
-           xpack.ssl.certificate: "{{conf_dir}}/{{node_crt}}",
-           xpack.ssl.certificate_authorities: ["{{conf_dir}}/{{node_ca}}"],
-           xpack.security.transport.ssl.enabled: true,
-           xpack.security.http.ssl.enabled: true
-           }
-       }
-       vars:
-          es_enable_xpack: true
-          es_xpack_custom_url: "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ es_major_version }}.zip"
-          use_xpack_certificate: true
-          es_api_basic_auth_username: elastic
-          es_api_basic_auth_password: changeme
-          es_xpack_features: ["alerting","monitoring","graph","security"]
-          local_certificate_conf_dir: "/localdisk/ansible-playbook/node01"
-          node_crt: "node01.crt"
-          node_key: "node01.key"
-          node_ca: "ca.crt"
 
-     ```
 
 Note: Most values can be modified to fit your preferences like es_instance_name,
       node.name, cluster.name. Change the value eth0 to match your hosts nic.
-```
-      conf_dir: elasticsearch configuration directory
-      es_api_basic_auth_username: xpack username
-      es_api_basic_auth_password: xpack password
-      local_certificate_conf_dir: local folder containing all certifcates used by xpack
-      node_crt: node certificate
-      node_key: node key
-      node_ca: trusted certificate authorities
-```
 
 8. run elasticsearch playbook on ansible01
 
@@ -180,6 +131,66 @@ Should be getting an output like this.
      }
      ```
 
+## X-Pack and SSL features
+
+In order for X-Pack to enforce security and encrypt traffic to, from and within your Elasticsearch cluster, define following properties in elasticsearch configuration file via es_config environment variable.  
+
+* ```xpack.ssl.key``` - full path to certificate key
+* ```xpack.ssl.certificate``` - full path to node certificate
+* ```xpack.ssl.certificate_authorities``` - full path to certificate authorities
+* ```xpack.security.transport.ssl.enabled``` - enable ssl on transport layer
+* ```xpack.security.http.ssl.enabled``` - enable ssl on http layer
+
+An example is as follow:
+
+      ```
+      ---
+      - hosts: master_data_nodes
+      name: Elasticsearch with custom configuration
+      roles:
+        #expand to all available parameters
+        - { role: elasticsearch,
+            es_instance_name: "es1",
+            es_data_dirs: "/datadisk/elasticsearch/data",
+            es_log_dir: "/datadisk/elasticsearch/logs",
+            es_config: {
+              node.name: "node1",
+              cluster.name: "ecs-analytics",
+              discovery.zen.ping.unicast.hosts: "node01, node02, node03",
+              network.host: "_eth0_, , _local_",
+              node.data: true,
+              node.master: true,
+              bootstrap.memory_lock: true,
+              http.port: "{{es_api_port}}",
+              transport.tcp.port:  "{{es_transport_port}}",
+              xpack.ssl.key: "{{conf_dir}}/{{node_key}}",
+              xpack.ssl.certificate: "{{conf_dir}}/{{node_crt}}",
+              xpack.ssl.certificate_authorities: ["{{conf_dir}}/{{node_ca}}"],
+              xpack.security.transport.ssl.enabled: true,
+              xpack.security.http.ssl.enabled: true
+            }
+          }
+          vars:
+            es_enable_xpack: true
+            es_xpack_custom_url: "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ es_major_version }}.zip"
+            use_xpack_certificate: true
+            es_api_basic_auth_username: elastic
+            es_api_basic_auth_password: changeme
+            es_xpack_features: ["alerting","monitoring","graph","security"]
+            local_certificate_conf_dir: "/localdisk/ansible-playbook/node01"
+            node_crt: "node01.crt"
+            node_key: "node01.key"
+            node_ca: "ca.crt"
+      ```
+
+* ```node_key``` - node certificate key
+* ```node_crt``` - node certificate
+* ```node_ca``` - node certificate authorities
+* ```local_certificate_conf_dir``` - local folder containing all certificates and keys
+* ```use_xpack_certificate``` - set to true if you want to install certificates via playbook
+
+#### Important note on certificates
+Certificates that you obtain must allow for both clientAuth and serverAuth if the extended key usage extension is present. The certificates need to be in PEM format. Although not required, it is highly recommended that the certificate contain the dns name(s) and/or ip address(es) of the node so that hostname verification may be used.
 
 ## Ansible Kibana
 
@@ -249,11 +260,29 @@ An ansible playbook is used to deploy Kibana on our hosts.
       kibana_logging_dest: /var/log/kibana/kibana.log
       ```
 
-8. run kibana playbook on ansible01
+10. if you want to enable security features (x-pack), add  and/or adjust following parameters in /my/playbooks/roles/kibana/defaults/main.yml
+
+      ```
+      ---
+      kibana_elasticsearch_url: "https://localhost:9200"
+
+      # enable or disable x-pack plugin (security)
+      kibana_use_xpack_authentication: false
+
+      # kibana needs to authenticate with Elasticsearch
+      kibana_elasticsearch_username: "elastic"
+
+      kibana_elasticsearch_password: "changeme"
+
+      # kibana home directory
+      kibana_home: /usr/share/kibana
+      ```
+
+11. run kibana playbook on ansible01
 
 	    ansible-playbook -i host install-kibana.yml --ask-become
 
-9. Point a browser to *node01:5601* or *node02:5601* or *node03:5601*
+12. Point a browser to *node01:5601* or *node02:5601* or *node03:5601*
 
 Kibana interface should be coming.
 
