@@ -33,7 +33,7 @@ apply plugin: 'application'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
-version = '1.5.rc1'
+version = '1.5'
 
 
 repositories {
@@ -58,7 +58,7 @@ dependencies {
     compile project(':ecs-metadata-dao')
     compile project(':ecs-metadata-stdout-dao')
     compile project(':ecs-metadata-elasticsearch-dao')
-    compile "com.emc.ecs:object-client:2.2.0"
+    compile "com.emc.ecs:object-client:3.0.0"
           
     
 }

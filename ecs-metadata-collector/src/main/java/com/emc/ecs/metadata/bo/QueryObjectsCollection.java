@@ -43,7 +43,7 @@ import com.emc.object.s3.request.QueryObjectsRequest;
 public class QueryObjectsCollection implements Callable<String> {
 
 	private static final Integer maxObjectPerRequest = 10000;
-	//private static final String  SIZE_KEY            = "Size";
+	private static final String  SIZE_KEY            = "Size";
 	//private static final String  LAST_MODIFIED_KEY   = "LastModified";
 	
 	//=============================
@@ -211,7 +211,7 @@ public class QueryObjectsCollection implements Callable<String> {
 			// the better chance of being present on all objects
 			//if( LAST_MODIFIED_KEY.equals(metadata.getName()) 
 			//		SIZE_KEY.equals(metadata.getName()) ) {
-
+			if ( SIZE_KEY.equals(metadata.getName()) ) {
 				String dataType = metadata.getDataType().trim().toLowerCase();
 				if( dataType.equals("string" ) ) {
 					if(queryString.length() > 0) {
@@ -227,7 +227,7 @@ public class QueryObjectsCollection implements Callable<String> {
 					if(queryString.length() > 0) {
 						queryString.append(" or ");
 					}
-					queryString.append("(" + metadata.getName() +" <= 1) or (" + metadata.getName() + " >= 1 )");
+					queryString.append("(" + metadata.getName() +" <= 0) or (" + metadata.getName() + " >= 0 )");
 				} else if( dataType.equals("datetime") ) {
 					if(queryString.length() > 0) {
 						queryString.append(" or ");
@@ -237,7 +237,7 @@ public class QueryObjectsCollection implements Callable<String> {
 					logger.error("Unhandled data type: " + dataType);
 				}
 			}
-		//}
+		}
 		
 		if(queryString.length() == 0 ) {
 			// no  MD keys are configured
