@@ -54,11 +54,13 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.metadata.dao.EcsCollectionType;
 import com.emc.ecs.metadata.dao.ObjectDAO;
+import com.emc.ecs.metadata.utils.Constants;
 import com.emc.object.s3.bean.AbstractVersion;
 import com.emc.object.s3.bean.DeleteMarker;
 import com.emc.object.s3.bean.ListObjectsResult;
@@ -127,6 +129,13 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			
 			// Check for new hosts within the cluster
 			builder.put(CLIENT_SNIFFING_CONFIG, true);
+			if (config.getXpackUser() != null) {
+				builder.put(Constants.XPACK_SECURITY_USER, config.getXpackUser() + ":" + config.getXpackPassword());
+				builder.put(Constants.XPACK_SSL_KEY, config.getXpackSslKey());
+				builder.put(Constants.XPACK_SSL_CERTIFICATE, config.getXpackSslCertificate());
+				builder.put(Constants.XPACK_SSL_CERTIFICATE_AUTH, config.getXpackSslCertificateAuthorities());
+				builder.put(Constants.XPACK_SECURITY_TRANPORT_ENABLED, "true");
+			}
 			
 			// specify cluster name
 			if( config.getClusterName() != null ) {
@@ -136,14 +145,17 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			Settings settings = builder.build();
 			
 			// create client
-			elasticClient = new PreBuiltTransportClient(settings);
-			
+			// create client
+			if (config.getXpackUser() != null) {
+				elasticClient = new PreBuiltXPackTransportClient(settings);
+			} else {
+				elasticClient = new PreBuiltTransportClient(settings);
+			}
 			
 			// add hosts
 			for( String elasticHost : config.getHosts()) {
 				elasticClient.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticHost), config.getPort()));				
 			}
-			
 			
 		} catch (UnknownHostException e) {
 			throw new RuntimeException(e.getLocalizedMessage());

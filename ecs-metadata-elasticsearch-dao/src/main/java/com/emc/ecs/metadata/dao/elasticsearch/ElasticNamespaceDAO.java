@@ -13,10 +13,12 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 
 import com.emc.ecs.management.entity.NamespaceDetail;
 import com.emc.ecs.management.entity.NamespaceQuota;
 import com.emc.ecs.metadata.dao.NamespaceDAO;
+import com.emc.ecs.metadata.utils.Constants;
 
 /**
  * @author nlengc
@@ -40,20 +42,31 @@ public abstract class ElasticNamespaceDAO implements NamespaceDAO {
 			Builder builder = Settings.builder();
 			// Check for new hosts within the cluster
 			builder.put(CLIENT_SNIFFING_CONFIG, true);
+			if (config.getXpackUser() != null) {
+				builder.put(Constants.XPACK_SECURITY_USER, config.getXpackUser() + ":" + config.getXpackPassword());
+				builder.put(Constants.XPACK_SSL_KEY, config.getXpackSslKey());
+				builder.put(Constants.XPACK_SSL_CERTIFICATE, config.getXpackSslCertificate());
+				builder.put(Constants.XPACK_SSL_CERTIFICATE_AUTH, config.getXpackSslCertificateAuthorities());
+				builder.put(Constants.XPACK_SECURITY_TRANPORT_ENABLED, "true");
+			}
 			// specify cluster name
 			if (config.getClusterName() != null) {
 				builder.put(CLIENT_CLUSTER_NAME_CONFIG, config.getClusterName());
 			}
 			Settings settings = builder.build();
 			// create client
-			elasticClient = new PreBuiltTransportClient(settings);
+			if (config.getXpackUser() != null) {
+				elasticClient = new PreBuiltXPackTransportClient(settings);
+			} else {
+				elasticClient = new PreBuiltTransportClient(settings);
+			}
 			// add hosts
 			for (String elasticHost : config.getHosts()) {
 				elasticClient.addTransportAddress(
 						new InetSocketTransportAddress(InetAddress.getByName(elasticHost), config.getPort()));
 			}
 		} catch (UnknownHostException e) {
-			throw new RuntimeException("Unable to initialize Eleasticsearch client " + e.getLocalizedMessage());
+			throw new RuntimeException("Unable to initialize Elasticsearch client " + e.getLocalizedMessage());
 		}
 	}
 
