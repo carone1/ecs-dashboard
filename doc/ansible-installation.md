@@ -345,8 +345,8 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 
       # default file for ecs dashboard
 
-      ecs_dashboard_bin_version: 1.3
-      ecs_dashboard_url_version: 'v1.3'
+      ecs_dashboard_bin_version: 1.5
+      ecs_dashboard_url_version: 'v1.5'
 
       chrome_driver_url_version: '2.27'
       chrome_driver_bin_version: '2.27'
