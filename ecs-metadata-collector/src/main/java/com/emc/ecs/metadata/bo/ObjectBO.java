@@ -296,6 +296,131 @@ public class ObjectBO {
 		billingBO.shutdown();
 	}
 
+	/**
+	 * 
+	 * @param collectionTime
+	 * @param objectName
+	 */
+	public void collectObjectDataByBucket(Date collectionTime, String namespace, String bucketname) {
+		// collect S3 user Id and credentials
+		List<ObjectUserDetails> objectUserDetailsList = billingBO.getObjectUserSecretKeys();
+		
+		// Collect bucket details
+		Map<NamespaceBucketKey, ObjectBucket> objectBucketMap = new HashMap<>();
+		billingBO.getObjectBucketDataByBucket(objectBucketMap, namespace, bucketname);
+		Map<String, S3JerseyClient> s3ObjectClientMap = null;
+		
+		try {
+			// create all required S3 jersey clients for very S3 users
+			s3ObjectClientMap = createS3ObjectClients(objectUserDetailsList, this.ecsObjectHosts);
+			
+			// collect objects for all users
+			for( ObjectUserDetails objectUserDetails : objectUserDetailsList ) {
 
+				if (objectUserDetails.getObjectUser().getUserId() == null
+						|| objectUserDetails.getSecretKeys().getSecretKey1() == null
+						|| objectUserDetails.getObjectUser().getNamespace() == null
+						|| !namespace.equals(objectUserDetails.getObjectUser().getNamespace().toString())) {
+					continue;
+				}
+
+				String userId = objectUserDetails.getObjectUser().getUserId().toString();
+				S3JerseyClient s3JerseyClient = s3ObjectClientMap.get(userId);
+
+				if (s3JerseyClient != null) {
+
+					ObjectCollectionConfig collectionConfig = new ObjectCollectionConfig(s3JerseyClient, namespace,
+							this.objectDAO, objectBucketMap, collectionTime, objectCount, threadPoolExecutor, futures, null);
+					NamespaceObjectCollection namespaceObjectCollection = new NamespaceObjectCollection(
+							collectionConfig);
+					try {
+						// submit namespace collection to thread pool
+						futures.add(threadPoolExecutor.submit(namespaceObjectCollection));
+					} catch (RejectedExecutionException e) {
+						logger.error("Thread pool didn't accept bucket collection - running in current thread");
+						try {
+							namespaceObjectCollection.call();
+						} catch (Exception e1) {
+							logger.error("Error occured during namespace object collection operation - message: "
+									+ e.getLocalizedMessage());
+						}
+					}
+				}
+			}
+		} finally {
+			// ensure to clean up S3 jersey clients
+			if(s3ObjectClientMap != null ) {
+				for( S3JerseyClient s3JerseyClient : s3ObjectClientMap.values() ) {
+					s3JerseyClient.destroy();
+				}
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @param collectionTime
+	 * @param objectName
+	 */
+	public void collectObjectDataByNamespace(Date collectionTime, String namespace) {
+		
+		// collect S3 user Id and credentials
+		// Collect bucket details
+		List<ObjectUserDetails> objectUserDetailsList = billingBO.getObjectUserSecretKeys();
+		Map<NamespaceBucketKey, ObjectBucket> objectBucketMap = new HashMap<>();
+		billingBO.getObjectBucketDataByNamespace(objectBucketMap, namespace);
+		Map<String, S3JerseyClient> s3ObjectClientMap = null;
+		
+		try {
+			// create all required S3 jersey clients for very S3 users
+			s3ObjectClientMap = createS3ObjectClients(objectUserDetailsList, this.ecsObjectHosts);
+			
+			// collect objects for all users
+			for( ObjectUserDetails objectUserDetails : objectUserDetailsList ) {
+
+				if (objectUserDetails.getObjectUser().getUserId() == null
+						|| objectUserDetails.getSecretKeys().getSecretKey1() == null
+						|| objectUserDetails.getObjectUser().getNamespace() == null
+						|| !namespace.equals(objectUserDetails.getObjectUser().getNamespace().toString())) {
+					continue;
+				}
+
+				String userId = objectUserDetails.getObjectUser().getUserId().toString();
+				S3JerseyClient s3JerseyClient = s3ObjectClientMap.get(userId);
+
+				if (s3JerseyClient != null) {
+
+					ObjectCollectionConfig collectionConfig = new ObjectCollectionConfig(s3JerseyClient, namespace,
+							this.objectDAO, objectBucketMap, collectionTime, objectCount, threadPoolExecutor, futures,
+							null);
+					NamespaceObjectCollection namespaceObjectCollection = new NamespaceObjectCollection(
+							collectionConfig);
+
+					try {
+						// submit namespace collection to thread pool
+						futures.add(threadPoolExecutor.submit(namespaceObjectCollection));
+					} catch (RejectedExecutionException e) {
+						// Thread pool didn't accept bucket collection
+						// running in the current thread
+						logger.error("Thread pool didn't accept bucket collection - running in current thread");
+						try {
+							namespaceObjectCollection.call();
+						} catch (Exception e1) {
+							logger.error("Error occured during namespace object collection operation - message: "
+									+ e.getLocalizedMessage());
+						}
+					}
+				}
+			}
+			
+		} finally {
+			// ensure to clean up S3 jersey clients
+			if(s3ObjectClientMap != null ) {
+				for( S3JerseyClient s3JerseyClient : s3ObjectClientMap.values() ) {
+					s3JerseyClient.destroy();
+				}
+			}
+		}
+	}
 	
 }

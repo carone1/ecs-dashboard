@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 
 import com.emc.ecs.management.entity.BucketOwner;
+import com.emc.ecs.management.entity.BucketRequest;
 import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.NamespaceBillingInfo;
@@ -84,6 +85,7 @@ public class ManagementClient {
 	private static final String REST_MARKER_PARAMETER 					= "marker";
 	private static final String REST_LIMIT_PARAMETER 					= "limit";
 	private static final String REST_NAMESPACE_PARAMETER 				= "namespace";
+	private static final String REST_BUCKET_NAME_PARAMETER 				= "name";
 	private static final String REST_QUOTA_NAMESPACES_FIRST 			= "/object/namespaces/namespace/";
 	private static final String REST_QUOTA_NAMESPACES_SECOND			= "/quota";
 	private static final String REST_ALL_VDC							= "/object/vdcs/vdc/list";
@@ -612,6 +614,33 @@ public class ManagementClient {
 			urlBucketMap.put(key, values);
 		}
 		return urlBucketMap;
+	}
+
+	/**
+	 * 
+	 * @param bucketRequest
+	 * @return
+	 */
+	public ObjectBuckets getBucketInfo(BucketRequest bucketRequest) {
+		String authToken = getAuthToken();
+		WebResource mgmtResource = this.mgmtClient.resource(uri);
+		StringBuilder restStr = new StringBuilder();
+		restStr.append(REST_OBJECT_BUCKET);												
+		
+		// get billing namespace Billing ressource
+		WebResource getNamespaceBucketInfoResource = 
+					mgmtResource.path(restStr.toString())
+								.queryParam(REST_NAMESPACE_PARAMETER, bucketRequest.getNamespace()).queryParam(REST_BUCKET_NAME_PARAMETER, bucketRequest.getName());						
+		
+		// add marker
+		if(bucketRequest.getNextMarker() != null) {
+			getNamespaceBucketInfoResource = getNamespaceBucketInfoResource.queryParam(REST_MARKER_PARAMETER, bucketRequest.getNextMarker());			
+		}
+		
+		ObjectBuckets namespaceBucketInfoResponse = 
+				getNamespaceBucketInfoResource.header(X_SDS_AUTH_TOKEN, authToken).get(ObjectBuckets.class);
+						
+		return namespaceBucketInfoResponse;
 	}
 	
 }
