@@ -44,6 +44,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,6 +139,8 @@ public class MetadataCollectorClient {
 			ECS_COLLECT_NAMESPACE_QUOTA + "|" +
 			ECS_COLLECT_ALL_VDC + "|" +
 			ECS_COLLECT_BUCKET_OWNER        + "|" +
+			ECS_COLLECT_OBJECT_DATA_NAMESPACE + "|" +
+			ECS_COLLECT_OBJECT_DATA_BUCKET + "|" + 
 			ECS_COLLECT_ALL_DATA +">] " +
 			"[" + XPACK_SECURITY_USER_ARG + "<xpack-username> " +
 			 XPACK_SECURITY_USER_PASSWORD_ARG + "<xpack-password> " +
@@ -522,7 +525,13 @@ public class MetadataCollectorClient {
 					System.err.println(menuString);
 					System.exit(0);
 				} 
-			}                
+			}
+			if (objectName!=null) {
+				if (objectNamespace==null || "".equals(objectNamespace)) {
+					System.err.println(ECS_COLLECT_OBJECT_DATA_NAMESPACE_ARGUMENT + " requires namespace, " + ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT + " requires bucket");
+					System.exit(0);
+				}
+			}
 		}
 
 		if(initIndexesOnlyOption) {
