@@ -166,6 +166,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 * Init indexes
 	 * @param collectionTime - collection time
 	 */
+	@Override
 	public void initIndexes(Date collectionTime) {
 		// init S3 Object Index
 		if( config.getCollectionType().equals(EcsCollectionType.object) ) {

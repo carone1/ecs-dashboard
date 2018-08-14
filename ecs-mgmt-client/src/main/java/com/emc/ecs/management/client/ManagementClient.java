@@ -31,14 +31,17 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.core.Response;
 
 import com.emc.ecs.management.entity.BucketOwner;
+import com.emc.ecs.management.entity.BucketRequest;
 import com.emc.ecs.management.entity.ListNamespaceRequest;
 import com.emc.ecs.management.entity.ListNamespacesResult;
 import com.emc.ecs.management.entity.NamespaceBillingInfo;
@@ -84,6 +87,7 @@ public class ManagementClient {
 	private static final String REST_MARKER_PARAMETER 					= "marker";
 	private static final String REST_LIMIT_PARAMETER 					= "limit";
 	private static final String REST_NAMESPACE_PARAMETER 				= "namespace";
+	private static final String REST_BUCKET_NAME_PARAMETER 				= "name";
 	private static final String REST_QUOTA_NAMESPACES_FIRST 			= "/object/namespaces/namespace/";
 	private static final String REST_QUOTA_NAMESPACES_SECOND			= "/quota";
 	private static final String REST_ALL_VDC							= "/object/vdcs/vdc/list";
@@ -418,7 +422,7 @@ public class ManagementClient {
 		WebResource getNamespaceDetailResource = mgmtResource.path(restStr.toString());
 		String bucketKeyReponse = getNamespaceDetailResource.get(String.class);
 		final List<BucketOwner> bucketOwners = new ArrayList<>();
-		final Map<String, List<String>> urlBucketKeysmap = getUrlBucketKeyMap(bucketKeyReponse);
+		final Map<String, Set<String>> urlBucketKeysmap = getUrlBucketKeyMap(bucketKeyReponse);
 		urlBucketKeysmap.forEach((url, bucketKeys) -> {
 			final String host = url.split("@@")[0];
 			final String path = url.split("@@")[1];
@@ -582,8 +586,8 @@ public class ManagementClient {
 	 * @param response
 	 * @return
 	 */
-	private Map<String, List<String>> getUrlBucketKeyMap(String response) {
-		final Map<String, List<String>> urlBucketMap = new HashMap<>();
+	private Map<String, Set<String>> getUrlBucketKeyMap(String response) {
+		final Map<String, Set<String>> urlBucketMap = new HashMap<>();
 		final String IP_PATTERN =
 				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
 				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
@@ -592,17 +596,19 @@ public class ManagementClient {
 		final String HTTP_PREFIX = "http://";
 		final String EOF = "\n";
 		final String SCHEMA_TYPE = "schemaType";
+		final String BUCKET_KEY = "BUCKET_KEY/";
 		final Pattern pattern = Pattern.compile("(?s)" + HTTP_PREFIX + "\\s*(.*?)(?=\\s*" + HTTP_PREFIX + "|$)");
 		final Matcher matcher = pattern.matcher(response);
 		while (matcher.find()) {
 			List<String> arrays = Arrays.asList((HTTP_PREFIX + matcher.group(1)).split(EOF));
 			String key = "";
-			final List<String> values = new ArrayList<>();
+			final Set<String> values = new HashSet<>();
 			for(String array : arrays) {
 				if (array.startsWith(HTTP_PREFIX)) {
-					Matcher inMatcher = Pattern.compile("(?<host>"+HTTP_PREFIX + IP_PATTERN + ":(\\d+)?)(?<path>.*)").matcher(array);
+//					Matcher inMatcher = Pattern.compile("(?<host>"+HTTP_PREFIX + IP_PATTERN + ":(\\d+)?)(?<path>.*)").matcher(array);
+					Matcher inMatcher = Pattern.compile("(?<host>"+HTTP_PREFIX + IP_PATTERN + ":(\\d+)?)(?<path>.*)"+BUCKET_KEY).matcher(array);
 					while (inMatcher.find()) {
-						key = inMatcher.group("host") + "@@" +inMatcher.group("path");;
+						key = inMatcher.group("host") + "@@" + inMatcher.group("path")+BUCKET_KEY;
 					}
 				} else if (array.trim().startsWith(SCHEMA_TYPE)) {
 					String bucketId = array.trim().split("\\s+")[3];
@@ -612,6 +618,34 @@ public class ManagementClient {
 			urlBucketMap.put(key, values);
 		}
 		return urlBucketMap;
+	}
+
+	/**
+	 * 
+	 * @param bucketRequest
+	 * @return
+	 */
+	public ObjectBuckets getBucketInfo(BucketRequest bucketRequest) {
+		String authToken = getAuthToken();
+		WebResource mgmtResource = this.mgmtClient.resource(uri);
+		StringBuilder restStr = new StringBuilder();
+		restStr.append(REST_OBJECT_BUCKET);												
+		
+		// get billing namespace Billing ressource
+		WebResource getNamespaceBucketInfoResource = 
+					mgmtResource.path(restStr.toString())
+								.queryParam(REST_NAMESPACE_PARAMETER, bucketRequest.getNamespace());
+		getNamespaceBucketInfoResource = getNamespaceBucketInfoResource.queryParam(REST_BUCKET_NAME_PARAMETER, bucketRequest.getName()+"*");						
+		
+		// add marker
+		if(bucketRequest.getNextMarker() != null) {
+			getNamespaceBucketInfoResource = getNamespaceBucketInfoResource.queryParam(REST_MARKER_PARAMETER, bucketRequest.getNextMarker());			
+		}
+		
+		ObjectBuckets namespaceBucketInfoResponse = 
+				getNamespaceBucketInfoResource.header(X_SDS_AUTH_TOKEN, authToken).get(ObjectBuckets.class);
+						
+		return namespaceBucketInfoResponse;
 	}
 	
 }

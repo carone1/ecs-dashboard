@@ -44,6 +44,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +81,8 @@ public class MetadataCollectorClient {
 	private static final Integer DEFAULT_ECS_ALTERNATIVE_MGMT_PORT = 9101;
 	private static final String  ECS_COLLECT_BILLING_DATA = "billing";
 	private static final String  ECS_COLLECT_OBJECT_DATA = "object";
+	private static final String  ECS_COLLECT_OBJECT_DATA_NAMESPACE = "object-namespace";
+	private static final String  ECS_COLLECT_OBJECT_DATA_BUCKET = "object-bucket";
 	private static final String  ECS_COLLECT_OBJECT_VERSION_DATA = "object-version";
 	private static final String  ECS_COLLECT_NAMESPACE_DETAIL = "namespace-detail";
 	private static final String  ECS_COLLECT_NAMESPACE_QUOTA = "namespace-quota";
@@ -94,6 +97,8 @@ public class MetadataCollectorClient {
 	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT             = "--collect-data";
 	private static final String ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT  = "--collect-only-modified-objects";
 	private static final String ECS_INIT_INDEXES_ONLY_CONFIG_ARGUMENT        = "--init-indexes-only";
+	private static final String ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT        = "--bucket-name";
+	private static final String ECS_COLLECT_OBJECT_DATA_NAMESPACE_ARGUMENT   = "--namespace-name";
 	
 	private static final String ELASTIC_HOSTS_CONFIG_ARGUMENT                = "--elastic-hosts";
 	private static final String ELASTIC_PORT_CONFIG_ARGUMENT                 = "--elastic-port";
@@ -134,6 +139,8 @@ public class MetadataCollectorClient {
 			ECS_COLLECT_NAMESPACE_QUOTA + "|" +
 			ECS_COLLECT_ALL_VDC + "|" +
 			ECS_COLLECT_BUCKET_OWNER        + "|" +
+			ECS_COLLECT_OBJECT_DATA_NAMESPACE + "|" +
+			ECS_COLLECT_OBJECT_DATA_BUCKET + "|" + 
 			ECS_COLLECT_ALL_DATA +">] " +
 			"[" + XPACK_SECURITY_USER_ARG + "<xpack-username> " +
 			 XPACK_SECURITY_USER_PASSWORD_ARG + "<xpack-password> " +
@@ -160,6 +167,9 @@ public class MetadataCollectorClient {
 	private static String xpackSslKey;
 	private static String xpackSslCertificate;
 	private static String xpackSsslCertificateAuth;
+	
+	private static String objectName;
+	private static String objectNamespace;
 	
 	
 	private final static Logger       logger             = LoggerFactory.getLogger(MetadataCollectorClient.class);
@@ -236,6 +246,12 @@ public class MetadataCollectorClient {
 			}  else if(collectData.equals(ECS_COLLECT_ALL_VDC)) {
 				// collect vdc list
 				collectVdcList(collectionTime);
+			} else if(collectData.equals(ECS_COLLECT_OBJECT_DATA_NAMESPACE)) {
+				// collect namespace
+				collectNamespace(collectionTime);
+			} else if(collectData.equals(ECS_COLLECT_OBJECT_DATA_BUCKET)) {
+				// collect bucket
+				collectBucket(collectionTime);
 			} else {		
 				System.err.println("Unsupported data collection action: " + collectData );
 				System.err.println(menuString);
@@ -278,6 +294,89 @@ public class MetadataCollectorClient {
 		} while(!termination);
 		
 		
+	}
+
+	private static void collectBucket(Date collectionTime) {
+		
+		List<String> hosts = Arrays.asList(ecsHosts.split(","));
+		
+		// instantiate billing BO
+		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
+											 ecsMgmtSecretKey,
+											 hosts,
+											 ecsMgmtPort,
+											 null,        // dao is not required in this case
+											 objectCount ); 
+		
+		// Instantiate DAO
+		ObjectDAO objectDAO = null;
+		if(!elasticHosts.isEmpty()) {
+			
+			// Instantiate ElasticSearch DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			daoConfig.setCollectionType(EcsCollectionType.object);
+			initXPackConfig(daoConfig);
+			objectDAO = new ElasticS3ObjectDAO(daoConfig);
+			
+			// init indexes
+		    objectDAO.initIndexes(collectionTime);
+				
+		} else {
+			// Instantiate file DAO
+			objectDAO = new FileObjectDAO();
+		}	
+		
+		ObjectBO objectBO = new ObjectBO(billingBO, hosts, objectDAO, threadPoolExecutor, futures, objectCount );
+		
+		// Start collection
+		objectBO.collectObjectDataByBucket(collectionTime, objectNamespace, objectName);
+		
+		objectBO.shutdown();
+	}
+
+	private static void collectNamespace(Date collectionTime) {
+		List<String> hosts = Arrays.asList(ecsHosts.split(","));
+		
+		// instantiate billing BO
+		BillingBO billingBO = new BillingBO( ecsMgmtAccessKey, 
+											 ecsMgmtSecretKey,
+											 hosts,
+											 ecsMgmtPort,
+											 null,        // dao is not required in this case
+											 objectCount ); 
+		
+		// Instantiate DAO
+		ObjectDAO objectDAO = null;
+		if(!elasticHosts.isEmpty()) {
+			
+			// Instantiate ElasticSearch DAO
+			ElasticDAOConfig daoConfig = new ElasticDAOConfig();
+			daoConfig.setHosts(Arrays.asList(elasticHosts.split(",")));
+			daoConfig.setPort(elasticPort);
+			daoConfig.setClusterName(elasticCluster);
+			daoConfig.setCollectionTime(collectionTime);
+			daoConfig.setCollectionType(EcsCollectionType.object);
+			initXPackConfig(daoConfig);
+			objectDAO = new ElasticS3ObjectDAO(daoConfig);
+			
+			// init indexes
+		    objectDAO.initIndexes(collectionTime);
+				
+		} else {
+			// Instantiate file DAO
+			objectDAO = new FileObjectDAO();
+		}	
+		
+		ObjectBO objectBO = new ObjectBO(billingBO, hosts, objectDAO, threadPoolExecutor, futures, objectCount );
+		
+		// Start collection
+		objectBO.collectObjectDataByNamespace(collectionTime, objectNamespace);
+		
+		objectBO.shutdown();
 	}
 
 	/**
@@ -407,12 +506,32 @@ public class MetadataCollectorClient {
 						System.err.println( XPACK_SSL_CERTIFICATE_AUTH_ARG + " requires a value");
 						System.exit(0);
 					}
+				} else if (arg.equals(ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT)) {
+					if (i < args.length) {
+						objectName = args[i++];
+					} else {
+						System.err.println(ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT + " requires bucket");
+						System.exit(0);
+					}
+				} else if (arg.equals(ECS_COLLECT_OBJECT_DATA_NAMESPACE_ARGUMENT)) {
+					if (i < args.length) {
+						objectNamespace = args[i++];
+					} else {
+						System.err.println(ECS_COLLECT_OBJECT_DATA_NAMESPACE_ARGUMENT + " requires namespace");
+						System.exit(0);
+					}
 				} else {
-					System.err.println("Unreconized option: " + arg); 
+					System.err.println("Unrecognized option: " + arg); 
 					System.err.println(menuString);
 					System.exit(0);
 				} 
-			}                
+			}
+			if (objectName!=null) {
+				if (objectNamespace==null || "".equals(objectNamespace)) {
+					System.err.println(ECS_COLLECT_OBJECT_DATA_NAMESPACE_ARGUMENT + " requires namespace, " + ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT + " requires bucket");
+					System.exit(0);
+				}
+			}
 		}
 
 		if(initIndexesOnlyOption) {
