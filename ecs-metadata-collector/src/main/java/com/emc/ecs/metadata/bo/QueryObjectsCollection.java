@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.management.entity.Metadata;
 import com.emc.ecs.management.entity.ObjectBucket;
+import com.emc.object.s3.bean.EncodingType;
 import com.emc.object.s3.bean.QueryObjectsResult;
 import com.emc.object.s3.request.QueryObjectsRequest;
 
@@ -193,6 +194,7 @@ public class QueryObjectsCollection implements Callable<String> {
 		
 		// create request
 		QueryObjectsRequest queryRequest = new QueryObjectsRequest(objectBucket.getName());
+		queryRequest.setEncodingType(EncodingType.url);
 		
 		List<String> attributeList = new ArrayList<String>();
 		StringBuilder queryString = new StringBuilder();
@@ -268,6 +270,7 @@ public class QueryObjectsCollection implements Callable<String> {
 		
 		// create request
 		QueryObjectsRequest queryRequest = new QueryObjectsRequest(objectBucket.getName());
+		queryRequest.setEncodingType(EncodingType.url);
 		
 		List<String> attributeList = new ArrayList<String>();
 		List<String> attributeListDetails = new ArrayList<String>();
