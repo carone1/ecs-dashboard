@@ -345,8 +345,8 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 
       # default file for ecs dashboard
 
-      ecs_dashboard_bin_version: 1.3
-      ecs_dashboard_url_version: 'v1.3'
+      ecs_dashboard_bin_version: 1.5
+      ecs_dashboard_url_version: 'v1.5'
 
       chrome_driver_url_version: '2.27'
       chrome_driver_bin_version: '2.27'
@@ -448,9 +448,9 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 9. Under /opt/ecs-dashboard on node01, node02, node03 there will be different java programs installed and pre-configured scripts installed to run collectors, cleaners, emailers.
 
       	drwxr-xr-x. 2 ecs-dashboard ecs-dashboard  chromedriver-2.9
-      	drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  ecs-elasticsearch-cleaner-1.3
-      	drwxr-xr-x. 6 ecs-dashboard ecs-dashboard  ecs-metadata-collector-1.3
-      	drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  kibana-emailer-1.3
+      	drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  ecs-elasticsearch-cleaner-<ecs_dashboard_version>
+      	drwxr-xr-x. 6 ecs-dashboard ecs-dashboard  ecs-metadata-collector-<ecs_dashboard_version>
+      	drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  kibana-emailer-<ecs_dashboard_version>
       	drwxr-xr-x. 5 ecs-dashboard ecs-dashboard  logs
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_all_data.sh
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_billing_data.sh
@@ -475,6 +475,10 @@ Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=(
 	ecs-s3-object-<yyyy-mm-dd>,
 	ecs-billing-bucket-<yyyy-mm-dd>,
 	ecs-billing-namespace-<yyyy-mm-dd>
+	ecs-vdc-<yyyy-mm-dd>,
+	ecs-owner-bucket-<yyyy-mm-dd>,
+	ecs-namespace-detail-<yyyy-mm-dd>,
+	ecs-namespace-quota-<yyyy-mm-dd>
 
 	(Rest command: "get _cat/indices?v")
 
@@ -484,7 +488,7 @@ Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=(
 
 ### Start Data Collection
 
-Might be design intent but Kiana 5.2+ will complain when importing searches/visualizations/dashboards if referenced indexes don't have any record/document present in them.  The import will sill be succesful but Kiabana will keep give errors when opening out dashboards.   As described here [Visualize field is a required parameter](https://discuss.elastic.co/t/visualize-field-is-a-required-parameter-how-to-solve/74619) The workaround is to initiate a data collection wait for a few minutes before proceding to Index Pattern Creation
+Might be design intent but Kiana 5.2+ will complain when importing searches/visualizations/dashboards if referenced indexes don't have any record/document present in them.  The import will sill be succesful but Kibana will keep give errors when opening out dashboards.   As described here [Visualize field is a required parameter](https://discuss.elastic.co/t/visualize-field-is-a-required-parameter-how-to-solve/74619) The workaround is to initiate a data collection wait for a few minutes before proceding to Index Pattern Creation
 
 	On Node01 or Node02 or Node03
 	cd /opt/ecs-dashboard
@@ -511,6 +515,10 @@ Create index patern for
 	ecs-s3-object-version*,
 	ecs-billing-bucket*,
 	ecs-billing-namespace*.
+	ecs-vdc*,
+	ecs-owner-bucket*,
+	ecs-namespace-detail*,
+	ecs-namespace-quota*
 
 Note: Always use the collection_time field as the time-field name. It is very very important to end index patern names with -* so the pattern will be able to see all indexes terminating with -yyyy-mm-dd patterns.
 
@@ -519,22 +527,26 @@ Note: Always use the collection_time field as the time-field name. It is very ve
 Under Settings / Objects / Searches
 
 
-	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-searches-1.3.json
-	Click Import and select kibana-searches-1.3.json.
+	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v<ecs_dashboard_version>/kibana-searches-<ecs_dashboard_version>.json
+	Click Import and select kibana-searches-<ecs_dashboard_version>.json.
 
 ### Import Visualizations
 
 Under Settings / Objects / Visualization
 
-	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-visualization-1.3.json
-	Click Import and select kibana-visualization-1.3.json.
+	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v<ecs_dashboard_version>/kibana-visualization-<ecs_dashboard_version>.json
+	Click Import and select kibana-visualization-<ecs_dashboard_version>.json.
 
 ### Import Dashboards
 
 Under Settings / Objects / Dashboards
 
-	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v1.3/kibana-dashboards-1.3.json
-	Click Import and select kibana-dashboards-1.3.json.
+	Download file locally from => wget https://github.com/carone1/ecs-dashboard/releases/download/v<ecs_dashboard_version>/kibana-dashboards-<ecs_dashboard_version>.json
+	Click Import and select kibana-dashboards-<ecs_dashboard_version>.json.
+
+### Check ECS Dashbords
+
+	ECS Dashboards release are available at https://github.com/carone1/ecs-dashboard/releases
 
 
 Voila! You should have a functional dashboard at this point.
