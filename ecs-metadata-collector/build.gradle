@@ -58,11 +58,10 @@ dependencies {
     compile project(':ecs-metadata-dao')
     compile project(':ecs-metadata-stdout-dao')
     compile project(':ecs-metadata-elasticsearch-dao')
-    compile "com.emc.ecs:object-client:3.0.0"
+    compile "com.emc.ecs:object-client:3.1.2"
           
     
 }
-
 
 mainClassName="com.emc.ecs.metadata.client.MetadataCollectorClient"
 
