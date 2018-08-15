@@ -44,7 +44,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +93,7 @@ public class MetadataCollectorClient {
 	private static final String ECS_MGMT_ACCESS_KEY_CONFIG_ARGUMENT          = "--ecs-mgmt-access-key";
 	private static final String ECS_MGMT_SECRET_KEY_CONFIG_ARGUMENT          = "--ecs-mgmt-secret-key";
 	private static final String ECS_MGMT_PORT_CONFIG_ARGUMENT                = "--ecs-mgmt-port";
+	private static final String ECS_ALT_MGMT_PORT_CONFIG_ARGUMENT            = "--ecs-alt-mgmt-port";
 	private static final String ECS_COLLECT_DATA_CONFIG_ARGUMENT             = "--collect-data";
 	private static final String ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT  = "--collect-only-modified-objects";
 	private static final String ECS_INIT_INDEXES_ONLY_CONFIG_ARGUMENT        = "--init-indexes-only";
@@ -248,10 +248,10 @@ public class MetadataCollectorClient {
 				collectVdcList(collectionTime);
 			} else if(collectData.equals(ECS_COLLECT_OBJECT_DATA_NAMESPACE)) {
 				// collect namespace
-				collectNamespace(collectionTime);
+				collectObjectDataByNamespace(collectionTime);
 			} else if(collectData.equals(ECS_COLLECT_OBJECT_DATA_BUCKET)) {
 				// collect bucket
-				collectBucket(collectionTime);
+				collectObjectDataByBucket(collectionTime);
 			} else {		
 				System.err.println("Unsupported data collection action: " + collectData );
 				System.err.println(menuString);
@@ -296,7 +296,7 @@ public class MetadataCollectorClient {
 		
 	}
 
-	private static void collectBucket(Date collectionTime) {
+	private static void collectObjectDataByBucket(Date collectionTime) {
 		
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
 		
@@ -338,7 +338,7 @@ public class MetadataCollectorClient {
 		objectBO.shutdown();
 	}
 
-	private static void collectNamespace(Date collectionTime) {
+	private static void collectObjectDataByNamespace(Date collectionTime) {
 		List<String> hosts = Arrays.asList(ecsHosts.split(","));
 		
 		// instantiate billing BO
@@ -423,6 +423,13 @@ public class MetadataCollectorClient {
 						ecsMgmtPort = Integer.valueOf(args[i++]);
 					} else {
 						System.err.println(ECS_MGMT_PORT_CONFIG_ARGUMENT + " requires a mgmt port value");
+						System.exit(0);
+					}
+				}  else if (arg.equals(ECS_ALT_MGMT_PORT_CONFIG_ARGUMENT)) {
+					if (i < args.length) {
+						ecsAlternativeMgmtPort = Integer.valueOf(args[i++]);
+					} else {
+						System.err.println(ECS_ALT_MGMT_PORT_CONFIG_ARGUMENT + " requires an alternative mgmt port value");
 						System.exit(0);
 					}
 				} else if (arg.equals(ECS_COLLECT_MODIFIED_OBJECT_CONFIG_ARGUMENT)) {
@@ -767,6 +774,9 @@ public class MetadataCollectorClient {
 		// Instantiate Object DAO
 		ObjectDAO objectDAO = null;
 		BillingDAO billingDAO = null;
+		VdcDAO vdcDAO = null;
+		NamespaceDAO namespaceDAO = null;
+		
 		
 		if(!elasticHosts.isEmpty()) {
 			
@@ -789,6 +799,17 @@ public class MetadataCollectorClient {
 			billingDAO = new ElasticBillingDAO(daoConfig);
 			// init indexes
 			billingDAO.initIndexes(collectionTime);
+			
+			vdcDAO = new ElasticVdcDetailDAO(daoConfig);
+			vdcDAO.initIndexes(collectionTime);
+			vdcDAO = new ElasticBucketOwnerDAO(daoConfig);
+			vdcDAO.initIndexes(collectionTime);
+			
+			namespaceDAO = new ElasticNamespaceDetailDAO(daoConfig);
+			namespaceDAO.initIndexes(collectionTime);
+			
+			namespaceDAO = new ElasticNamespaceQuotaDAO(daoConfig);
+			namespaceDAO.initIndexes(collectionTime);
 		}
 		
 	}
