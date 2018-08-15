@@ -422,6 +422,18 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 
       # certificate
       smtp_ssl_port: 443
+      
+      # x-pack authentication
+      
+      # enable or disbale x-pack security (if set to false, security must also be disable on elasticsearch cluster)
+      xpack_security_enable: false
+      # x-pack credentials
+      xpack_user: "elastic"
+      xpack_pwd: "changeme"
+      # path certificates used by ssl
+      xpack_ssl_key: "/etc/elasticsearch/es1/es1.key"
+      xpack_ssl_certificate: "/etc/elasticsearch/es1/es1.crt"
+      xpack_ca_certificate: "/etc/elasticsearch/es1/ca.crt"
 
       ```
 
