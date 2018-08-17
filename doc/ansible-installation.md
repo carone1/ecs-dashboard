@@ -345,8 +345,8 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 
       # default file for ecs dashboard
 
-      ecs_dashboard_bin_version: 1.5
-      ecs_dashboard_url_version: 'v1.5'
+      ecs_dashboard_bin_version: 1.5.1
+      ecs_dashboard_url_version: 'v1.5.1'
 
       chrome_driver_url_version: '2.27'
       chrome_driver_bin_version: '2.27'
@@ -356,6 +356,7 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
       ecs_mgmt_access_key: 'specify-user-key'
       ecs_mgmt_secret_key: 'specify-user-secret'
       ecs_mgmt_port: 4443
+      ecs_alt_mgmt_port: 9101
 
       # *** section to be modified as mutliple Elasticsearch hosts are proabably installed***
       # ip or hosts for elasticsearch cluster
@@ -457,6 +458,12 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_index_init.sh
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_data.sh
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_version_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_bucket_owner_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_vdc_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_namespace_detail_data.sh      	
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_namespace_quota_data.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_data_namespace.sh      	
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_data_bucket.sh      	      	
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_all_data.sh
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_billing_data.sh
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_object_data.sh
@@ -488,7 +495,7 @@ Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=(
 
 ### Start Data Collection
 
-Might be design intent but Kiana 5.2+ will complain when importing searches/visualizations/dashboards if referenced indexes don't have any record/document present in them.  The import will sill be succesful but Kibana will keep give errors when opening out dashboards.   As described here [Visualize field is a required parameter](https://discuss.elastic.co/t/visualize-field-is-a-required-parameter-how-to-solve/74619) The workaround is to initiate a data collection wait for a few minutes before proceding to Index Pattern Creation
+Might be design intent but Kibana 5.2+ will complain when importing searches/visualizations/dashboards if referenced indexes don't have any record/document present in them.  The import will sill be succesful but Kibana will keep give errors when opening out dashboards.   As described here [Visualize field is a required parameter](https://discuss.elastic.co/t/visualize-field-is-a-required-parameter-how-to-solve/74619) The workaround is to initiate a data collection wait for a few minutes before proceding to Index Pattern Creation
 
 	On Node01 or Node02 or Node03
 	cd /opt/ecs-dashboard
@@ -500,7 +507,15 @@ Might be design intent but Kiana 5.2+ will complain when importing searches/visu
 
 Wait 4-5 minutes so all indexes will have at least one document in them.
 
+There are special scripts which take some parameters to be able to execute data collection. Scripts run_ecs_collector_for_object_data_namespace.sh and run_ecs_collector_for_object_data_bucket.sh use namespace name and bucket name. For the first one it will collect all data for the specified namespace, as for the second it will collect all data for specified namespace and all buckets which name starts with specified bucket name.
 
+	On Node01 or Node02 or Node03
+	cd /opt/ecs-dashboard
+	./run_ecs_collector_for_object_data_namespace.sh <namespace_name>
+	Second Shell
+	./run_ecs_collector_for_object_data_bucket.sh <namespace_name> <bucket_name>
+
+Where <namespace_name> and <bucekt_name> are to be replaced with namespace and bucket names.
 
 ### Configure Index Patterns
 
