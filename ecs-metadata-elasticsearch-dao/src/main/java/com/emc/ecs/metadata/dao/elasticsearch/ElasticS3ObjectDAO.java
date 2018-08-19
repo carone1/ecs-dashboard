@@ -78,7 +78,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	private final static String CLIENT_SNIFFING_CONFIG       = "client.transport.sniff";
 	private final static String CLIENT_CLUSTER_NAME_CONFIG   = "cluster.name";
 	public  final static String S3_OBJECT_INDEX_NAME         = "ecs-s3-object";
-	public  final static String S3_OBJECT_VERSION_INDEX_NAME = "ecs-s3-object-version";
+	public  final static String S3_OBJECT_VERSION_INDEX_NAME = "ecs-object-version";
 	public  final static String S3_OBJECT_INDEX_TYPE         = "object-info";
 	public  final static String S3_OBJECT_VERSION_INDEX_TYPE = "object-version-info";
 	public  final static String COLLECTION_TIME			     = "collection_time";

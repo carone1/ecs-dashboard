@@ -97,7 +97,7 @@ public class ElasticNamespaceDetailDAO extends ElasticNamespaceDAO {
 							.startObject(NamespaceDetail.INTERNAL).field("type", "boolean").endObject()
 							.startObject(NamespaceDetail.VDC).field("type", "string").endObject()
 							.startObject(NamespaceDetail.CREATION_TIME).field("type", "date")
-							.field("format", "strict_date_optional_time||epoch_millis").endObject()
+							.field("format", "strict_date_optional_time||date_optional_time||basic_date_time||epoch_millis").endObject()
 							.startObject(COLLECTION_TIME).field("type", "date")
 							.field("format", "strict_date_optional_time||epoch_millis").endObject().endObject()
 

@@ -311,7 +311,7 @@ public class ObjectBO {
 		Map<String, S3JerseyClient> s3ObjectClientMap = null;
 		
 		try {
-			// create all required S3 jersey clients for very S3 users
+			// create all required S3 jersey clients for every S3 users
 			s3ObjectClientMap = createS3ObjectClients(objectUserDetailsList, this.ecsObjectHosts);
 			
 			// collect objects for all users
@@ -329,7 +329,7 @@ public class ObjectBO {
 
 				if (s3JerseyClient != null) {
 
-					ObjectCollectionConfig collectionConfig = new ObjectCollectionConfig(s3JerseyClient, namespace,
+					ObjectCollectionConfig collectionConfig = new ObjectCollectionConfig(s3JerseyClient, namespace, bucketname,
 							this.objectDAO, objectBucketMap, collectionTime, objectCount, threadPoolExecutor, futures, null);
 					NamespaceObjectCollection namespaceObjectCollection = new NamespaceObjectCollection(
 							collectionConfig);

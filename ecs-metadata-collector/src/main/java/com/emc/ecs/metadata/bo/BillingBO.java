@@ -300,10 +300,8 @@ public class BillingBO {
 		// Add to return map per namespace and bucket key
 		if (objectBucketsResponse.getObjectBucket() != null && objectBucketMap != null) {
 			for (ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
-				//if (bucketname.equals(objectBucket.getName())) {
-					NamespaceBucketKey key = new NamespaceBucketKey(namespace, objectBucket.getName());
-					objectBucketMap.put(key, objectBucket);
-				//}
+				NamespaceBucketKey key = new NamespaceBucketKey(namespace, objectBucket.getName());
+				objectBucketMap.put(key, objectBucket);
 			}
 		}
 
@@ -317,9 +315,7 @@ public class BillingBO {
 			}
 
 			for (ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
-				//if (bucketname.equals(objectBucket.getName())) {
-					objectSet.add(objectBucket);
-				//}
+				objectSet.add(objectBucket);
 			}
 		}
 
@@ -340,10 +336,8 @@ public class BillingBO {
 				// Add to return map
 				if (objectBucketsResponse.getObjectBucket() != null && objectBucketMap != null) {
 					for (ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
-//						if (bucketname.equals(objectBucket.getName())) {
-							NamespaceBucketKey key = new NamespaceBucketKey(namespace, objectBucket.getName());
-							objectBucketMap.put(key, objectBucket);
-//						}
+						NamespaceBucketKey key = new NamespaceBucketKey(namespace, objectBucket.getName());
+						objectBucketMap.put(key, objectBucket);
 					}
 				}
 
@@ -359,9 +353,7 @@ public class BillingBO {
 					}
 
 					for (ObjectBucket objectBucket : objectBucketsResponse.getObjectBucket()) {
-//						if (bucketname.equals(objectBucket.getName())) {
-							objectSet.add(objectBucket);
-//						}
+						objectSet.add(objectBucket);
 					}
 				}
 

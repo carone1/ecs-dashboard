@@ -82,31 +82,36 @@ public class NamespaceObjectCollection implements Callable<String> {
 		}
 	}
 	
+	private void collectObjectsPerBucket( Bucket bucket ) {
+		BucketObjectCollection bucketObjectCollection = 
+				new BucketObjectCollection( collectionConfig, bucket );
+		
+		// submit bucket collection to thread pool
+		try {
+			collectionConfig.getFutures().add(collectionConfig.getThreadPoolExecutor().submit(bucketObjectCollection));
+		} catch (RejectedExecutionException e) {
+			// Thread pool didn't accept bucket collection
+			// running in the current thread
+			logger.error("Thread pool didn't accept bucket collection - running in current thread");
+			try {
+				bucketObjectCollection.call();
+			} catch (Exception e1) {
+				logger.error("Error occured during bucket object collection operation - message: " + e.getLocalizedMessage());
+			}
+		}	
+	}
 	
 	private void collectObjectsPerBucketBatch( List<Bucket> bucketList ) {
-
 		for( Bucket bucket : bucketList ) {
-			
-			BucketObjectCollection bucketObjectCollection = 
-					new BucketObjectCollection( collectionConfig, bucket );
-			
-			// submit bucket collection to thread pool
-			try {
-				collectionConfig.getFutures().add(collectionConfig.getThreadPoolExecutor().submit(bucketObjectCollection));
-			} catch (RejectedExecutionException e) {
-				// Thread pool didn't accept bucket collection
-				// running in the current thread
-				logger.error("Thread pool didn't accept bucket collection - running in current thread");
-				try {
-					bucketObjectCollection.call();
-				} catch (Exception e1) {
-					logger.error("Error occured during bucket object collection operation - message: " + e.getLocalizedMessage());
+			if ( collectionConfig.getBucketname()!=null ) {
+				if (bucket.getName().startsWith(collectionConfig.getBucketname())) {
+					collectObjectsPerBucket(bucket);			
 				}
-			}	
+			} else {
+				collectObjectsPerBucket(bucket);			
+			}
 		}
 	}
-
-
 
 
 }

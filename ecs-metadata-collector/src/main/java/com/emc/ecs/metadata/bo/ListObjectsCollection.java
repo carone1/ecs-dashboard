@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.emc.ecs.management.entity.ObjectBucket;
+import com.emc.object.s3.bean.EncodingType;
 import com.emc.object.s3.bean.ListObjectsResult;
 import com.emc.object.s3.request.ListObjectsRequest;
 
@@ -75,6 +76,7 @@ public class ListObjectsCollection implements Callable<String> {
 
 		// prepare request object
 		ListObjectsRequest listObjectsRequest = new ListObjectsRequest(objectBucket.getName());
+		listObjectsRequest.setEncodingType(EncodingType.url);
 		listObjectsRequest.setMaxKeys(maxObjectPerRequest);
 		listObjectsRequest.setNamespace(collectionConfig.getNamespace());
 

@@ -50,7 +50,7 @@ dependencies {
 	//compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.9'
    
     compile project(':ecs-mgmt-client')
-    compile "com.emc.ecs:object-client:3.0.0"
+    compile "com.emc.ecs:object-client:3.1.2"
           
     
 }
