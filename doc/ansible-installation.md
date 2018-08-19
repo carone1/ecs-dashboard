@@ -480,6 +480,7 @@ Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=(
 
 	ecs-bucket-<yyyy-mm-dd>,
 	ecs-s3-object-<yyyy-mm-dd>,
+	ecs-object-version-<yyyy-mm-dd>,
 	ecs-billing-bucket-<yyyy-mm-dd>,
 	ecs-billing-namespace-<yyyy-mm-dd>
 	ecs-vdc-<yyyy-mm-dd>,

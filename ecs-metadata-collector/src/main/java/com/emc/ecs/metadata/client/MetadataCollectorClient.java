@@ -168,7 +168,7 @@ public class MetadataCollectorClient {
 	private static String xpackSslCertificate;
 	private static String xpackSsslCertificateAuth;
 	
-	private static String objectName;
+	private static String bucketName;
 	private static String objectNamespace;
 	
 	
@@ -183,6 +183,7 @@ public class MetadataCollectorClient {
 	public static void main(String[] args) throws Exception {
 
 		// handle passed in arguments
+		try {
 		handleArguments(args);
 		
 		// grab current to timestamp in order
@@ -270,6 +271,7 @@ public class MetadataCollectorClient {
 			} catch (InterruptedException e) {
 				logger.error(e.getLocalizedMessage());
 			} catch (ExecutionException e) {
+				e.printStackTrace();
 				logger.error(e.getLocalizedMessage());
 			}
 		}
@@ -292,6 +294,11 @@ public class MetadataCollectorClient {
 				termination = true;
 			}
 		} while(!termination);
+		
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw e;
+		}
 		
 		
 	}
@@ -333,7 +340,7 @@ public class MetadataCollectorClient {
 		ObjectBO objectBO = new ObjectBO(billingBO, hosts, objectDAO, threadPoolExecutor, futures, objectCount );
 		
 		// Start collection
-		objectBO.collectObjectDataByBucket(collectionTime, objectNamespace, objectName);
+		objectBO.collectObjectDataByBucket(collectionTime, objectNamespace, bucketName);
 		
 		objectBO.shutdown();
 	}
@@ -513,18 +520,18 @@ public class MetadataCollectorClient {
 						System.err.println( XPACK_SSL_CERTIFICATE_AUTH_ARG + " requires a value");
 						System.exit(0);
 					}
-				} else if (arg.equals(ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT)) {
-					if (i < args.length) {
-						objectName = args[i++];
-					} else {
-						System.err.println(ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT + " requires bucket");
-						System.exit(0);
-					}
-				} else if (arg.equals(ECS_COLLECT_OBJECT_DATA_NAMESPACE_ARGUMENT)) {
+				}  else if (arg.equals(ECS_COLLECT_OBJECT_DATA_NAMESPACE_ARGUMENT)) {
 					if (i < args.length) {
 						objectNamespace = args[i++];
 					} else {
 						System.err.println(ECS_COLLECT_OBJECT_DATA_NAMESPACE_ARGUMENT + " requires namespace");
+						System.exit(0);
+					}
+				} else if (arg.equals(ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT)) {
+					if (i < args.length) {
+						bucketName = args[i++];
+					} else {
+						System.err.println(ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT + " requires bucket");
 						System.exit(0);
 					}
 				} else {
@@ -533,7 +540,7 @@ public class MetadataCollectorClient {
 					System.exit(0);
 				} 
 			}
-			if (objectName!=null) {
+			if (bucketName!=null) {
 				if (objectNamespace==null || "".equals(objectNamespace)) {
 					System.err.println(ECS_COLLECT_OBJECT_DATA_NAMESPACE_ARGUMENT + " requires namespace, " + ECS_COLLECT_OBJECT_DATA_NAME_ARGUMENT + " requires bucket");
 					System.exit(0);
