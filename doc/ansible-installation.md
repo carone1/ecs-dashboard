@@ -528,7 +528,7 @@ Create index patern for
 
 	ecs-bucket*,
 	ecs-s3-object*,
-	ecs-s3-object-version*,
+	ecs-object-version*,
 	ecs-billing-bucket*,
 	ecs-billing-namespace*.
 	ecs-vdc*,
