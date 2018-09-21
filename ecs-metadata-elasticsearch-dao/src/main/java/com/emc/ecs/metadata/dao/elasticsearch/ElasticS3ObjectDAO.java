@@ -402,7 +402,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	private void initS3ObjectIndex( Date collectionTime ) {
 
 		String collectionDayString = DATA_DATE_FORMAT_SEC.format(collectionTime);
-		s3ObjectIndexDayName = S3_OBJECT_INDEX_NAME + "-" + collectionDayString;
+		s3ObjectIndexDayName = S3_OBJECT_INDEX_NAME + "-" + collectionDayString.replaceAll(" ", "-");
 		
 		if (elasticClient
 				.admin()
@@ -420,7 +420,6 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -467,7 +466,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 								.field("index", NOT_ANALYZED_INDEX).endObject()
 							// COLLECTION_TIME
 							.startObject( COLLECTION_TIME ).field("type", "date")
-								.field("format", "strict_date_optional_time||epoch_millis||strict_date_time_no_millis").endObject() 
+								.field("format", "strict_date_optional_time||epoch_millis||date_time_no_millis").endObject() 
 							// CUSTOM_GID_TAG
 							.startObject( CUSTOM_GID_TAG ).field("type", "string")
 								.field("index", NOT_ANALYZED_INDEX).endObject()
@@ -583,7 +582,6 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
