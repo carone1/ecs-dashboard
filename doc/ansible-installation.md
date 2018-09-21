@@ -345,8 +345,8 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 
       # default file for ecs dashboard
 
-      ecs_dashboard_bin_version: 1.5.1
-      ecs_dashboard_url_version: 'v1.5.1'
+      ecs_dashboard_bin_version: 1.5.2
+      ecs_dashboard_url_version: 'v1.5.2'
 
       chrome_driver_url_version: '2.27'
       chrome_driver_bin_version: '2.27'
@@ -478,15 +478,15 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 
 Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=() verify that indexes are present.
 
-	ecs-bucket-<yyyy-mm-dd>,
-	ecs-s3-object-<yyyy-mm-dd>,
-	ecs-object-version-<yyyy-mm-dd>,
-	ecs-billing-bucket-<yyyy-mm-dd>,
-	ecs-billing-namespace-<yyyy-mm-dd>
-	ecs-vdc-<yyyy-mm-dd>,
-	ecs-owner-bucket-<yyyy-mm-dd>,
-	ecs-namespace-detail-<yyyy-mm-dd>,
-	ecs-namespace-quota-<yyyy-mm-dd>
+	ecs-bucket-<yyyy-mm-dd-HH:MM:ss>,
+	ecs-s3-object-<yyyy-mm-dd-HH:MM:ss>,
+	ecs-object-version-<yyyy-mm-dd-HH:MM:ss>,
+	ecs-billing-bucket-<yyyy-mm-dd-HH:MM:ss>,
+	ecs-billing-namespace-<yyyy-mm-dd-HH:MM:ss>
+	ecs-vdc-<yyyy-mm-dd-HH:MM:ss>,
+	ecs-owner-bucket-<yyyy-mm-dd-HH:MM:ss>,
+	ecs-namespace-detail-<yyyy-mm-dd-HH:MM:ss>,
+	ecs-namespace-quota-<yyyy-mm-dd-HH:MM:ss>
 
 	(Rest command: "get _cat/indices?v")
 
@@ -513,10 +513,25 @@ There are special scripts which take some parameters to be able to execute data 
 	On Node01 or Node02 or Node03
 	cd /opt/ecs-dashboard
 	./run_ecs_collector_for_object_data_namespace.sh <namespace_name>
-	Second Shell
+	or execute
 	./run_ecs_collector_for_object_data_bucket.sh <namespace_name> <bucket_name>
 
 Where <namespace_name> and <bucekt_name> are to be replaced with namespace and bucket names.
+
+### WARNING on Data Collection and Kibana Data Aggregation
+
+Data collection must be initiated on a daily basis. Moreover there a special scripts that can only be executed ONCE A DAY to allow Kibana to properly aggregate data.
+
+	./run_ecs_collector_for_object_data_namespace.sh <namespace_name>
+	./run_ecs_collector_for_object_data_bucket.sh <namespace_name> <bucket_name>
+	./run_ecs_collector_for_object_data_bucket.sh (Full object bucket import)
+	
+If you run one of those scripts on a day you MUST NOT execute others on the same day (or re-run it) as it will results in data being imported to Kibana more than once.
+
+For example, if you run script ./run_ecs_collector_for_object_data.sh you MUST NOT run script ./run_ecs_collector_for_object_data_bucket.sh <namespace_name> <bucket_name> and ./run_ecs_collector_for_object_data_namespace.sh on the same day.
+
+The first script will have already imported data and the later will just import (AGAIN) data from the specified namespace and/or bucket.
+
 
 ### Configure Index Patterns
 

@@ -109,7 +109,9 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	private static Logger LOGGER = LoggerFactory.getLogger(ElasticS3ObjectDAO.class);
 	
 	private static final String            DATA_DATE_PATTERN = "yyyy-MM-dd";
+	private static final String            DATA_DATE_PATTERN_SEC = "yyyy-MM-dd HH:mm:ss";
 	private static final SimpleDateFormat  DATA_DATE_FORMAT = new  SimpleDateFormat(DATA_DATE_PATTERN);
+	private static final SimpleDateFormat  DATA_DATE_FORMAT_SEC = new  SimpleDateFormat(DATA_DATE_PATTERN_SEC);
 	
 	private static String s3ObjectVersionIndexDayName;
 	private static String s3ObjectIndexDayName;
@@ -399,8 +401,8 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 	 */
 	private void initS3ObjectIndex( Date collectionTime ) {
 
-		String collectionDayString = DATA_DATE_FORMAT.format(collectionTime);
-		s3ObjectIndexDayName = S3_OBJECT_INDEX_NAME + "-" + collectionDayString;
+		String collectionDayString = DATA_DATE_FORMAT_SEC.format(collectionTime);
+		s3ObjectIndexDayName = S3_OBJECT_INDEX_NAME + "-" + collectionDayString.replaceAll(" ", "-");
 		
 		if (elasticClient
 				.admin()
@@ -418,7 +420,6 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -465,7 +466,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 								.field("index", NOT_ANALYZED_INDEX).endObject()
 							// COLLECTION_TIME
 							.startObject( COLLECTION_TIME ).field("type", "date")
-								.field("format", "strict_date_optional_time||epoch_millis").endObject() 
+								.field("format", "strict_date_optional_time||epoch_millis||date_time_no_millis").endObject() 
 							// CUSTOM_GID_TAG
 							.startObject( CUSTOM_GID_TAG ).field("type", "string")
 								.field("index", NOT_ANALYZED_INDEX).endObject()
@@ -581,7 +582,6 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
