@@ -478,15 +478,15 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
 
 Using Kibana DevTools http://<kibana-ip>:5601/app/kibana#/dev_tools/console?_g=() verify that indexes are present.
 
-	ecs-bucket-<yyyy-mm-dd-HH:MM:ss>,
+	ecs-bucket-<yyyy-mm-dd>,
 	ecs-s3-object-<yyyy-mm-dd-HH:MM:ss>,
-	ecs-object-version-<yyyy-mm-dd-HH:MM:ss>,
-	ecs-billing-bucket-<yyyy-mm-dd-HH:MM:ss>,
-	ecs-billing-namespace-<yyyy-mm-dd-HH:MM:ss>
-	ecs-vdc-<yyyy-mm-dd-HH:MM:ss>,
-	ecs-owner-bucket-<yyyy-mm-dd-HH:MM:ss>,
-	ecs-namespace-detail-<yyyy-mm-dd-HH:MM:ss>,
-	ecs-namespace-quota-<yyyy-mm-dd-HH:MM:ss>
+	ecs-object-version-<yyyy-mm-dd>,
+	ecs-billing-bucket-<yyyy-mm-dd>,
+	ecs-billing-namespace-<yyyy-mm-dd>
+	ecs-vdc-<yyyy-mm-dd>,
+	ecs-owner-bucket-<yyyy-mm-dd>,
+	ecs-namespace-detail-<yyyy-mm-dd>,
+	ecs-namespace-quota-<yyyy-mm-dd>
 
 	(Rest command: "get _cat/indices?v")
 
