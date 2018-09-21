@@ -183,7 +183,6 @@ public class MetadataCollectorClient {
 	public static void main(String[] args) throws Exception {
 
 		// handle passed in arguments
-		try {
 		handleArguments(args);
 		
 		// grab current to timestamp in order
@@ -294,11 +293,6 @@ public class MetadataCollectorClient {
 				termination = true;
 			}
 		} while(!termination);
-		
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			throw e;
-		}
 		
 		
 	}
