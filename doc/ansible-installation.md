@@ -470,6 +470,12 @@ An ansible playbook was developed to install Collectors, Cleaners, Emailer on no
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_elasticsearch_cleaner_for_object_version_data.sh
       	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_kibana_emailer.sh
 
+Every scripts can be executed on a DAILY basis except for the case of :
+
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_data_namespace.sh      	
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_data_bucket.sh
+      	-rwxr-xr-x. 1 ecs-dashboard ecs-dashboard  run_ecs_collector_for_object_data.sh
+
 
 # Import Default Kibana ECS Dashboards
 
@@ -524,7 +530,7 @@ Data collection must be initiated on a daily basis. Moreover there a special scr
 
 	./run_ecs_collector_for_object_data_namespace.sh <namespace_name>
 	./run_ecs_collector_for_object_data_bucket.sh <namespace_name> <bucket_name>
-	./run_ecs_collector_for_object_data_bucket.sh (Full object bucket import)
+	./run_ecs_collector_for_object_data.sh (Full object bucket import)
 	
 If you run one of those scripts on a day you MUST NOT execute others on the same day (or re-run it) as it will results in data being imported to Kibana more than once.
 
