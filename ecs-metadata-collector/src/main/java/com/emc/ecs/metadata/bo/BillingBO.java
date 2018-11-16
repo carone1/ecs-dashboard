@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.elasticsearch.transport.ReceiveTimeoutTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -162,96 +163,101 @@ public class BillingBO {
 		// Collect bucket data and write to datastore 
 		// secondly returns classified data per namespace 
 		// and also per namespace+bucketname
-		collectObjectBucketData(objectBucketsPerNamespace, objectBuckets, collectionTime, billingDAO);
-		
-		// Start collecting billing data from ECS systems
-		List<Namespace> namespaceList = getNamespaces();
-			
-		// At this point we should have all namespaces in the ECS system
-		
-		long objCounter = 0;
-		
-		for( Namespace namespace : namespaceList ) {
-			
-			//===============================================
-			// Initial billing request for current namespace
-			//===============================================
-			
-			NamespaceRequest namespaceRequest = new NamespaceRequest();
-			namespaceRequest.setName(namespace.getName());
-			if( objectBucketsPerNamespace.get(namespace.getName()) != null &&
-				!objectBucketsPerNamespace.get(namespace.getName()).isEmpty()	) {
-				// There are buckets in that namespace 
-				// indicate to client to include bucket data
-				namespaceRequest.setIncludeBuckets(true);
-			}
-			NamespaceBillingInfo namespaceBillingResponse = client.getNamespaceBillingInfo(namespaceRequest);
-			
-			if(namespaceBillingResponse == null) {
-				continue;
-			}
-				
-			// add object bucket attributes
-			for(BucketBillingInfo bucketBillingInfo : namespaceBillingResponse.getBucketBillingInfo()) {
-				
-				NamespaceBucketKey namespaceBucketKey = new NamespaceBucketKey( namespace.getName(), 
-																				bucketBillingInfo.getName());
-				ObjectBucket objectBucket = objectBuckets.get( namespaceBucketKey);
-				
-				if(objectBucket != null) {
-					// set api type
-					bucketBillingInfo.setApiType(objectBucket.getApiType());
-					// set namespace
-					bucketBillingInfo.setNamespace(namespace.getName());
-				} else {
-					// set api type
-					bucketBillingInfo.setApiType("unknown");
-					// set namespace
-					bucketBillingInfo.setNamespace(namespace.getName());
+		try {
+			collectObjectBucketData(objectBucketsPerNamespace, objectBuckets, collectionTime, billingDAO);
+
+			// Start collecting billing data from ECS systems
+			List<Namespace> namespaceList = getNamespaces();
+
+			// At this point we should have all namespaces in the ECS system
+
+			long objCounter = 0;
+
+			for (Namespace namespace : namespaceList) {
+
+				// ===============================================
+				// Initial billing request for current namespace
+				// ===============================================
+
+				NamespaceRequest namespaceRequest = new NamespaceRequest();
+				namespaceRequest.setName(namespace.getName());
+				if (objectBucketsPerNamespace.get(namespace.getName()) != null
+						&& !objectBucketsPerNamespace.get(namespace.getName()).isEmpty()) {
+					// There are buckets in that namespace
+					// indicate to client to include bucket data
+					namespaceRequest.setIncludeBuckets(true);
 				}
-				objCounter++;
-			}
-			
-			// Push collected info into datastore
-			if( this.billingDAO != null ) {
-				// insert something
-				billingDAO.insert(namespaceBillingResponse, collectionTime);
-			}
-			
-			// collect n subsequent pages
-			while(namespaceRequest.getNextMarker() != null) {
-				namespaceBillingResponse = client.getNamespaceBillingInfo(namespaceRequest);
-				
-				if( namespaceBillingResponse != null ) {
-					namespaceRequest.setNextMarker(namespaceBillingResponse.getNextMarker());
-					
-					// add object bucket attributes
-					for(BucketBillingInfo bucketBillingInfo : namespaceBillingResponse.getBucketBillingInfo()) {
-						ObjectBucket objectBucket = objectBuckets.get(bucketBillingInfo.getName());
-						
-						if(objectBucket != null) {
-							// set api type
-							bucketBillingInfo.setApiType(objectBucket.getApiType());
-							// set namespace
-							bucketBillingInfo.setNamespace(namespace.getName());
+				NamespaceBillingInfo namespaceBillingResponse = client.getNamespaceBillingInfo(namespaceRequest);
+
+				if (namespaceBillingResponse == null) {
+					continue;
+				}
+
+				// add object bucket attributes
+				for (BucketBillingInfo bucketBillingInfo : namespaceBillingResponse.getBucketBillingInfo()) {
+
+					NamespaceBucketKey namespaceBucketKey = new NamespaceBucketKey(namespace.getName(),
+							bucketBillingInfo.getName());
+					ObjectBucket objectBucket = objectBuckets.get(namespaceBucketKey);
+
+					if (objectBucket != null) {
+						// set api type
+						bucketBillingInfo.setApiType(objectBucket.getApiType());
+						// set namespace
+						bucketBillingInfo.setNamespace(namespace.getName());
+					} else {
+						// set api type
+						bucketBillingInfo.setApiType("unknown");
+						// set namespace
+						bucketBillingInfo.setNamespace(namespace.getName());
+					}
+					objCounter++;
+				}
+
+				// Push collected info into datastore
+				if (this.billingDAO != null) {
+					// insert something
+					billingDAO.insert(namespaceBillingResponse, collectionTime);
+				}
+
+				// collect n subsequent pages
+				while (namespaceRequest.getNextMarker() != null) {
+					namespaceBillingResponse = client.getNamespaceBillingInfo(namespaceRequest);
+
+					if (namespaceBillingResponse != null) {
+						namespaceRequest.setNextMarker(namespaceBillingResponse.getNextMarker());
+
+						// add object bucket attributes
+						for (BucketBillingInfo bucketBillingInfo : namespaceBillingResponse.getBucketBillingInfo()) {
+							ObjectBucket objectBucket = objectBuckets.get(bucketBillingInfo.getName());
+
+							if (objectBucket != null) {
+								// set api type
+								bucketBillingInfo.setApiType(objectBucket.getApiType());
+								// set namespace
+								bucketBillingInfo.setNamespace(namespace.getName());
+							}
+							objCounter++;
 						}
-						objCounter++;
+
+						// Push collected info into datastore
+						if (this.billingDAO != null) {
+							// insert something
+							billingDAO.insert(namespaceBillingResponse, collectionTime);
+						}
+					} else {
+						namespaceRequest.setNextMarker(null);
 					}
-					
-					// Push collected info into datastore
-					if( this.billingDAO != null ) {
-						// insert something
-						billingDAO.insert(namespaceBillingResponse, collectionTime);
-					}
-				} else {
-					namespaceRequest.setNextMarker(null);
 				}
-			}			
-		}	
-		
-		// peg global counter
-		this.objectCount.getAndAdd(objCounter);
-		
+			}
+			// peg global counter
+			this.objectCount.getAndAdd(objCounter);
+		} catch (ReceiveTimeoutTransportException re) {
+			logger.error("Data collection will be aborted due to an error while connecting to ElasticSearch Cluster ",
+					re);
+			System.exit(1);
+		}
+
 	}
 		
 	/**
@@ -260,11 +266,16 @@ public class BillingBO {
 	 */
 	public void getObjectBucketData( Map<NamespaceBucketKey, ObjectBucket> objectBucketMap) {
 		
-		collectObjectBucketData( null,            // no namespace map required 
-				                 objectBucketMap,
-								 null,            // no collection time required
-								 null             // no DAO required 
-								       );
+		try {
+			collectObjectBucketData(null, // no namespace map required
+					objectBucketMap, null, // no collection time required
+					null // no DAO required
+			);
+		} catch (ReceiveTimeoutTransportException re) {
+			logger.error("Data collection will be aborted due to an error while connecting to ElasticSearch Cluster ",
+					re);
+			System.exit(1);
+		}
 		
 	}
 	
@@ -641,7 +652,13 @@ public class BillingBO {
 	}
 
 	public void getObjectBucketDataByBucket(Map<NamespaceBucketKey, ObjectBucket> objectBucketMap, String namespace, String bucketname) {
-		collectObjectBucketDataByBucket(null, objectBucketMap, null, null, namespace, bucketname);
+		try {
+			collectObjectBucketDataByBucket(null, objectBucketMap, null, null, namespace, bucketname);
+		} catch (ReceiveTimeoutTransportException re) {
+			logger.error("Data collection will be aborted due to an error while connecting to ElasticSearch Cluster ",
+					re);
+			System.exit(1);
+		}
 	}
 
 	/**
@@ -649,7 +666,14 @@ public class BillingBO {
 	 * @param objectBucketMap
 	 * @param namespace
 	 */
-	public void getObjectBucketDataByNamespace(Map<NamespaceBucketKey, ObjectBucket> objectBucketMap, String namespace) {
-		collectObjectBucketDataByNamespace(null, objectBucketMap, null, null, namespace);
+	public void getObjectBucketDataByNamespace(Map<NamespaceBucketKey, ObjectBucket> objectBucketMap,
+			String namespace) {
+		try {
+			collectObjectBucketDataByNamespace(null, objectBucketMap, null, null, namespace);
+		} catch (ReceiveTimeoutTransportException re) {
+			logger.error("Data collection will be aborted due to an error while connecting to ElasticSearch Cluster ",
+					re);
+			System.exit(1);
+		}
 	}
 }

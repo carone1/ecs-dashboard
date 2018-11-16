@@ -48,6 +48,7 @@ import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.transport.ReceiveTimeoutTransportException;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.slf4j.Logger;
@@ -66,6 +67,7 @@ import com.emc.ecs.metadata.utils.Constants;
 public class ElasticBillingDAO implements BillingDAO {
 
 	private final static String CLIENT_SNIFFING_CONFIG       = "client.transport.sniff";
+	private final static String CLIENT_TRANSPORT_PING_TIMEOUT = "client.transport.ping_timeout";
 	private final static String CLIENT_CLUSTER_NAME_CONFIG   = "cluster.name";
 	public  final static String BILLING_NAMESPACE_INDEX_NAME = "ecs-billing-namespace";
 	public  final static String BILLING_BUCKET_INDEX_NAME    = "ecs-billing-bucket";
@@ -102,6 +104,7 @@ public class ElasticBillingDAO implements BillingDAO {
 			
 			// Check for new hosts within the cluster
 			builder.put(CLIENT_SNIFFING_CONFIG, true);
+			builder.put(CLIENT_TRANSPORT_PING_TIMEOUT, "15s");
 			if (config.getXpackUser() != null) {
 				builder.put(Constants.XPACK_SECURITY_USER, config.getXpackUser() + ":" + config.getXpackPassword());
 				builder.put(Constants.XPACK_SSL_KEY, config.getXpackSslKey());
@@ -131,7 +134,10 @@ public class ElasticBillingDAO implements BillingDAO {
 			
 		} catch (UnknownHostException e) {
 			throw new RuntimeException("Unable to initialize Eleasticsearch client " + e.getLocalizedMessage() );
-		}				
+		} catch (ReceiveTimeoutTransportException re) {
+			LOGGER.error("Data collection will be aborted due to an error while connecting to ElasticSearch Cluster ", re);
+			System.exit(1);
+		}
 	}
 
 	//========================

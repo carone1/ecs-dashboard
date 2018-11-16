@@ -28,6 +28,7 @@ import com.emc.ecs.metadata.utils.Constants;
 public abstract class ElasticVdcDAO implements VdcDAO {
 
 	private final static String CLIENT_SNIFFING_CONFIG = "client.transport.sniff";
+	private final static String CLIENT_TRANSPORT_PING_TIMEOUT = "client.transport.ping_timeout";
 	private final static String CLIENT_CLUSTER_NAME_CONFIG = "cluster.name";
 	public final static String VDC_INDEX_NAME = "ecs-vdc";
 	public final static String BUCKET_OWNER_INDEX_NAME = "ecs-bucket-owner";
@@ -47,6 +48,7 @@ public abstract class ElasticVdcDAO implements VdcDAO {
 			Builder builder = Settings.builder();
 			// Check for new hosts within the cluster
 			builder.put(CLIENT_SNIFFING_CONFIG, true);
+			builder.put(CLIENT_TRANSPORT_PING_TIMEOUT, "15s");
 			// specify cluster name
 			if (config.getClusterName() != null) {
 				builder.put(CLIENT_CLUSTER_NAME_CONFIG, config.getClusterName());

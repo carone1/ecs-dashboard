@@ -27,6 +27,7 @@ import com.emc.ecs.metadata.utils.Constants;
 public abstract class ElasticNamespaceDAO implements NamespaceDAO {
 
 	private final static String CLIENT_SNIFFING_CONFIG = "client.transport.sniff";
+	private final static String CLIENT_TRANSPORT_PING_TIMEOUT = "client.transport.ping_timeout";
 	private final static String CLIENT_CLUSTER_NAME_CONFIG = "cluster.name";
 	public final static String COLLECTION_TIME = "collection_time";
 	public final static String ANALYZED_TAG = "_analyzed";
@@ -42,6 +43,7 @@ public abstract class ElasticNamespaceDAO implements NamespaceDAO {
 			Builder builder = Settings.builder();
 			// Check for new hosts within the cluster
 			builder.put(CLIENT_SNIFFING_CONFIG, true);
+			builder.put(CLIENT_TRANSPORT_PING_TIMEOUT, "15s");
 			if (config.getXpackUser() != null) {
 				builder.put(Constants.XPACK_SECURITY_USER, config.getXpackUser() + ":" + config.getXpackPassword());
 				builder.put(Constants.XPACK_SSL_KEY, config.getXpackSslKey());

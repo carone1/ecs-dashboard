@@ -31,6 +31,7 @@ package com.emc.ecs.metadata.bo;
 
 import java.util.concurrent.Callable;
 
+import org.elasticsearch.transport.ReceiveTimeoutTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,6 +135,11 @@ public class ListObjectsCollection implements Callable<String> {
 					}
 				}
 			}
+		} catch (ReceiveTimeoutTransportException re) {
+			logger.error("Data collection will be aborted due to an error while connecting to ElasticSearch Cluster ", re);
+			logger.error("Error occur while listing object from namespace: " + collectionConfig.getNamespace() +
+				     " Bucket: " + objectBucket.getName() );
+			System.exit(1);
 		} catch (Exception ex) {
 			logger.error("Error occur while listing object from namespace: " + collectionConfig.getNamespace() +
 					     " Bucket: " + objectBucket.getName() + " " + ex.getLocalizedMessage() );

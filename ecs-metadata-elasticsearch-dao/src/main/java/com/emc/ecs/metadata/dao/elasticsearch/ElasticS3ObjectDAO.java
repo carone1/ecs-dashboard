@@ -32,7 +32,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import java.util.Map.Entry;
 
 import org.elasticsearch.action.ActionFuture;
@@ -43,16 +42,14 @@ import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsReques
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-
+import org.elasticsearch.transport.ReceiveTimeoutTransportException;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.slf4j.Logger;
@@ -76,6 +73,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 
 	
 	private final static String CLIENT_SNIFFING_CONFIG       = "client.transport.sniff";
+	private final static String CLIENT_TRANSPORT_PING_TIMEOUT = "client.transport.ping_timeout";
 	private final static String CLIENT_CLUSTER_NAME_CONFIG   = "cluster.name";
 	public  final static String S3_OBJECT_INDEX_NAME         = "ecs-s3-object";
 	public  final static String S3_OBJECT_VERSION_INDEX_NAME = "ecs-object-version";
@@ -131,6 +129,7 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			
 			// Check for new hosts within the cluster
 			builder.put(CLIENT_SNIFFING_CONFIG, true);
+			builder.put(CLIENT_TRANSPORT_PING_TIMEOUT, "15s");
 			if (config.getXpackUser() != null) {
 				builder.put(Constants.XPACK_SECURITY_USER, config.getXpackUser() + ":" + config.getXpackPassword());
 				builder.put(Constants.XPACK_SSL_KEY, config.getXpackSslKey());
@@ -161,7 +160,10 @@ public class ElasticS3ObjectDAO implements ObjectDAO {
 			
 		} catch (UnknownHostException e) {
 			throw new RuntimeException(e.getLocalizedMessage());
-		}				
+		} catch (ReceiveTimeoutTransportException re) {
+			LOGGER.error("An error occured while connecting to ElasticSearch Cluster ", re);
+			System.exit(1);
+		}
 	}
 
 	/**
