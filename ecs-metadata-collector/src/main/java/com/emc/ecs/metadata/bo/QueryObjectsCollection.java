@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.elasticsearch.transport.ReceiveTimeoutTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,6 +165,11 @@ public class QueryObjectsCollection implements Callable<String> {
 					}
 				}				
 			}
+		} catch (ReceiveTimeoutTransportException re) {
+			logger.error("Error: Namespace: " + collectionConfig.getNamespace() +
+					" Bucket: " + objectBucket.getName() );
+			logger.error("Data collection will be aborted due to an error while connecting to ElasticSearch Cluster ", re);
+			System.exit(1);
 		} catch (Exception ex) {
 			
 			// known issue ECs returns this error when a bucket has MD keys but has not objects

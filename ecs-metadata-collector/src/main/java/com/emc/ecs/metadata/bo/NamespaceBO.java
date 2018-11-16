@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.elasticsearch.transport.ReceiveTimeoutTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,24 +81,30 @@ public class NamespaceBO {
 		List<Namespace> namespaceList = getNamespaces();
 		// At this point we should have all the namespace supported by the ECS
 		// system
-		long objCounter = 0;
-		for (Namespace namespace : namespaceList) {
-			LOGGER.info("Collecting Details for namespace: " + namespace.getName());
-			NamespaceDetail namespaceDetail = client.getNamespaceDetails(namespace.getId());
+		try {
+			long objCounter = 0;
+			for (Namespace namespace : namespaceList) {
+				LOGGER.info("Collecting Details for namespace: " + namespace.getName());
+				NamespaceDetail namespaceDetail = client.getNamespaceDetails(namespace.getId());
 
-			if (namespaceDetail == null) {
-				continue;
+				if (namespaceDetail == null) {
+					continue;
+				}
+				objCounter++;
+				// Push collected details into datastore
+				if (namespaceDAO != null) {
+					// insert something
+					namespaceDAO.insert(namespaceDetail, collectionTime);
+				}
 			}
-			objCounter++;
-			// Push collected details into datastore
-			if (namespaceDAO != null) {
-				// insert something
-				namespaceDAO.insert(namespaceDetail, collectionTime);
-			}
+
+			// peg global counter
+			this.objectCount.getAndAdd(objCounter);
+		} catch (ReceiveTimeoutTransportException re) {
+			LOGGER.error("Data collection will be aborted due to an error while connecting to ElasticSearch Cluster ",
+					re);
+			System.exit(1);
 		}
-
-		// peg global counter
-		this.objectCount.getAndAdd(objCounter);
 	}
 	
 	/**
@@ -111,32 +118,38 @@ public class NamespaceBO {
 		List<Namespace> namespaceList = getNamespaces();
 		// At this point we should have all the namespace supported by the ECS
 		// system
-		long objCounter = 0;
+		try {
+			long objCounter = 0;
 
-		for (Namespace namespace : namespaceList) {
-			
-			NamespaceRequest namespaceRequest = new NamespaceRequest();
-			namespaceRequest.setName(namespace.getName());
+			for (Namespace namespace : namespaceList) {
 
-			LOGGER.info("Collecting Quota Details for namespace: " + namespace.getName());
-			NamespaceQuota namespaceQuota = client.getNamespaceQuota(namespaceRequest);
+				NamespaceRequest namespaceRequest = new NamespaceRequest();
+				namespaceRequest.setName(namespace.getName());
 
-			if (namespaceQuota == null) {
-				continue;
+				LOGGER.info("Collecting Quota Details for namespace: " + namespace.getName());
+				NamespaceQuota namespaceQuota = client.getNamespaceQuota(namespaceRequest);
+
+				if (namespaceQuota == null) {
+					continue;
+				}
+
+				objCounter++;
+
+				// Push collected details into datastore
+				if (namespaceDAO != null) {
+					// insert something
+					namespaceDAO.insert(namespaceQuota, collectionTime);
+				}
+
 			}
 
-			objCounter++;
-
-			// Push collected details into datastore
-			if (namespaceDAO != null) {
-				// insert something
-				namespaceDAO.insert(namespaceQuota, collectionTime);
-			}
-
+			// peg global counter
+			this.objectCount.getAndAdd(objCounter);
+		} catch (ReceiveTimeoutTransportException re) {
+			LOGGER.error("Data collection will be aborted due to an error while connecting to ElasticSearch Cluster ",
+					re);
+			System.exit(1);
 		}
-
-		// peg global counter
-		this.objectCount.getAndAdd(objCounter);
 	}
 
 	public void shutdown() {
